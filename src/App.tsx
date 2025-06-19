@@ -1,9 +1,7 @@
 import { load } from '@tauri-apps/plugin-store';
-import { ConfigProvider, Layout, theme } from 'antd';
+import { ConfigProvider, theme } from 'antd';
 import { useEffect } from "react";
-import Nav from "./components/Nav";
 import Paginator from "./components/Paginator";
-import Settings from "./pages/Settings";
 import { useStore } from './state';
 import { SettingsType } from './types/common';
 
@@ -24,18 +22,7 @@ export default function Page() {
     theme={{
       algorithm: settings.theme == "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm,
     }}>
-
-    <Layout style={{ width: '100%', height: '100vh' }}>
-      <Nav />
-      <Paginator pages={{
-        estimates: <div>Estimates Page</div>,
-        customers: <div>Customers Page</div>,
-        cars: <div>Cars Page</div>,
-        settings: <Settings />,
-      }} />
-    </Layout>
-
-
+    <Paginator />
   </ConfigProvider >
 }
 
