@@ -8,11 +8,10 @@ fn greet(name: &str) -> String {
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-    let migrations = vec![
-        Migration {
-            version: 1,
-            description: "create_initial_tables",
-            sql: "CREATE TABLE IF NOT EXISTS workshops (
+    let migrations = vec![Migration {
+        version: 1,
+        description: "create_initial_tables",
+        sql: "CREATE TABLE IF NOT EXISTS workshops (
                     id INTEGER PRIMARY KEY AUTOINCREMENT,
                     name TEXT NOT NULL,
                     address TEXT NOT NULL,
@@ -21,12 +20,16 @@ pub fn run() {
                     email TEXT NOT NULL,
                     base_labor_cost DECIMAL(10, 2) NOT NULL
                     );",
-            kind: MigrationKind::Up,
-        }
-    ];
+        kind: MigrationKind::Up,
+    }];
 
     tauri::Builder::default()
-        .plugin(tauri_plugin_sql::Builder::default().add_migrations("sqlite:estimastes.db", migrations).build())
+        .plugin(tauri_plugin_store::Builder::new().build())
+        .plugin(
+            tauri_plugin_sql::Builder::default()
+                .add_migrations("sqlite:estimastes.db", migrations)
+                .build(),
+        )
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![greet])
         .run(tauri::generate_context!())
