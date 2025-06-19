@@ -29,13 +29,8 @@ const items: MenuItem[] = [
 ];
 
 export default function Nav() {
-
     const { page, updatePage } = useStore((state) => state)
-
-    const onClick: MenuProps['onClick'] = (e) => {
+    return <Menu style={{ marginBottom: "10px" }} onClick={(e) => {
         updatePage(e.key)
-    };
-
-
-    return <Menu onClick={onClick} selectedKeys={[page]} mode="horizontal" items={items} />;
+    }} selectedKeys={[page]} mode="horizontal" items={items} />;
 };

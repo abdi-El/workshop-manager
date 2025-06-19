@@ -1,40 +1,22 @@
-import { load } from '@tauri-apps/plugin-store';
-import { Button, Form, message, Select } from 'antd';
+import { Button, Form, message, Select, Typography } from 'antd';
 import { useEffect } from 'react';
-const store = await load('settings.json', { autoSave: false });
-interface SettingsType {
-    theme: string;
-}
+import { useStore } from '../state';
+import { SettingsType } from '../types/common';
 
-
+const { Title } = Typography;
 export default function Settings() {
+    const { settings, setSettings } = useStore((state) => state)
     const [form] = Form.useForm<SettingsType>()
 
-    async function getSettings() {
-        store.get('settings').then(settings => {
-            if (!settings) {
-                // Initialize default settings if not present
-                const defaultValue = { theme: 'light' };
-                // Initialize default settings if not present
-                store.set('settings', defaultValue);
-                form.setFieldsValue(defaultValue);
-            }
-            else {
-                form.setFieldsValue(settings as SettingsType);
-            }
-        });
-    }
     useEffect(() => {
-        getSettings()
+        form.setFieldsValue(settings);
     }, [])
 
-
-
     return (
-        <div className="settings">
-            <h1>Settings</h1>
+        <>
+            <Title level={2}>Impostazioni</Title>
             <Form form={form} layout="vertical" className="settings-form">
-                <Form.Item label="Theme" name="theme">
+                <Form.Item label="Selezionare il tema:" name="theme">
                     <Select>
                         <Select.Option value="light">Chiaro</Select.Option>
                         <Select.Option value="dark">Scuro</Select.Option>
@@ -43,11 +25,8 @@ export default function Settings() {
                 <Form.Item>
                     <Button type="primary" onClick={() => {
                         form.validateFields().then(values => {
-                            store.set('settings', values).then(() => {
-                                message.success('Impostazioni salvate con successo!');
-                            }).catch(err => {
-                                message.error('Errore durante il salvataggio delle impostazioni.');
-                            });
+                            setSettings(values);
+                            message.success('Impostazioni salvate con successo!');
                         }).catch(err => {
                             message.error('Errore di validazione: ' + err);
                         });
@@ -56,6 +35,6 @@ export default function Settings() {
                     </Button>
                 </Form.Item>
             </Form>
-        </div>
+        </>
     );
 }
