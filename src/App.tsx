@@ -5,11 +5,11 @@ import { useStore } from './state';
 
 
 export default function Page() {
-  const { settings, updateSettings, updateWorkshops } = useStore((state) => state)
+  const { settings, updateSettings, updateDatabaseData } = useStore((state) => state)
 
   useEffect(() => {
     updateSettings()
-    updateWorkshops()
+    updateDatabaseData("workshops")
   }, [])
 
   return <ConfigProvider

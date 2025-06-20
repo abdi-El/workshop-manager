@@ -1,6 +1,6 @@
-import { Button, Form, Input, InputNumber, message } from "antd";
-import React from "react";
-import { db } from "../../database";
+import { Button, Form, Input, InputNumber } from "antd";
+import React, { useEffect } from "react";
+import { create, update } from "../../database";
 import { useStore } from "../../state";
 import { Workshop } from "../../types/database";
 
@@ -13,24 +13,36 @@ type WorkshopFormProps = {
 
 const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) => {
     const [form] = Form.useForm();
-    const { updateWorkshops } = useStore((state) => state);
+    const { updateDatabaseData } = useStore((state) => state);
 
 
     const handleFinish = (values: Workshop) => {
-        db.execute(`
-            INSERT INTO workshops (${Object.keys(values).join(", ")})
-            VALUES (${Object.keys(values).map((_, index) => `$${index + 1}`).join(", ")})
-        `, Object.values(values)).then(() => {
-            form.resetFields();
-            message.success("Officina creata con successo!");
-            updateWorkshops();
-            onSubmit(values);
-        }).catch((error) => {
-            message.error("Errore nella crezione dell'officina : " + error);
-        });
-        onSubmit(values);
-    };
+        if (!workshop.id) {
 
+            create(values, () => {
+                form.resetFields();
+                updateDatabaseData("workshops");
+                onSubmit(values);
+            }, "workshops")
+        }
+        else {
+            update(values, workshop.id, () => {
+                form.resetFields();
+                updateDatabaseData("workshops");
+                onSubmit(values);
+            }, "workshops")
+        }
+    }
+
+
+    useEffect(() => {
+        if (workshop.id) {
+            form.setFieldsValue(workshop);
+        }
+        else {
+            form.resetFields();
+        }
+    }, [workshop, form]);
 
 
 
@@ -38,7 +50,6 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) 
         <Form
             form={form}
             layout="vertical"
-            initialValues={workshop}
             onFinish={handleFinish}
         >
             <Form.Item
@@ -94,7 +105,7 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) 
 
             <Form.Item>
                 <Button type="primary" htmlType="submit">
-                    Crea Officina
+                    {workshop ? "Aggiorna" : "Crea"} Officina
                 </Button>
             </Form.Item>
         </Form>

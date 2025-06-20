@@ -6,7 +6,7 @@ import { Workshop } from './types/database';
 
 
 
-interface BearState {
+interface AppState {
     page: string
     loading: boolean
     updatePage: (page: string) => void
@@ -14,10 +14,10 @@ interface BearState {
     settings: SettingsType
     updateSettings: (values?: SettingsType) => void
     workshops: Workshop[] // Placeholder for workshops, replace with actual type
-    updateWorkshops: () => void
+    updateDatabaseData: (key: keyof AppState) => void
 }
 
-const useStore = create<BearState>()((set) => ({
+const useStore = create<AppState>()((set) => ({
     page: "estimates",
     loading: false,
     updatePage: (page: string) => set({ page }),
@@ -37,10 +37,10 @@ const useStore = create<BearState>()((set) => ({
 
     },
     workshops: [],
-    updateWorkshops() {
+    updateDatabaseData(key: string) {
         set({ loading: true })
-        db.select<Workshop[]>(`SELECT * FROM workshops`).then((rows: Workshop[]) => {
-            set({ workshops: rows })
+        db.select<Workshop[]>(`SELECT * FROM ${key}`).then((rows) => {
+            set({ [key]: rows })
         }).catch((error) => {
             message.error("Errore nel recupero delle officine: " + error);
         }).finally(() => set({ loading: false }))
