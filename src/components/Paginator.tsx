@@ -49,9 +49,10 @@ export default function Paginator() {
                 updatePage(e.key)
             }} selectedKeys={[page]} mode="horizontal" items={Object.values(items)} />
 
-            <Title level={2}>{items[page as keyof typeof items]?.label}</Title>
-
-            {items[page as keyof typeof items]?.page}
+            <div style={{ padding: '0px 10px', }}>
+                <Title level={2}>{items[page as keyof typeof items]?.label}</Title>
+                {items[page as keyof typeof items]?.page}
+            </div>
         </Spin>
     </Layout>
 

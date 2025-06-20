@@ -1,9 +1,8 @@
-import { Button, Drawer, Table } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { Button, Drawer, Row, Table } from "antd";
 import { useState } from "react";
 import WorkshopForm from "../components/forms/WorkshopForm";
-
-
-
+import { useStore } from "../state";
 
 
 const columns = [
@@ -42,6 +41,8 @@ const columns = [
 
 export default function Workshops() {
     const [open, setOpen] = useState(false);
+    const { workshops } = useStore((state) => state);
+
     const showDrawer = () => {
         setOpen(true);
     };
@@ -49,19 +50,23 @@ export default function Workshops() {
     const onClose = () => {
         setOpen(false);
     };
+
     return <>
-        <Button type="primary" onClick={showDrawer}>
-            Crea Officina
-        </Button>
+        <Row justify="end" align="middle" style={{ marginBottom: 16 }}>
+            <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />}>
+                Crea Officina
+            </Button>
+        </Row>
+
         <Drawer
             title="Crea Nuova Officina"
             closable={{ 'aria-label': 'Chiudi' }}
             onClose={onClose}
             open={open}
         >
-            <WorkshopForm onSubmit={() => { }} />
+            <WorkshopForm onSubmit={onClose} />
         </Drawer>
-        <Table dataSource={[]} columns={columns} rowKey="id" />;
+        <Table dataSource={workshops} columns={columns} rowKey="id" />;
     </>
 };
 

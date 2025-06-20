@@ -1,21 +1,15 @@
-import { load } from '@tauri-apps/plugin-store';
 import { ConfigProvider, theme } from 'antd';
 import { useEffect } from "react";
 import Paginator from "./components/Paginator";
 import { useStore } from './state';
-import { SettingsType } from './types/common';
-
-const store = await load('settings.json', { autoSave: false });
 
 
 export default function Page() {
-  const { setLoading, settings, setSettings } = useStore((state) => state)
+  const { settings, updateSettings, updateWorkshops } = useStore((state) => state)
 
   useEffect(() => {
-    setLoading(true);
-    store.get('settings').then(storeSettings => {
-      setSettings(storeSettings as SettingsType || settings);
-    }).finally(() => setLoading(false))
+    updateSettings()
+    updateWorkshops()
   }, [])
 
   return <ConfigProvider

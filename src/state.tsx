@@ -1,10 +1,8 @@
-import { load } from '@tauri-apps/plugin-store';
+import { message } from 'antd';
 import { create } from 'zustand';
+import { db, storeSettings } from './database';
 import { SettingsType } from './types/common';
-
-const store = await load('settings.json');
-
-
+import { Workshop } from './types/database';
 
 
 
@@ -14,7 +12,9 @@ interface BearState {
     updatePage: (page: string) => void
     setLoading: (loading: boolean) => void
     settings: SettingsType
-    setSettings: (settings: SettingsType) => void
+    updateSettings: (values?: SettingsType) => void
+    workshops: Workshop[] // Placeholder for workshops, replace with actual type
+    updateWorkshops: () => void
 }
 
 const useStore = create<BearState>()((set) => ({
@@ -23,12 +23,27 @@ const useStore = create<BearState>()((set) => ({
     updatePage: (page: string) => set({ page }),
     setLoading: (loading: boolean) => set({ loading }),
     settings: { theme: 'light' },
-    setSettings: (newSettings: SettingsType) => {
+    updateSettings: (values) => {
         set({ loading: true })
-        store.set('settings', newSettings)
-        set({ settings: newSettings })
-        set({ loading: false })
+        if (values) {
+            storeSettings.set('settings', values).then(_ => {
+                set({ settings: values })
+            }).finally(() => set({ loading: false }))
+        } else {
+            storeSettings.get('settings').then(storeSettings => {
+                set({ settings: storeSettings as SettingsType })
+            }).finally(() => set({ loading: false }))
+        }
 
+    },
+    workshops: [],
+    updateWorkshops() {
+        set({ loading: true })
+        db.select<Workshop[]>(`SELECT * FROM workshops`).then((rows: Workshop[]) => {
+            set({ workshops: rows })
+        }).catch((error) => {
+            message.error("Errore nel recupero delle officine: " + error);
+        }).finally(() => set({ loading: false }))
     }
 }))
 export { useStore };

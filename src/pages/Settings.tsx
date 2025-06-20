@@ -4,8 +4,9 @@ import { useStore } from '../state';
 import { SettingsType } from '../types/common';
 
 
+
 export default function Settings() {
-    const { settings, setSettings } = useStore((state) => state)
+    const { settings, updateSettings } = useStore((state) => state)
     const [form] = Form.useForm<SettingsType>()
 
     useEffect(() => {
@@ -15,9 +16,7 @@ export default function Settings() {
     return (
         <>
             <Form form={form} layout="vertical" className="settings-form" onValuesChange={() => {
-                form.validateFields().then((values) => {
-                    setSettings(values);
-                }).catch(err => {
+                form.validateFields().then((values) => updateSettings(values)).catch(err => {
                     message.error('Errore di validazione: ' + err);
                 });
             }}>
