@@ -12,7 +12,7 @@ interface AppState {
     updatePage: (page: string) => void
     setLoading: (loading: boolean) => void
     settings: SettingsType
-    updateSettings: (values?: SettingsType) => void
+    updateSettings: (values?: Partial<SettingsType>) => void
     workshops: Workshop[] // Placeholder for workshops, replace with actual type
     updateDatabaseData: (key: keyof AppState) => void
 }
@@ -27,7 +27,9 @@ const useStore = create<AppState>()((set) => ({
         set({ loading: true })
         if (values) {
             storeSettings.set('settings', values).then(_ => {
-                set({ settings: values })
+                set((old) => {
+                    return { settings: { ...old.settings, ...values } }
+                })
             }).finally(() => set({ loading: false }))
         } else {
             storeSettings.get('settings').then(storeSettings => {

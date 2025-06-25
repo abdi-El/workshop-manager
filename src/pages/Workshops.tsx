@@ -9,7 +9,7 @@ import { Workshop } from "../types/database";
 
 export default function Workshops() {
     const [open, setOpen] = useState(false);
-    const { workshops, updateDatabaseData } = useStore((state) => state);
+    const { workshops, updateDatabaseData, settings, updateSettings } = useStore((state) => state);
     const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop>();
 
     const columns = [
@@ -50,7 +50,9 @@ export default function Workshops() {
             key: "actions",
             render: (_: unknown, ws: Workshop) =>
                 <Space>
-                    <Radio.Group value={""} buttonStyle="solid">
+                    <Radio.Group value={settings.selectedWorkshop} buttonStyle="solid">
+                        <Radio.Button value={ws.id} onClick={() => { updateSettings({ selectedWorkshop: ws.id }) }}>Seleziona</Radio.Button>
+
                         <Radio.Button onClick={() => { showDrawer(); setSelectedWorkshop(ws) }}>Modifica</Radio.Button>
                         <Popconfirm
                             title="Elimina Officina"
