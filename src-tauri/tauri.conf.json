@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "tauri-app",
+        "title": "Gestionale Officina",
         "width": 1000,
         "height": 800
       }

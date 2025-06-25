@@ -20,20 +20,31 @@ interface AppState {
 const useStore = create<AppState>()((set) => ({
     page: "estimates",
     loading: false,
-    updatePage: (page: string) => set({ page }),
+    updatePage: (page: string) => set((current) => {
+        if (!current.settings.selectedWorkshop && page !== "workshop") {
+            message.warning("Seleziona un'officina prima di procedere.");
+            return { page: "workshop" }
+        }
+        return { page }
+    }
+    ),
     setLoading: (loading: boolean) => set({ loading }),
     settings: { theme: 'light' },
     updateSettings: (values) => {
         set({ loading: true })
         if (values) {
-            storeSettings.set('settings', values).then(_ => {
-                set((old) => {
-                    return { settings: { ...old.settings, ...values } }
-                })
-            }).finally(() => set({ loading: false }))
+            set((old) => {
+                const newValues = { ...old.settings, ...values }
+                storeSettings.set('settings', newValues).then(_ => {
+                }).finally(() => set({ loading: false }))
+                return { settings: newValues }
+            })
         } else {
             storeSettings.get('settings').then(storeSettings => {
                 set({ settings: storeSettings as SettingsType })
+                if (!(storeSettings as SettingsType).selectedWorkshop) {
+                    set({ page: "workshop" })
+                }
             }).finally(() => set({ loading: false }))
         }
 
