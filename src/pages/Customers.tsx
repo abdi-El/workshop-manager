@@ -1,20 +1,21 @@
 import { PlusOutlined } from "@ant-design/icons";
 import { Button, Drawer, Popconfirm, Radio, Row, Space, Table } from "antd";
 import { useState } from "react";
-import WorkshopForm from "../components/forms/WorkshopForm";
+
+import CustomerForm from "../components/forms/CustomerForm";
 import { deleteRow } from "../database";
 import { useStore } from "../state";
-import { Workshop } from "../types/database";
+import { Customer } from "../types/database";
 
 
-export default function Workshops() {
+export default function Customers() {
     const [open, setOpen] = useState(false);
-    const { workshops, updateDatabaseData, settings, updateSettings } = useStore((state) => state);
-    const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop>();
+    const { customers, updateDatabaseData } = useStore((state) => state);
+    const [selectedCustomer, setSelectedCustomer] = useState<Customer>();
 
     const columns = [
         {
-            title: "Nome",
+            title: "Nome Cliente",
             dataIndex: "name",
             key: "name",
         },
@@ -24,9 +25,9 @@ export default function Workshops() {
             key: "address",
         },
         {
-            title: "Iva N.",
-            dataIndex: "vat_number",
-            key: "vat_number",
+            title: "Telefono",
+            dataIndex: "phone",
+            key: "phone",
         },
         {
             title: "Telefono",
@@ -39,29 +40,22 @@ export default function Workshops() {
             key: "email",
         },
         {
-            title: "Prezzo Mano d'Opera",
-            dataIndex: "base_labor_cost",
-            key: "base_labor_cost",
-            render: (cost: number) => `€ ${cost.toFixed(2)}`,
-        },
-        {
             title: "Azioni",
             dataIndex: "",
             key: "actions",
-            render: (_: unknown, ws: Workshop) =>
+            render: (_: unknown, cs: Customer) =>
                 <Space>
-                    <Radio.Group value={settings.selectedWorkshop} buttonStyle="solid">
-                        <Radio.Button value={ws.id} onClick={() => { updateSettings({ selectedWorkshop: ws.id }) }}>Seleziona</Radio.Button>
+                    <Radio.Group buttonStyle="solid">
 
-                        <Radio.Button onClick={() => { showDrawer(); setSelectedWorkshop(ws) }}>Modifica</Radio.Button>
+                        <Radio.Button onClick={() => { showDrawer(); setSelectedCustomer(cs) }}>Modifica</Radio.Button>
                         <Popconfirm
                             title="Elimina Officina"
                             description="Sei sicuro di voler eliminare questa officina?"
                             okText="Sì"
                             cancelText="No"
                             onConfirm={() => {
-                                deleteRow(ws.id, "workshops", () => {
-                                    updateDatabaseData(["workshops"]);
+                                deleteRow(cs.id, "customers", () => {
+                                    updateDatabaseData(["customers"]);
                                 })
                             }}
                         >
@@ -77,7 +71,7 @@ export default function Workshops() {
 
     const onClose = () => {
         setOpen(false);
-        setSelectedWorkshop(undefined);
+        setSelectedCustomer(undefined);
     };
 
     return <>
@@ -88,14 +82,14 @@ export default function Workshops() {
         </Row>
 
         <Drawer
-            title={`${selectedWorkshop ? "Aggiorna" : "Crea Nuova"} Officina`}
+            title={`${selectedCustomer ? "Aggiorna" : "Crea Nuovo"} Cliente`}
             closable={{ 'aria-label': 'Chiudi' }}
             onClose={onClose}
             open={open}
         >
-            <WorkshopForm onSubmit={onClose} workshop={selectedWorkshop} />
+            <CustomerForm onSubmit={onClose} customer={selectedCustomer} />
         </Drawer>
-        <Table dataSource={workshops} columns={columns} rowKey="id" />;
+        <Table dataSource={customers} columns={columns} rowKey="id" />;
     </>
 };
 

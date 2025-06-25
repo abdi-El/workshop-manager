@@ -1,5 +1,6 @@
 import { CarOutlined, FileTextOutlined, LoadingOutlined, SettingOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
 import { Layout, Menu, Spin, Typography } from "antd";
+import Customers from '../pages/Customers';
 import Settings from '../pages/Settings';
 import Workshops from '../pages/Workshops';
 import { useStore } from "../state";
@@ -19,7 +20,7 @@ export default function Paginator() {
             label: 'Clienti',
             key: 'customers',
             icon: <UserOutlined />,
-            page: <div>Customers Page</div>
+            page: <Customers />
         },
         "cars": {
             label: 'Auto',

@@ -21,14 +21,14 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) 
 
             create(values, () => {
                 form.resetFields();
-                updateDatabaseData("workshops");
+                updateDatabaseData(["workshops"]);
                 onSubmit(values);
             }, "workshops")
         }
         else {
             update(values, workshop.id, () => {
                 form.resetFields();
-                updateDatabaseData("workshops");
+                updateDatabaseData(["workshops"]);
                 onSubmit(values);
             }, "workshops")
         }

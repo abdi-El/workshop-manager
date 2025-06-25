@@ -9,7 +9,7 @@ export default function Page() {
 
   useEffect(() => {
     updateSettings()
-    updateDatabaseData("workshops")
+    updateDatabaseData(["workshops", "customers"])
   }, [])
 
   return <ConfigProvider

@@ -2,7 +2,7 @@ import { message } from 'antd';
 import { create } from 'zustand';
 import { db, storeSettings } from './database';
 import { SettingsType } from './types/common';
-import { Workshop } from './types/database';
+import { Customer, Workshop } from './types/database';
 
 
 
@@ -14,7 +14,8 @@ interface AppState {
     settings: SettingsType
     updateSettings: (values?: Partial<SettingsType>) => void
     workshops: Workshop[] // Placeholder for workshops, replace with actual type
-    updateDatabaseData: (key: keyof AppState) => void
+    customers: Customer[] // Placeholder for workshops, replace with actual type
+    updateDatabaseData: (key: (keyof AppState)[]) => void
 }
 
 const useStore = create<AppState>()((set) => ({
@@ -50,13 +51,16 @@ const useStore = create<AppState>()((set) => ({
 
     },
     workshops: [],
-    updateDatabaseData(key: string) {
-        set({ loading: true })
-        db.select<Workshop[]>(`SELECT * FROM ${key}`).then((rows) => {
-            set({ [key]: rows })
-        }).catch((error) => {
-            message.error("Errore nel recupero delle officine: " + error);
-        }).finally(() => set({ loading: false }))
+    customers: [],
+    updateDatabaseData(keys: string[]) {
+        keys.forEach(key => {
+            set({ loading: true })
+            db.select<Workshop[]>(`SELECT * FROM ${key}`).then((rows) => {
+                set({ [key]: rows })
+            }).catch((error) => {
+                message.error("Errore nel recupero delle officine: " + error);
+            }).finally(() => set({ loading: false }))
+        })
     }
 }))
 export { useStore };
