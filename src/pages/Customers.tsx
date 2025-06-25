@@ -77,7 +77,7 @@ export default function Customers() {
     return <>
         <Row justify="end" align="middle" style={{ marginBottom: 16 }}>
             <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />}>
-                Crea Officina
+                Crea Cliente
             </Button>
         </Row>
 
