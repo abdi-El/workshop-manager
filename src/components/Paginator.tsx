@@ -3,12 +3,13 @@ import { Layout, Menu, Spin, Typography } from "antd";
 import Customers from '../pages/Customers';
 import Settings from '../pages/Settings';
 import Workshops from '../pages/Workshops';
-import { useStore } from "../state";
+import { useDatabaseStore, useStore } from "../state";
 
 const { Title } = Typography;
 
 export default function Paginator() {
     const { page, loading, updatePage } = useStore((state) => state)
+    const { databaseLoading } = useDatabaseStore((state) => state)
     const items = {
         "estimates": {
             label: 'Preventivi',
@@ -44,7 +45,7 @@ export default function Paginator() {
 
     return <Layout style={{ width: '100%', height: '100vh' }}>
 
-        <Spin spinning={loading} indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} >
+        <Spin spinning={loading || databaseLoading} indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} >
 
             <Menu style={{ marginBottom: "10px" }} onClick={(e) => {
                 updatePage(e.key)
