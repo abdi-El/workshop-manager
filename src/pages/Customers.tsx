@@ -4,13 +4,13 @@ import { useState } from "react";
 
 import CustomerForm from "../components/forms/CustomerForm";
 import { deleteRow } from "../database";
-import { useStore } from "../state";
+import { useDatabaseStore } from "../state";
 import { Customer } from "../types/database";
 
 
 export default function Customers() {
     const [open, setOpen] = useState(false);
-    const { customers, updateDatabaseData } = useStore((state) => state);
+    const { customers, updateDatabaseData } = useDatabaseStore((state) => state)
     const [selectedCustomer, setSelectedCustomer] = useState<Customer>();
 
     const columns = [
@@ -46,7 +46,6 @@ export default function Customers() {
             render: (_: unknown, cs: Customer) =>
                 <Space>
                     <Radio.Group buttonStyle="solid">
-
                         <Radio.Button onClick={() => { showDrawer(); setSelectedCustomer(cs) }}>Modifica</Radio.Button>
                         <Popconfirm
                             title="Elimina Officina"

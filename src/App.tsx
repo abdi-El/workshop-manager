@@ -1,11 +1,12 @@
 import { ConfigProvider, theme } from 'antd';
 import { useEffect } from "react";
 import Paginator from "./components/Paginator";
-import { useStore } from './state';
+import { useDatabaseStore, useStore } from './state';
 
 
 export default function Page() {
-  const { settings, updateSettings, updateDatabaseData } = useStore((state) => state)
+  const { settings, updateSettings } = useStore((state) => state)
+  const { updateDatabaseData } = useDatabaseStore((state) => state)
 
   useEffect(() => {
     updateSettings()

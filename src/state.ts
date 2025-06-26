@@ -5,6 +5,12 @@ import { SettingsType } from './types/common';
 import { Customer, Workshop } from './types/database';
 
 
+interface DatabaseState {
+    workshops: Workshop[]
+    customers: Customer[]
+    databaseLoading: boolean
+    updateDatabaseData: (key: (keyof DatabaseState)[]) => void
+}
 
 interface AppState {
     page: string
@@ -13,12 +19,28 @@ interface AppState {
     setLoading: (loading: boolean) => void
     settings: SettingsType
     updateSettings: (values?: Partial<SettingsType>) => void
-    workshops: Workshop[]
-    customers: Customer[]
-    updateDatabaseData: (key: (keyof AppState)[]) => void
+
 }
 
-const useStore = create<AppState>()((set) => ({
+export const useDatabaseStore = create<DatabaseState>()((set) => ({
+    workshops: [],
+    customers: [],
+    databaseLoading: false,
+    updateDatabaseData: (keys) => {
+        keys.forEach(key => {
+            set({ databaseLoading: true })
+            db.select<Workshop[]>(`SELECT * FROM ${key}`).then((rows) => {
+                set({ [key]: rows })
+            }).catch((error) => {
+                message.error("Errore nel recupero dei dati: " + error);
+            }).finally(() => set({ databaseLoading: false }))
+        })
+    }
+}))
+
+
+
+export const useStore = create<AppState>()((set) => ({
     page: "estimates",
     loading: false,
     updatePage: (page: string) => set((current) => {
@@ -50,18 +72,7 @@ const useStore = create<AppState>()((set) => ({
         }
 
     },
-    workshops: [],
-    customers: [],
-    updateDatabaseData(keys: string[]) {
-        keys.forEach(key => {
-            set({ loading: true })
-            db.select<Workshop[]>(`SELECT * FROM ${key}`).then((rows) => {
-                set({ [key]: rows })
-            }).catch((error) => {
-                message.error("Errore nel recupero delle officine: " + error);
-            }).finally(() => set({ loading: false }))
-        })
-    }
+
 }))
-export { useStore };
+
 

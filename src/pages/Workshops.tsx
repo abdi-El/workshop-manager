@@ -3,13 +3,15 @@ import { Button, Drawer, Popconfirm, Radio, Row, Space, Table } from "antd";
 import { useState } from "react";
 import WorkshopForm from "../components/forms/WorkshopForm";
 import { deleteRow } from "../database";
-import { useStore } from "../state";
+import { useDatabaseStore, useStore } from "../state";
 import { Workshop } from "../types/database";
 
 
 export default function Workshops() {
     const [open, setOpen] = useState(false);
-    const { workshops, updateDatabaseData, settings, updateSettings } = useStore((state) => state);
+    const { workshops, updateDatabaseData } = useDatabaseStore((state) => state)
+
+    const { settings, updateSettings } = useStore((state) => state);
     const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop>();
 
     const columns = [

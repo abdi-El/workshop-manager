@@ -1,7 +1,7 @@
 import { Button, Form, Input } from "antd";
 import React, { useEffect } from "react";
 import { create, update } from "../../database";
-import { useStore } from "../../state";
+import { useDatabaseStore, useStore } from "../../state";
 import { Customer } from "../../types/database";
 
 type CustomerFormProps = {
@@ -11,8 +11,9 @@ type CustomerFormProps = {
 
 const CustomerForm: React.FC<CustomerFormProps> = ({ customer = {}, onSubmit }) => {
     const [form] = Form.useForm();
+    const { updateDatabaseData } = useDatabaseStore((state) => state)
 
-    const { updateDatabaseData, settings } = useStore((state) => state);
+    const { settings } = useStore((state) => state);
 
     const handleFinish = (values: Omit<Customer, "id">) => {
         if (!customer.id) {
