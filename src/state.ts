@@ -13,8 +13,8 @@ interface AppState {
     setLoading: (loading: boolean) => void
     settings: SettingsType
     updateSettings: (values?: Partial<SettingsType>) => void
-    workshops: Workshop[] // Placeholder for workshops, replace with actual type
-    customers: Customer[] // Placeholder for workshops, replace with actual type
+    workshops: Workshop[]
+    customers: Customer[]
     updateDatabaseData: (key: (keyof AppState)[]) => void
 }
 
