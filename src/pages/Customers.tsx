@@ -3,8 +3,8 @@ import { Button, Drawer, Popconfirm, Radio, Row, Space, Table } from "antd";
 import { useState } from "react";
 
 import CustomerForm from "../components/forms/CustomerForm";
-import { deleteRow } from "../database";
-import { useDatabaseStore } from "../state";
+import { deleteRow } from "../modules/database";
+import { useDatabaseStore } from "../modules/state";
 import { Customer } from "../types/database";
 
 

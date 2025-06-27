@@ -1,9 +1,9 @@
 import { CarOutlined, FileTextOutlined, LoadingOutlined, SettingOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
 import { Layout, Menu, Spin, Typography } from "antd";
+import { useDatabaseStore, useStore } from "../modules/state";
 import Customers from '../pages/Customers';
 import Settings from '../pages/Settings';
 import Workshops from '../pages/Workshops';
-import { useDatabaseStore, useStore } from "../state";
 
 const { Title } = Typography;
 

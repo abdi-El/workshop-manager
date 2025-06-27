@@ -1,7 +1,7 @@
 import { ConfigProvider, theme } from 'antd';
 import { useEffect } from "react";
 import Paginator from "./components/Paginator";
-import { useDatabaseStore, useStore } from './state';
+import { useDatabaseStore, useStore } from './modules/state';
 
 
 export default function Page() {

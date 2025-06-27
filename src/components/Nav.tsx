@@ -1,7 +1,7 @@
 import { CarOutlined, FileTextOutlined, SettingOutlined, UserOutlined } from '@ant-design/icons';
 import type { MenuProps } from 'antd';
 import { Menu } from 'antd';
-import { useStore } from '../state';
+import { useStore } from '../modules/state';
 
 type MenuItem = Required<MenuProps>['items'][number];
 

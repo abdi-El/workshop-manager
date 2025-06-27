@@ -1,7 +1,7 @@
 import { Button, Form, Input } from "antd";
 import React, { useEffect } from "react";
-import { create, update } from "../../database";
-import { useDatabaseStore, useStore } from "../../state";
+import { create, update } from "../../modules/database";
+import { useDatabaseStore, useStore } from "../../modules/state";
 import { Customer } from "../../types/database";
 
 type CustomerFormProps = {

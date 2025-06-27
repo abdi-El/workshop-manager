@@ -1,6 +1,6 @@
 import { Form, message, Select } from 'antd';
 import { useEffect } from 'react';
-import { useStore } from '../state';
+import { useStore } from '../modules/state';
 import { SettingsType } from '../types/common';
 
 

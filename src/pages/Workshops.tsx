@@ -2,8 +2,8 @@ import { PlusOutlined } from "@ant-design/icons";
 import { Button, Drawer, Popconfirm, Radio, Row, Space, Table } from "antd";
 import { useState } from "react";
 import WorkshopForm from "../components/forms/WorkshopForm";
-import { deleteRow } from "../database";
-import { useDatabaseStore, useStore } from "../state";
+import { deleteRow } from "../modules/database";
+import { useDatabaseStore, useStore } from "../modules/state";
 import { Workshop } from "../types/database";
 
 
