@@ -1,8 +1,8 @@
 import { message } from 'antd';
 import { create } from 'zustand';
+import { SettingsType } from '../types/common';
+import { Customer, Maker, MakerModel, Workshop } from '../types/database';
 import { db, storeSettings } from './database';
-import { SettingsType } from './types/common';
-import { Customer, Maker, MakerModel, Workshop } from './types/database';
 
 
 interface DatabaseState {
