@@ -1,6 +1,7 @@
 import Database from '@tauri-apps/plugin-sql';
 import { load } from '@tauri-apps/plugin-store';
 import { message } from 'antd';
+import makersModels from './makers-models.json';
 
 
 const db = await Database.load('sqlite:estimates.db');
@@ -41,3 +42,19 @@ export async function deleteRow(id: number, table: string, onDelete: () => void)
     })
 }
 export { db, storeSettings };
+
+
+export async function populateMakers() {
+    if (!(await storeSettings.get('makersPopulated'))) {
+        Object.values(makersModels).forEach(async (maker) => {
+            const { models, ...makerToSave } = maker;
+            await create(makerToSave, () => { }, 'makers');
+            const makerId = await db.execute(`INSERT INTO makers (name) VALUES (?)`, [maker.name]);
+            for (let model of models) {
+                await create({ name: model, "maker_id": makerId }, () => { }, 'models');
+            }
+        });
+        await storeSettings.set('makersPopulated', true);
+        message.success("Marcher e Modelli popolati con successo!");
+    }
+}

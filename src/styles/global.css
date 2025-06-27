@@ -3,3 +3,11 @@
   padding: 0;
   box-sizing: border-box;
 }
+body {
+  min-height: 100vh;
+}
+
+.list .item:hover {
+  background-color: #b3b1b1;
+  cursor: pointer;
+}

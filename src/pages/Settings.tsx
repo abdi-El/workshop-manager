@@ -1,5 +1,6 @@
-import { Form, message, Select } from 'antd';
+import { Form, Layout, message, Select } from 'antd';
 import { useEffect } from 'react';
+import MakersModels from '../components/MakersModels';
 import { useStore } from '../modules/state';
 import { SettingsType } from '../types/common';
 
@@ -7,6 +8,7 @@ import { SettingsType } from '../types/common';
 
 export default function Settings() {
     const { settings, updateSettings } = useStore((state) => state)
+
     const [form] = Form.useForm<SettingsType>()
 
     useEffect(() => {
@@ -14,7 +16,7 @@ export default function Settings() {
     }, [])
 
     return (
-        <>
+        <Layout>
             <Form form={form} layout="vertical" className="settings-form" onValuesChange={() => {
                 form.validateFields().then((values) => updateSettings(values)).catch(err => {
                     message.error('Errore di validazione: ' + err);
@@ -28,6 +30,8 @@ export default function Settings() {
                 </Form.Item>
 
             </Form>
-        </>
+            <MakersModels />
+
+        </Layout>
     );
 }
