@@ -19,7 +19,7 @@ export default function ListWithSearch<T>({ dataSource, ...props }: Props<T>) {
         header={<Row justify={"space-between"} align="middle">
             <div>
                 <Typography.Title level={5}>{props.title}</Typography.Title>
-                <Search placeholder="input search text" onSearch={(value) => {
+                <Search placeholder="Cerca per nome" onSearch={(value) => {
                     if (!dataSource) return
                     if (value.trim() === "") {
                         setFiltered(null);

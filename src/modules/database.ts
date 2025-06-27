@@ -59,6 +59,6 @@ export async function populateMakers() {
             }
         });
         await storeSettings.set('makersPopulated', true);
-        message.success("Marcher e Modelli popolati con successo!");
+        message.success("Marche e Modelli popolati con successo!");
     }
 }
