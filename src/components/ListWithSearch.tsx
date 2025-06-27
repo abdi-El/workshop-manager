@@ -1,5 +1,5 @@
 import { PlusOutlined } from "@ant-design/icons";
-import { Button, Input, List, ListProps, message, Row, Typography } from "antd";
+import { Button, Input, List, ListProps, Row, Typography } from "antd";
 import { useState } from "react";
 const { Search } = Input;
 
@@ -24,11 +24,9 @@ export default function ListWithSearch<T>({ dataSource, ...props }: Props<T>) {
                     if (value.trim() === "") {
                         setFiltered(null);
                     } else {
-                        message.info(`Filtrando per "${value}"`, 1);
-                        const searchValue = value.toLowerCase();
                         setFiltered(dataSource.filter(item => {
                             const itemValue = item[props.paramToRender]?.toString().toLowerCase();
-                            return itemValue?.includes(searchValue);
+                            return itemValue?.includes(value.toLowerCase());
                         }));
                     }
                 }} enterButton />
