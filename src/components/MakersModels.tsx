@@ -22,12 +22,10 @@ export default function MakersModels() {
             cancelText="Chiudi"
         >
             <ListWithSearch
-                dataSource={models}
+                dataSource={models.filter(model => model.maker_id === selectedMaker?.id)}
                 title={``}
                 paramToRender='name'
-                onItemClick={(item) => {
-                    setSelectedMaker(item);
-                }} />
+            />
 
         </Modal>
 

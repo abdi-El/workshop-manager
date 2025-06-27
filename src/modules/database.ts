@@ -11,16 +11,21 @@ export async function create(values: Record<string, any>, onCreate: () => void, 
     db.execute(`
         INSERT INTO ${table} (${Object.keys(values).join(", ")})
         VALUES (${Object.keys(values).map((_, index) => `$${index + 1}`).join(", ")})
-    `, Object.values(values)).then(() => {
+    `, Object.values(values)).then((queryResult) => {
         message.success("Officina creata con successo!");
         onCreate()
+        return queryResult;
     }).catch((error) => {
         message.error("Errore nella crezione dell'officina : " + error);
-
     });
 
 }
+export async function updateOrCreate(values: Record<string, any>, table: string) {
+    return db.execute(`
+        INSERT OR REPLACE INTO ${table}(${Object.keys(values)}) 
+        VALUES(${Object.keys(values).map((_, index) => `$${index + 1}`).join(", ")})`, Object.values(values))
 
+}
 export async function update(values: Record<string, any>, id: number, onUpdate: () => void, table: string) {
     db.execute(`
         UPDATE ${table} SET ${Object.keys(values).filter(key => key !== 'id').map((key, index) => `${key} = $${index + 1}`).join(", ")}
@@ -48,10 +53,9 @@ export async function populateMakers() {
     if (!(await storeSettings.get('makersPopulated'))) {
         Object.values(makersModels).forEach(async (maker) => {
             const { models, ...makerToSave } = maker;
-            await create(makerToSave, () => { }, 'makers');
-            const makerId = await db.execute(`INSERT INTO makers (name) VALUES (?)`, [maker.name]);
+            const queryResult = await updateOrCreate(makerToSave, 'makers');
             for (let model of models) {
-                await create({ name: model, "maker_id": makerId }, () => { }, 'models');
+                await updateOrCreate({ name: model, "maker_id": queryResult.lastInsertId }, 'models');
             }
         });
         await storeSettings.set('makersPopulated', true);

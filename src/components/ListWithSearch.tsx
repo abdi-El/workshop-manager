@@ -13,7 +13,6 @@ interface Props<T> extends ListProps<T> {
 export default function ListWithSearch<T>({ dataSource, ...props }: Props<T>) {
     const [filtered, setFiltered] = useState<T[] | null>(null);
 
-
     return <List
         className='list'
         pagination={{ position: "bottom", align: "center", pageSize: 5 }}
