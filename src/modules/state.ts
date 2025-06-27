@@ -1,15 +1,16 @@
 import { message } from 'antd';
 import { create } from 'zustand';
 import { SettingsType } from '../types/common';
-import { Customer, Maker, MakerModel, Workshop } from '../types/database';
+import { Car, Customer, Maker, MakerModel, Workshop } from '../types/database';
 import { db, storeSettings } from './database';
 
 
-interface DatabaseState {
+export interface DatabaseState {
     workshops: Workshop[]
     customers: Customer[]
     makers: Maker[]
     models: MakerModel[]
+    cars: Car[]
     databaseLoading: boolean
     updateDatabaseData: (key: (keyof DatabaseState)[]) => void
 }
@@ -29,6 +30,7 @@ export const useDatabaseStore = create<DatabaseState>()((set) => ({
     customers: [],
     makers: [],
     models: [],
+    cars: [],
     databaseLoading: false,
     updateDatabaseData: (keys) => {
         keys.forEach(key => {

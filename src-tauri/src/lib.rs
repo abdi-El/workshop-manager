@@ -18,6 +18,11 @@ pub fn run() {
         description: "create_makers_and_models_table",
         sql: include_str!("../migrations/003_create_makers_and_models_tables.sql"),
         kind: MigrationKind::Up,
+    }, Migration {
+        version: 4,
+        description: "create_cars_table",
+        sql: include_str!("../migrations/004_create_cars_table.sql"),
+        kind: MigrationKind::Up,
     }];
 
     tauri::Builder::default()
