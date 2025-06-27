@@ -1,5 +1,4 @@
-import { PlusOutlined } from '@ant-design/icons';
-import { Button, List, Modal, Row, Typography } from 'antd';
+import { Modal } from 'antd';
 import { useState } from 'react';
 import { useDatabaseStore } from '../modules/state';
 import { Maker } from '../types/database';
@@ -22,23 +21,14 @@ export default function MakersModels() {
             onCancel={close}
             cancelText="Chiudi"
         >
-            <List
-                className='list'
-                pagination={{ position: "bottom", align: "center", pageSize: 5 }}
-                header={<Row justify={"space-between"} align="middle">
-                    <Typography.Title level={5}>Modelli Disponibili</Typography.Title>
-                    <Button icon={<PlusOutlined />} type='primary' />
-                </Row>}
-                bordered
+            <ListWithSearch
                 dataSource={models}
-                renderItem={(item) => (
-                    <List.Item className='item' onClick={() => {
-                        setSelectedMaker(item);
-                    }}>
-                        {item.name}
-                    </List.Item>
-                )}
-            />
+                title={``}
+                paramToRender='name'
+                onItemClick={(item) => {
+                    setSelectedMaker(item);
+                }} />
+
         </Modal>
 
         <ListWithSearch
