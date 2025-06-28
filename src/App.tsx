@@ -11,7 +11,7 @@ export default function Page() {
 
   useEffect(() => {
     populateMakers()
-    updateDatabaseData(["workshops", "customers", "makers", "models"])
+    updateDatabaseData(["workshops", "customers", "makers", "models", "cars"])
     updateSettings()
   }, [])
 
