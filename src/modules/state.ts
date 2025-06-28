@@ -50,7 +50,7 @@ export const useStore = create<AppState>()((set) => ({
     page: "estimates",
     loading: false,
     updatePage: (page: string) => set((current) => {
-        if (!current.settings.selectedWorkshop && page !== "workshop") {
+        if (!current.settings?.selectedWorkshop && page !== "workshop") {
             message.warning("Seleziona un'officina prima di procedere.");
             return { page: "workshop" }
         }
@@ -71,7 +71,7 @@ export const useStore = create<AppState>()((set) => ({
         } else {
             storeSettings.get('settings').then(storeSettings => {
                 set({ settings: storeSettings as SettingsType })
-                if (!(storeSettings as SettingsType).selectedWorkshop) {
+                if (!(storeSettings as SettingsType)?.selectedWorkshop) {
                     set({ page: "workshop" })
                 }
             }).finally(() => set({ loading: false }))

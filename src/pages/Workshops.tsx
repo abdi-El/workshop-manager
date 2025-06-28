@@ -52,7 +52,7 @@ export default function Workshops() {
             key: "actions",
             render: (_: unknown, ws: Workshop) =>
                 <Space>
-                    <Radio.Group value={settings.selectedWorkshop} buttonStyle="solid">
+                    <Radio.Group value={settings?.selectedWorkshop} buttonStyle="solid">
                         <Radio.Button value={ws.id} onClick={() => { updateSettings({ selectedWorkshop: ws.id }) }}>Seleziona</Radio.Button>
 
                         <Radio.Button onClick={() => { showDrawer(); setSelectedWorkshop(ws) }}>Modifica</Radio.Button>

@@ -17,7 +17,7 @@ export default function Page() {
 
   return <ConfigProvider
     theme={{
-      algorithm: settings.theme == "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm,
+      algorithm: settings?.theme == "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm,
     }}>
     <Paginator />
   </ConfigProvider >
