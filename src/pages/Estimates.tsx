@@ -2,6 +2,7 @@ import { PlusOutlined } from "@ant-design/icons";
 import { Button, Drawer, Popconfirm, Radio, Row, Space, Table } from "antd";
 import { useState } from "react";
 
+import EstimatesForm from "../components/forms/EstimatesForm";
 import { deleteRow } from "../modules/database";
 import { useDatabaseStore } from "../modules/state";
 import { Estimate } from "../types/database";
@@ -13,17 +14,20 @@ export default function Estimates() {
     const [selectedEstimate, setSelectedEstimate] = useState<Estimate>();
 
     const columns = [
-
         {
             title: "Data",
             dataIndex: "date",
             key: "date",
-            render: (date: string) => new Date(date).toLocaleDateString(),
         },
         {
             title: "Cliente",
-            dataIndex: "customer_id",
-            key: "customer_id",
+            dataIndex: "customer_name",
+            key: "customer_name",
+        },
+        {
+            title: "Targa",
+            dataIndex: "car_number_plate",
+            key: "car_number_plate",
         },
         {
             title: "Auto",
@@ -39,12 +43,13 @@ export default function Estimates() {
             title: "Costo Orario",
             dataIndex: "labor_hourly_cost",
             key: "labor_hourly_cost",
+            render: (cost: number) => `€ ${cost}`,
         },
         {
             title: "Sconto",
             dataIndex: "discount",
             key: "discount",
-            render: (discount: number | null) => discount ? `${discount}%` : 'N/A',
+            render: (discount: number | null) => discount ? `€ ${discount}` : 'N/A',
         },
         {
             title: "IVA",
@@ -99,7 +104,7 @@ export default function Estimates() {
             onClose={onClose}
             open={open}
         >
-            {/* <CarsForm onSubmit={onClose} car={selectedEstimate} /> */}
+            <EstimatesForm onSubmit={onClose} estimate={selectedEstimate} />
         </Drawer>
         <Table dataSource={estimates} columns={columns} rowKey="id" />;
     </>

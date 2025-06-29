@@ -10,7 +10,6 @@ CREATE TABLE
         discount REAL NULL CHECK (discount >= 0),
         car_kms INTEGER NOT NULL CHECK (car_kms >= 0),
         has_iva BOOLEAN NOT NULL DEFAULT 0,
-        number_plate VARCHAR(20) NOT NULL UNIQUE,
         FOREIGN KEY (workshop_id) REFERENCES workshops (id) ON DELETE CASCADE,
         FOREIGN KEY (customer_id) REFERENCES customers (id) ON DELETE CASCADE,
         FOREIGN KEY (car_id) REFERENCES cars (id) ON DELETE CASCADE

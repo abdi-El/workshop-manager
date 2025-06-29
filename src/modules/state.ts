@@ -25,7 +25,10 @@ interface AppState {
     updateSettings: (values?: Partial<SettingsType>) => void
 
 }
-
+const customQueries: Record<string, string> = {
+    cars: "SELECT *, model.name as model_name, maker.name as maker_name FROM cars LEFT JOIN models as model ON cars.model_id = model.id LEFT JOIN makers as maker ON cars.maker_id = maker.id",
+    estimates: "SELECT *, car.number_plate as car_number_plate, customer.name as customer_name, workshop.name as workshop_name FROM estimates LEFT JOIN cars as car ON estimates.car_id = car.id LEFT JOIN customers as customer ON estimates.customer_id = customer.id LEFT JOIN workshops as workshop ON estimates.workshop_id = workshop.id",
+}
 export const useDatabaseStore = create<DatabaseState>()((set) => ({
     workshops: [],
     customers: [],
@@ -37,7 +40,7 @@ export const useDatabaseStore = create<DatabaseState>()((set) => ({
     updateDatabaseData: (keys) => {
         keys.forEach(key => {
             set({ databaseLoading: true })
-            db.select<Workshop[]>(`SELECT * FROM ${key}`).then((rows) => {
+            db.select(customQueries[key] || `SELECT * FROM ${key}`).then((rows) => {
                 set({ [key]: rows })
             }).catch((error) => {
                 message.error("Errore nel recupero dei dati: " + error);
