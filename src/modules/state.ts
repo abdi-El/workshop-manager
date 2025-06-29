@@ -49,8 +49,6 @@ export const useDatabaseStore = create<DatabaseState>()((set) => ({
     }
 }))
 
-
-
 export const useStore = create<AppState>()((set) => ({
     page: "estimates",
     loading: false,
