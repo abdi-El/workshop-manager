@@ -3,6 +3,7 @@ import { Layout, Menu, Spin, Typography } from "antd";
 import { useDatabaseStore, useStore } from "../modules/state";
 import Cars from '../pages/Cars';
 import Customers from '../pages/Customers';
+import Estimates from '../pages/Estimates';
 import Settings from '../pages/Settings';
 import Workshops from '../pages/Workshops';
 
@@ -16,19 +17,19 @@ export default function Paginator() {
             label: 'Preventivi',
             key: 'estimates',
             icon: <FileTextOutlined />,
-            page: <div>Estimates Page</div>
-        },
-        "customers": {
-            label: 'Clienti',
-            key: 'customers',
-            icon: <UserOutlined />,
-            page: <Customers />
+            page: <Estimates />
         },
         "cars": {
             label: 'Auto',
             key: 'cars',
             icon: <CarOutlined />,
             page: <Cars />
+        },
+        "customers": {
+            label: 'Clienti',
+            key: 'customers',
+            icon: <UserOutlined />,
+            page: <Customers />
         },
         "workshop": {
             label: 'Officina',
