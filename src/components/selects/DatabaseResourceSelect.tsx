@@ -3,22 +3,24 @@ import { DatabaseState, useDatabaseStore } from "../../modules/state";
 
 
 type Resource = Exclude<keyof DatabaseState, "databaseLoading" | "updateDatabaseData">
-interface Props {
-    resource: Resource // Exclude 'databaseLoading' as it is not a resource
+interface Props extends React.ComponentProps<typeof Form.Item> {
+    resource: Resource
     selectLabel: string
-    name: string // Optional name prop for Form.Item
-    inputLabel: string // Optional label for the input
+    name: string
+    inputLabel: string
 }
 
-export default function DatabasResourceSelect(props: Props) {
+export default function DatabasResourceSelect({ resource, selectLabel, name, inputLabel, ...props }: Props) {
     const data = useDatabaseStore((state) => state);
+    console.log("DatabasResourceSelect", resource, data[resource]);
     return <Form.Item
-        label={props.inputLabel}
-        name={props.name}
+        {...props}
+        label={inputLabel}
+        name={name}
         rules={[{ required: true, message: "Inserire il  cliente" }]}
     >
-        <Select options={data[props.resource].map(v => ({
-            label: v[props.selectLabel as keyof typeof v],
+        <Select options={data[resource].map(v => ({
+            label: v[selectLabel as keyof typeof v],
             value: v.id
         }))}>
         </Select>

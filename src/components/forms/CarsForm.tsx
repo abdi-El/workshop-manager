@@ -1,5 +1,5 @@
 import { Button, Form, Input, InputNumber } from "antd";
-import React, { useEffect } from "react";
+import { useEffect } from "react";
 import { create, update } from "../../modules/database";
 import { useDatabaseStore, useStore } from "../../modules/state";
 import { Car } from "../../types/database";
@@ -10,7 +10,7 @@ type CarFormProps = {
     onSubmit: (values: Omit<Car, "id">) => void;
 };
 
-const CustomerForm: React.FC<CarFormProps> = ({ car = {}, onSubmit }) => {
+export default function CarsForm({ car = {}, onSubmit }: CarFormProps) {
     const [form] = Form.useForm();
     const { updateDatabaseData } = useDatabaseStore((state) => state)
 
@@ -69,4 +69,3 @@ const CustomerForm: React.FC<CarFormProps> = ({ car = {}, onSubmit }) => {
     );
 };
 
-export default CustomerForm;

@@ -24,7 +24,16 @@ export default function Cars() {
             dataIndex: "number_plate",
             key: "number_plate",
         },
-
+        {
+            title: "Marca",
+            dataIndex: "maker_name",
+            key: "maker_name",
+        },
+        {
+            title: "Modello",
+            dataIndex: "model_name",
+            key: "model_name",
+        },
         {
             title: "Azioni",
             dataIndex: "",

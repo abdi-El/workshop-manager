@@ -1,6 +1,7 @@
-import { Form, Layout, message, Select } from 'antd';
+import { Button, Form, Layout, message, Select } from 'antd';
 import { useEffect } from 'react';
 import MakersModels from '../components/MakersModels';
+import { storeSettings } from '../modules/database';
 import { useStore } from '../modules/state';
 import { SettingsType } from '../types/common';
 
@@ -31,6 +32,7 @@ export default function Settings() {
 
             </Form>
             <MakersModels />
+            <Button onClick={() => storeSettings.clear()} >RESET IMPOSTAZIONI</Button>
 
         </Layout>
     );
