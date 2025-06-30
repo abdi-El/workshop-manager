@@ -19,8 +19,9 @@ export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesForm
 
     const handleFinish = (values: Omit<Estimate, "id">) => {
         values.date = dayjs(values.date).format("DD-MM-YYYY");
+        const { items, ...rest } = values;
         if (!estimate.id) {
-            create({ ...values, "workshop_id": settings?.selectedWorkshop }, () => {
+            create({ ...rest, "workshop_id": settings?.selectedWorkshop }, () => {
                 form.resetFields();
                 updateDatabaseData(["estimates"]);
                 onSubmit(values);

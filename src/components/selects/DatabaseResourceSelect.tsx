@@ -12,6 +12,7 @@ interface Props extends React.ComponentProps<typeof Form.Item> {
 
 export default function DatabasResourceSelect({ resource, selectLabel, name, inputLabel, ...props }: Props) {
     const data = useDatabaseStore((state) => state);
+    console.log("DatabasResourceSelect", resource, data[resource]);
     return <Form.Item
         {...props}
         label={inputLabel}
