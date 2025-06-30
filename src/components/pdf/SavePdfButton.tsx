@@ -2,7 +2,7 @@ import { pdf, } from "@react-pdf/renderer";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { Button } from "antd";
-import MyDocument from "./EstimatePdf";
+import EstimatePdf from "./EstimatePdf";
 
 export default function SaveEstimatePdf() {
     async function savePdf() {
@@ -13,7 +13,7 @@ export default function SaveEstimatePdf() {
             return;
         }
         const blob = await pdf(
-            <MyDocument />
+            <EstimatePdf />
         ).toBlob();
         const arrayBuffer = await blob.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
