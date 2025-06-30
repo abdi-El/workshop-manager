@@ -1,5 +1,8 @@
 
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
+interface Props {
+    estimateId: number;
+}
 
 // Create styles
 const styles = StyleSheet.create({
@@ -15,11 +18,11 @@ const styles = StyleSheet.create({
 });
 
 // Create Document Component
-export default function EstimatePdf() {
+export default function EstimatePdf({ estimateId }: Props) {
     return <Document>
         <Page size="A4" style={styles.page}>
             <View style={styles.section}>
-                <Text>Section #1</Text>
+                <Text>{estimateId}</Text>
             </View>
             <View style={styles.section}>
                 <Text>Section #2</Text>

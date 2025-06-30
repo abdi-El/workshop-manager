@@ -80,7 +80,7 @@ export default function Estimates() {
                             <Radio.Button>Elimina</Radio.Button>
                         </Popconfirm>
                     </Radio.Group>
-                    <SaveEstimatePdf />
+                    <SaveEstimatePdf estimateId={es.id} />
                 </Space >,
         },
     ]

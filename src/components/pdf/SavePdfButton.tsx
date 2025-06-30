@@ -4,7 +4,11 @@ import { writeFile } from "@tauri-apps/plugin-fs";
 import { Button } from "antd";
 import EstimatePdf from "./EstimatePdf";
 
-export default function SaveEstimatePdf() {
+interface Props {
+    estimateId: number;
+}
+
+export default function SaveEstimatePdf(props: Props) {
     async function savePdf() {
         const path = await save({
             filters: [{ name: "PDF", extensions: ["pdf"] }],
@@ -13,7 +17,7 @@ export default function SaveEstimatePdf() {
             return;
         }
         const blob = await pdf(
-            <EstimatePdf />
+            <EstimatePdf {...props} />
         ).toBlob();
         const arrayBuffer = await blob.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
