@@ -1,5 +1,5 @@
-import { PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, Popconfirm, Radio, Row, Space, Table } from "antd";
+import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { Button, Drawer, Popconfirm, Row, Space, Table } from "antd";
 import { useState } from "react";
 
 import EstimatesForm from "../components/forms/EstimatesForm";
@@ -64,23 +64,22 @@ export default function Estimates() {
             key: "actions",
             render: (_: unknown, es: Estimate) =>
                 <Space>
-                    <Radio.Group buttonStyle="solid">
-                        <Radio.Button onClick={() => { showDrawer(); setSelectedEstimate(es) }}>Modifica</Radio.Button>
-                        <Popconfirm
-                            title="Elimina Preventivo"
-                            description="Sei sicuro di voler eliminare questo preventivo?"
-                            okText="Sì"
-                            cancelText="No"
-                            onConfirm={() => {
-                                deleteRow(es.id, "estimates", () => {
-                                    updateDatabaseData(["estimates"]);
-                                })
-                            }}
-                        >
-                            <Radio.Button>Elimina</Radio.Button>
-                        </Popconfirm>
-                    </Radio.Group>
+                    <Button onClick={() => { showDrawer(); setSelectedEstimate(es) }} icon={<EditOutlined />} type="primary" />
                     <SaveEstimatePdf estimateId={es.id} />
+                    <Popconfirm
+                        title="Elimina Preventivo"
+                        description="Sei sicuro di voler eliminare questo preventivo?"
+                        okText="Sì"
+                        cancelText="No"
+                        onConfirm={() => {
+                            deleteRow(es.id, "estimates", () => {
+                                updateDatabaseData(["estimates"]);
+                            })
+                        }}
+                    >
+                        <Button icon={<DeleteOutlined />} danger type="primary" />
+                    </Popconfirm>
+
                 </Space >,
         },
     ]

@@ -1,3 +1,4 @@
+import { EyeOutlined, SaveOutlined } from "@ant-design/icons";
 import { pdf, PDFViewer, } from "@react-pdf/renderer";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
@@ -28,8 +29,8 @@ export default function SaveEstimatePdf(props: Props) {
     }
 
     return <>
-        <Button onClick={savePdf} >Salva</Button>;
-        <Button onClick={() => setRendered(true)} >Mostra</Button>
+        <Button onClick={savePdf} icon={<SaveOutlined />} />
+        <Button onClick={() => setRendered(true)} icon={<EyeOutlined />} />
         <Modal open={rendered} onCancel={() => setRendered(false)} footer={null} title="Anteprima PDF" centered width="85%">
             {rendered && <PDFViewer style={{ width: "100%", height: "100vh" }} >
                 <EstimatePdf {...props} />
