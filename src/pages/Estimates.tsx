@@ -3,6 +3,7 @@ import { Button, Drawer, Popconfirm, Radio, Row, Space, Table } from "antd";
 import { useState } from "react";
 
 import EstimatesForm from "../components/forms/EstimatesForm";
+import SaveEstimatePdf from "../components/pdf/SavePdfButton";
 import { deleteRow } from "../modules/database";
 import { useDatabaseStore } from "../modules/state";
 import { Estimate } from "../types/database";
@@ -79,6 +80,7 @@ export default function Estimates() {
                             <Radio.Button>Elimina</Radio.Button>
                         </Popconfirm>
                     </Radio.Group>
+                    <SaveEstimatePdf />
                 </Space >,
         },
     ]
