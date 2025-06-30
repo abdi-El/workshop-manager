@@ -13,11 +13,11 @@ export async function create(values: Record<string, any>, onCreate: () => void, 
         INSERT INTO ${table} (${Object.keys(values).join(", ")})
         VALUES (${Object.keys(values).map((_, index) => `$${index + 1}`).join(", ")})
     `, Object.values(values)).then((queryResult) => {
-        showMessage && message.success("Officina creata con successo!");
+        showMessage && message.success("Creato con successo!");
         onCreate()
         return queryResult;
     }).catch((error) => {
-        message.error("Errore nella crezione dell'officina : " + error);
+        message.error("Errore nella crezione : " + error);
     });
 
 }
@@ -27,24 +27,24 @@ export async function updateOrCreate(values: Record<string, any>, table: string)
         VALUES(${Object.keys(values).map((_, index) => `$${index + 1}`).join(", ")})`, Object.values(values))
 
 }
-export async function update(values: Record<string, any>, id: number, onUpdate: () => void, table: string) {
+export async function update(values: Record<string, any>, id: number, onUpdate: () => void, table: string, showMessage: boolean = true) {
     db.execute(`
         UPDATE ${table} SET ${Object.keys(values).filter(key => key !== 'id').map((key, index) => `${key} = $${index + 1}`).join(", ")}
         WHERE id = ${id}
     `, [...Object.values(values)]).then(() => {
-        message.success("Officina aggiornata con successo!");
+        showMessage && message.success("Aggiornato con successo!");
         onUpdate()
     }).catch((error) => {
-        message.error("Errore nell'aggiornamento dell'officina : " + error);
+        message.error("Errore nell'aggiornamento : " + error);
     })
 }
 
 export async function deleteRow(id: number, table: string, onDelete: () => void) {
     db.execute(`DELETE FROM ${table} WHERE id = $1`, [id]).then(() => {
-        message.success("Officina eliminata con successo!");
+        message.success("Eliminato con successo!");
         onDelete()
     }).catch((error) => {
-        message.error("Errore nell'eliminazione dell'officina : " + error);
+        message.error("Errore nell'eliminazione : " + error);
     })
 }
 export { db, storeSettings };
@@ -66,7 +66,7 @@ export async function populateMakers() {
 
 export async function createOrUpdateEstimate(estimate: Estimate, items: EstimateItem[], onFinish: () => void, estimateId?: number) {
     if (estimateId != undefined) {
-        update(estimate, estimateId, onFinish, 'estimates')
+        update(estimate, estimateId, onFinish, 'estimates', false)
     }
     else {
         let result = (await create(estimate, onFinish, 'estimates', false))
@@ -76,7 +76,7 @@ export async function createOrUpdateEstimate(estimate: Estimate, items: Estimate
         items.forEach(async (item) => {
             await create({ ...item, estimate_id: estimateId }, () => { }, 'estimate_items', false);
         });
-        message.success("Preventivo creato con successo!");
+        message.success(`Operazione completata con successo!`);
         onFinish();
     }).catch((error) => {
         message.error("Errore nella creazione del preventivo : " + error);
