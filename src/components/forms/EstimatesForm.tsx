@@ -1,10 +1,11 @@
-import { Button, DatePicker, Form, InputNumber, Switch } from "antd";
+import { Button, DatePicker, Form, InputNumber, Row, Switch } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 import { create, update } from "../../modules/database";
 import { useDatabaseStore, useStore } from "../../modules/state";
 import { Estimate } from "../../types/database";
 import DatabasResourceSelect from "../selects/DatabaseResourceSelect";
+import EstimateItemsForm from "./EstimateItemsForm";
 
 interface EstimatesFormProps {
     estimate?: Partial<Estimate>;
@@ -45,57 +46,67 @@ export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesForm
         }
     }, [estimate, form]);
     return (
-        <Form form={form} layout="vertical" onFinish={handleFinish}>
-            <DatabasResourceSelect resource="customers" selectLabel="name" name="customer_id" inputLabel="Cliente" />
-            <DatabasResourceSelect resource="cars" selectLabel="id" name="car_id" inputLabel="Auto" />
+        <Form form={form} layout="vertical" onFinish={handleFinish} className="estimates-form">
+            <DatabasResourceSelect resource="customers" selectLabel="name" name="customer_id" inputLabel="Cliente" className="w-100" />
             <Form.Item
                 label="data"
                 name="date"
                 rules={[{ required: true, message: "Inserire la data" }]}
             >
-                <DatePicker format="DD/MM/YYYY" />
+                <DatePicker format="DD/MM/YYYY" className="w-100" />
             </Form.Item>
-            <Form.Item
-                label="Ore Lavoro"
-                name="labor_hours"
-                rules={[{ required: true, message: "Inserire le ore di lavoro" }]}
-            >
-                <InputNumber />
-            </Form.Item>
-            <Form.Item
-                label="Costo Orario"
-                name="labor_hourly_cost"
-                rules={[{ required: true, message: "Inserire costo orario" }]}
-            >
-                <InputNumber />
-
-            </Form.Item>
-            <Form.Item
-                label="Sconto"
-                name="discount"
-                rules={[{ required: false }]}
-            >
-                <InputNumber />
-            </Form.Item>
-            <Form.Item
-                label="Chilometraggio"
-                name="car_kms"
-                rules={[{ required: true, message: "Inserire il chilometraggio" }]}
-            >
-                <InputNumber />
-            </Form.Item>
-            <Form.Item
-                label="IVA"
-                name="has_iva"
-                valuePropName="checked"
-                rules={[{ required: true, message: "Selezionare se ha IVA" }]}
-            >
-                <Switch defaultChecked />
-            </Form.Item>
-
+            <Row >
+                <DatabasResourceSelect resource="cars" selectLabel="id" name="car_id" inputLabel="Auto" className="w-50" />
+                <Form.Item
+                    className="w-50"
+                    label="Km"
+                    name="car_kms"
+                    rules={[{ required: true, message: "Inserire il chilometraggio" }]}
+                >
+                    <InputNumber className="w-100" />
+                </Form.Item>
+            </Row>
+            <Row>
+                <Form.Item
+                    label="Ore Lavoro"
+                    name="labor_hours"
+                    rules={[{ required: true, message: "Inserire le ore di lavoro" }]}
+                    className="w-50"
+                >
+                    <InputNumber className="w-100" />
+                </Form.Item>
+                <Form.Item
+                    label="Costo Orario"
+                    name="labor_hourly_cost"
+                    rules={[{ required: true, message: "Inserire costo orario" }]}
+                    className="w-50"
+                >
+                    <InputNumber className="w-100" />
+                </Form.Item>
+            </Row>
+            <EstimateItemsForm />
+            <Row>
+                <Form.Item
+                    label="Sconto"
+                    name="discount"
+                    rules={[{ required: false }]}
+                    className="w-50"
+                >
+                    <InputNumber className="w-100" />
+                </Form.Item>
+                <Form.Item
+                    label="IVA"
+                    name="has_iva"
+                    valuePropName="checked"
+                    rules={[{ required: true, message: "Selezionare se ha IVA" }]}
+                    className="w-50"
+                >
+                    <Switch defaultChecked />
+                </Form.Item>
+            </Row>
 
             <Form.Item>
-                <Button type="primary" htmlType="submit">
+                <Button type="primary" htmlType="submit" className="w-100">
                     {estimate?.id ? "Aggiorna" : "Crea"} Preventivo
                 </Button>
             </Form.Item>

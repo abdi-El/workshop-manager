@@ -103,6 +103,7 @@ export default function Estimates() {
             closable={{ 'aria-label': 'Chiudi' }}
             onClose={onClose}
             open={open}
+            width={"75%"}
         >
             <EstimatesForm onSubmit={onClose} estimate={selectedEstimate} />
         </Drawer>
