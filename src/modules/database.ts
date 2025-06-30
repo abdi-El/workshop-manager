@@ -1,18 +1,19 @@
 import Database from '@tauri-apps/plugin-sql';
 import { load } from '@tauri-apps/plugin-store';
 import { message } from 'antd';
+import { Estimate, EstimateItem } from '../types/database';
 import makersModels from './makers-models.json';
 
 
 const db = await Database.load('sqlite:estimates.db');
 const storeSettings = await load('settings.json');
 
-export async function create(values: Record<string, any>, onCreate: () => void, table: string) {
-    db.execute(`
+export async function create(values: Record<string, any>, onCreate: () => void, table: string, showMessage: boolean = true) {
+    return db.execute(`
         INSERT INTO ${table} (${Object.keys(values).join(", ")})
         VALUES (${Object.keys(values).map((_, index) => `$${index + 1}`).join(", ")})
     `, Object.values(values)).then((queryResult) => {
-        message.success("Officina creata con successo!");
+        showMessage && message.success("Officina creata con successo!");
         onCreate()
         return queryResult;
     }).catch((error) => {
@@ -61,4 +62,24 @@ export async function populateMakers() {
         await storeSettings.set('makersPopulated', true);
         message.success("Marche e Modelli popolati con successo!");
     }
+}
+
+export async function createOrUpdateEstimate(estimate: Estimate, items: EstimateItem[], onFinish: () => void, estimateId?: number) {
+    if (estimateId != undefined) {
+        update(estimate, estimateId, onFinish, 'estimates')
+    }
+    else {
+        let result = (await create(estimate, onFinish, 'estimates', false))
+        estimateId = result?.lastInsertId;
+    }
+    db.execute(`DELETE FROM estimate_items WHERE estimate_id = ${estimateId}`).then(() => {
+        items.forEach(async (item) => {
+            await create({ ...item, estimate_id: estimateId }, () => { }, 'estimate_items', false);
+        });
+        message.success("Preventivo creato con successo!");
+        onFinish();
+    }).catch((error) => {
+        message.error("Errore nella creazione del preventivo : " + error);
+    });
+
 }

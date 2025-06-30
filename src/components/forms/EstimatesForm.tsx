@@ -1,7 +1,7 @@
 import { Button, DatePicker, Form, InputNumber, Row, Switch } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
-import { create, update } from "../../modules/database";
+import { createOrUpdateEstimate, db } from "../../modules/database";
 import { useDatabaseStore, useStore } from "../../modules/state";
 import { Estimate } from "../../types/database";
 import DatabasResourceSelect from "../selects/DatabaseResourceSelect";
@@ -19,29 +19,28 @@ export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesForm
 
     const handleFinish = (values: Omit<Estimate, "id">) => {
         values.date = dayjs(values.date).format("DD-MM-YYYY");
-        const { items, ...rest } = values;
-        if (!estimate.id) {
-            create({ ...rest, "workshop_id": settings?.selectedWorkshop }, () => {
-                form.resetFields();
-                updateDatabaseData(["estimates"]);
-                onSubmit(values);
-            }, "estimates");
-        } else {
-            update(values, estimate.id, () => {
-                form.resetFields();
-                updateDatabaseData(["estimates"]);
-                onSubmit(values);
-            }, "estimates");
-        }
+        values.workshop_id = settings?.selectedWorkshop as number;
+        const { items, ...rest } = values as any;
+        createOrUpdateEstimate(rest as any, items, () => {
+            form.resetFields();
+            updateDatabaseData(["estimates"]);
+            onSubmit(values);
+        }, estimate.id);
     };
+    async function getItems() {
+        if (estimate.id) {
+            let result = await db.select(`SELECT * FROM estimate_items WHERE estimate_id = ${estimate.id}`);
+            form.setFieldValue("items", result);
+        }
+    }
 
     useEffect(() => {
         if (estimate.id) {
-
             form.setFieldsValue({
                 ...estimate,
                 date: dayjs(estimate.date, "DD-MM-YYYY"),
             });
+            getItems()
         } else {
             form.resetFields();
         }
