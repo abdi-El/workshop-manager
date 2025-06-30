@@ -6,26 +6,22 @@ interface Props {
 
 // Create styles
 const styles = StyleSheet.create({
-    page: {
-        flexDirection: 'row',
-        backgroundColor: '#E4E4E4',
-    },
     section: {
-        margin: 10,
-        padding: 10,
-        flexGrow: 1,
+        display: 'flex',
     },
 });
 
 // Create Document Component
 export default function EstimatePdf({ estimateId }: Props) {
     return <Document>
-        <Page size="A4" style={styles.page}>
+        <Page size="A4" >
             <View style={styles.section}>
-                <Text>{estimateId}</Text>
-            </View>
-            <View style={styles.section}>
-                <Text>Section #2</Text>
+                <View>
+                    <Text>{estimateId}</Text>
+                </View>
+                <View>
+                    <Text>Section #2</Text>
+                </View>
             </View>
         </Page>
     </Document>
