@@ -7,7 +7,7 @@ interface Props {
 // Create styles
 const styles = StyleSheet.create({
     page: {
-        flexDirection: 'column',
+        flexDirection: 'row',
         backgroundColor: '#E4E4E4',
     },
     section: {
