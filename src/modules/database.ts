@@ -5,8 +5,15 @@ import { Estimate, EstimateItem } from '../types/database';
 import makersModels from './makers-models.json';
 
 
-const db = await Database.load('sqlite:estimates.db');
-const storeSettings = await load('settings.json');
+
+let db: Awaited<ReturnType<typeof Database.load>>;
+let storeSettings: Awaited<ReturnType<typeof load>>;
+
+export async function initDatabase() {
+    db = await Database.load('sqlite:estimates.db');
+    storeSettings = await load('settings.json');
+}
+
 
 export async function create(values: Record<string, any>, onCreate: () => void, table: string, showMessage: boolean = true) {
     return db.execute(`
