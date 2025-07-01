@@ -2,7 +2,7 @@ import { EyeOutlined, SaveOutlined } from "@ant-design/icons";
 import { pdf, PDFViewer, } from "@react-pdf/renderer";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
-import { Button, Modal } from "antd";
+import { Button, message, Modal } from "antd";
 import { useEffect, useState } from "react";
 import { getEstimateItems } from "../../modules/database";
 import { useDatabaseStore } from "../../modules/state";
@@ -59,8 +59,13 @@ export default function SaveEstimatePdf({ estimateId }: Props) {
         if (!path) {
             return;
         }
+        if (!data) {
+            message.warning("Dati mancanti per generare il PDF");
+            return;
+        }
+
         const blob = await pdf(
-            data ? <EstimatePdf {...data} items={estimateItems} /> : <MissingDataPdf />
+            <EstimatePdf {...data} items={estimateItems} />
         ).toBlob();
         const arrayBuffer = await blob.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
