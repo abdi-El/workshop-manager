@@ -60,7 +60,7 @@ export default function SaveEstimatePdf({ estimateId }: Props) {
             return;
         }
         const blob = await pdf(
-            data ? <EstimatePdf {...data} /> : <MissingDataPdf />
+            data ? <EstimatePdf {...data} items={estimateItems} /> : <MissingDataPdf />
         ).toBlob();
         const arrayBuffer = await blob.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
