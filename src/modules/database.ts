@@ -73,7 +73,7 @@ export async function createOrUpdateEstimate(estimate: Estimate, items: Estimate
         estimateId = result?.lastInsertId;
     }
     db.execute(`DELETE FROM estimate_items WHERE estimate_id = ${estimateId}`).then(() => {
-        items.forEach(async (item) => {
+        items.forEach(async ({ total_price, ...item }) => {
             await create({ ...item, estimate_id: estimateId }, () => { }, 'estimate_items', false);
         });
         message.success(`Operazione completata con successo!`);
@@ -82,4 +82,7 @@ export async function createOrUpdateEstimate(estimate: Estimate, items: Estimate
         message.error("Errore nella creazione del preventivo : " + error);
     });
 
+}
+export async function getEstimateItems(estimateId: number) {
+    return await db.select(`SELECT *, quantity * unit_price AS total_price FROM estimate_items WHERE estimate_id = ${estimateId}`);
 }

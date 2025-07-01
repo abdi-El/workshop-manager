@@ -1,7 +1,7 @@
 import { Button, DatePicker, Form, InputNumber, Row, Switch } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
-import { createOrUpdateEstimate, db } from "../../modules/database";
+import { createOrUpdateEstimate, getEstimateItems } from "../../modules/database";
 import { useDatabaseStore, useStore } from "../../modules/state";
 import { Estimate } from "../../types/database";
 import DatabasResourceSelect from "../selects/DatabaseResourceSelect";
@@ -29,8 +29,7 @@ export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesForm
     };
     async function getItems() {
         if (estimate.id) {
-            let result = await db.select(`SELECT * FROM estimate_items WHERE estimate_id = ${estimate.id}`);
-            form.setFieldValue("items", result);
+            form.setFieldValue("items", await getEstimateItems(estimate.id));
         }
     }
 

@@ -4,7 +4,9 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { Button, Modal } from "antd";
 import { useEffect, useState } from "react";
+import { getEstimateItems } from "../../modules/database";
 import { useDatabaseStore } from "../../modules/state";
+import { EstimateItem } from "../../types/database";
 import EstimatePdf, { DataProps } from "./EstimatePdf";
 import MissingDataPdf from "./MissingDataPdf";
 
@@ -16,8 +18,9 @@ export default function SaveEstimatePdf({ estimateId }: Props) {
     const [rendered, setRendered] = useState(false);
     const state = useDatabaseStore(state => state);
     const [data, setData] = useState<DataProps | null>(null);
+    const [estimateItems, setEstimateItems] = useState<EstimateItem[]>([]);
 
-    function findData(estimateId: number): DataProps | null {
+    function findData(estimateId: number): Omit<DataProps, "items"> | null {
         const estimate = state.estimates.find(e => e.id === estimateId);
         if (!estimate) {
             return null;
@@ -36,9 +39,18 @@ export default function SaveEstimatePdf({ estimateId }: Props) {
             workshop
         }
     }
+    async function getItems(estimateId: number) {
+        setEstimateItems(await getEstimateItems(estimateId) as any);
+    }
     useEffect(() => {
-        setData(findData(estimateId));
+        setData(findData(estimateId) as any);
     }, [estimateId, state]);
+
+    useEffect(() => {
+        if (rendered) {
+            getItems(estimateId)
+        }
+    }, [rendered])
 
     async function savePdf() {
         const path = await save({
@@ -61,7 +73,7 @@ export default function SaveEstimatePdf({ estimateId }: Props) {
         <Button onClick={() => setRendered(true)} icon={<EyeOutlined />} />
         <Modal open={rendered} onCancel={() => setRendered(false)} footer={null} title="Anteprima PDF" centered width="85%">
             {rendered && <PDFViewer style={{ width: "100%", height: "100vh" }} >
-                {data ? <EstimatePdf {...data} /> : <MissingDataPdf />}
+                {data ? <EstimatePdf {...data} items={estimateItems} /> : <MissingDataPdf />}
             </PDFViewer>}
         </Modal>
 
