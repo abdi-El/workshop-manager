@@ -21,7 +21,7 @@ interface Props<T> {
 const styles = StyleSheet.create({
     title: {
         fontSize: 14,
-        marginBottom: 10,
+        margin: "10px 0px",
         textAlign: 'center',
         fontWeight: 'bold',
     },
