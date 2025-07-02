@@ -1,5 +1,7 @@
+import { Workshop } from "./database";
+
 export interface SettingsType {
     theme: string;
-    selectedWorkshop?: number;
+    selectedWorkshop?: Workshop;
     makersPopulated?: boolean;
 }

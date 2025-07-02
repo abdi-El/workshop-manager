@@ -1,5 +1,5 @@
-import { PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, Popconfirm, Radio, Row, Space, Table } from "antd";
+import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { Button, Drawer, Popconfirm, Row, Space, Table } from "antd";
 import { useState } from "react";
 import WorkshopForm from "../components/forms/WorkshopForm";
 import { deleteRow } from "../modules/database";
@@ -52,24 +52,22 @@ export default function Workshops() {
             key: "actions",
             render: (_: unknown, ws: Workshop) =>
                 <Space>
-                    <Radio.Group value={settings?.selectedWorkshop} buttonStyle="solid">
-                        <Radio.Button value={ws.id} onClick={() => { updateSettings({ selectedWorkshop: ws.id }) }}>Seleziona</Radio.Button>
+                    <Button onClick={() => { updateSettings({ selectedWorkshop: ws }) }} type={settings.selectedWorkshop?.id == ws.id ? "primary" : "dashed"}>Seleziona</Button>
+                    <Button onClick={() => { showDrawer(); setSelectedWorkshop(ws) }} icon={<EditOutlined />} type="primary" />
+                    <Popconfirm
+                        title="Elimina Officina"
+                        description="Sei sicuro di voler eliminare questa officina?"
+                        okText="Sì"
+                        cancelText="No"
+                        onConfirm={() => {
+                            deleteRow(ws.id, "workshops", () => {
+                                updateDatabaseData(["workshops"]);
+                            })
+                        }}
+                    >
+                        <Button icon={<DeleteOutlined />} type="primary" danger />
+                    </Popconfirm>
 
-                        <Radio.Button onClick={() => { showDrawer(); setSelectedWorkshop(ws) }}>Modifica</Radio.Button>
-                        <Popconfirm
-                            title="Elimina Officina"
-                            description="Sei sicuro di voler eliminare questa officina?"
-                            okText="Sì"
-                            cancelText="No"
-                            onConfirm={() => {
-                                deleteRow(ws.id, "workshops", () => {
-                                    updateDatabaseData(["workshops"]);
-                                })
-                            }}
-                        >
-                            <Radio.Button>Elimina</Radio.Button>
-                        </Popconfirm>
-                    </Radio.Group>
                 </Space >,
         },
     ]

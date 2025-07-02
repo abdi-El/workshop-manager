@@ -107,7 +107,7 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) 
 
             <Form.Item>
                 <Button type="primary" htmlType="submit">
-                    {workshop ? "Aggiorna" : "Crea"} Officina
+                    {workshop?.id ? "Aggiorna" : "Crea"} Officina
                 </Button>
             </Form.Item>
         </Form>

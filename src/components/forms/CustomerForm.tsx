@@ -17,7 +17,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ customer = {}, onSubmit }) 
 
     const handleFinish = (values: Omit<Customer, "id">) => {
         if (!customer.id) {
-            create({ ...values, "workshop_id": settings.selectedWorkshop }, () => {
+            create({ ...values, "workshop_id": settings.selectedWorkshop?.id }, () => {
                 form.resetFields();
                 updateDatabaseData(["customers"]);
                 onSubmit(values);

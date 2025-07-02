@@ -18,7 +18,7 @@ export default function CarsForm({ car = {}, onSubmit }: CarFormProps) {
 
     const handleFinish = (values: Omit<Car, "id">) => {
         if (!car.id) {
-            create({ ...values, "workshop_id": settings.selectedWorkshop }, () => {
+            create({ ...values, "workshop_id": settings.selectedWorkshop?.id }, () => {
                 form.resetFields();
                 updateDatabaseData(["cars"]);
                 onSubmit(values);
