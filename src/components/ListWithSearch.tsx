@@ -8,6 +8,7 @@ interface Props<T> extends ListProps<T> {
     onItemClick?: (item: T) => void;
     paramToRender: keyof T;
     title: string
+
 }
 
 export default function ListWithSearch<T>({ dataSource, ...props }: Props<T>) {
@@ -31,7 +32,7 @@ export default function ListWithSearch<T>({ dataSource, ...props }: Props<T>) {
                     }
                 }} enterButton />
             </div>
-            <Button icon={<PlusOutlined />} type='primary' />
+            <Button icon={<PlusOutlined />} type='primary' onClick={props.onAddClick} />
         </Row>}
         bordered
         dataSource={filtered != null ? filtered : dataSource}
