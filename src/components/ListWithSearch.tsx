@@ -1,5 +1,4 @@
-import { PlusOutlined } from "@ant-design/icons";
-import { Button, Input, List, ListProps, Row, Typography } from "antd";
+import { Col, Input, List, ListProps, Row, Typography } from "antd";
 import { useState } from "react";
 const { Search } = Input;
 
@@ -8,6 +7,7 @@ interface Props<T> extends ListProps<T> {
     onItemClick?: (item: T) => void;
     paramToRender: keyof T;
     title: string
+
 }
 
 export default function ListWithSearch<T>({ dataSource, ...props }: Props<T>) {
@@ -17,8 +17,10 @@ export default function ListWithSearch<T>({ dataSource, ...props }: Props<T>) {
         className='list'
         pagination={{ position: "bottom", align: "center", pageSize: 5 }}
         header={<Row justify={"space-between"} align="middle">
-            <div>
+            <Col span={12} >
                 <Typography.Title level={5}>{props.title}</Typography.Title>
+            </Col>
+            <Col span={12} >
                 <Search placeholder="Cerca per nome" onSearch={(value) => {
                     if (!dataSource) return
                     if (value.trim() === "") {
@@ -30,8 +32,7 @@ export default function ListWithSearch<T>({ dataSource, ...props }: Props<T>) {
                         }));
                     }
                 }} enterButton />
-            </div>
-            <Button icon={<PlusOutlined />} type='primary' />
+            </Col>
         </Row>}
         bordered
         dataSource={filtered != null ? filtered : dataSource}
