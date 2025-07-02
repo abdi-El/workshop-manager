@@ -14,7 +14,7 @@ export default function MakersModels() {
 
     return <>
         <Modal
-            title={`Modelli marchio ${selectedMaker?.name}`}
+            title={`Modelli`}
             closable={{ 'aria-label': 'Custom Close Button' }}
             open={selectedMaker != undefined}
             onOk={close}
@@ -23,7 +23,7 @@ export default function MakersModels() {
         >
             <ListWithSearch
                 dataSource={models.filter(model => model.maker_id === selectedMaker?.id)}
-                title={``}
+                title={`${selectedMaker?.name}`}
                 paramToRender='name'
             />
 
