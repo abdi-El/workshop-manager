@@ -1,6 +1,7 @@
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
+import { calculateEstimatePrice } from '../../modules/pricing';
 import { Car, Customer, Estimate, EstimateItem, Workshop } from '../../types/database';
-import TableDocument, { Column } from './PdfTable';
+import PdfTable, { Column } from './PdfTable';
 
 export interface DataProps {
     estimate: Estimate,
@@ -17,7 +18,7 @@ const styles = StyleSheet.create({
         fontSize: 12,
     },
     titleSection: {
-        marginBottom: 20,
+        margin: "20 0",
         textAlign: 'center',
         fontWeight: 'bold',
     },
@@ -69,12 +70,13 @@ const estimateItemsColumns: Column[] = [
     },
     {
         accessor: "unit_price",
-        header: "Prezzo Unitario"
+        header: "Prezzo Unitario",
+        render: (value) => " € " + value.toFixed(2)
     },
     {
         accessor: "total_price",
         header: "Prezzo Totale Voce",
-        render: (value) => " €" + value.toFixed(2)
+        render: (value) => " € " + value.toFixed(2)
     },
 ]
 
@@ -90,7 +92,7 @@ export default function EstimatePdf({ estimate, car, customer, workshop, items }
                 <Text style={{ fontSize: 20 }}>{workshop.name}</Text>
                 <Text style={{ fontSize: 10 }}>TEL: {workshop.phone} - IVA: {workshop.vat_number} - EMAIL: {workshop.email} </Text>
             </View>
-            <View style={{ padding: 10, marginBottom: 20, border: "1px solid #000" }}>
+            <View style={{ padding: 10, marginBottom: 20 }}>
                 <View style={styles.header}>
                     <View>
                         <Text style={styles.headerTitle}>Preventivo: n°{estimate.id}</Text>
@@ -104,14 +106,17 @@ export default function EstimatePdf({ estimate, car, customer, workshop, items }
                         <Text>Email: {customer.email}</Text>
                     </View>
                 </View>
-                <TableDocument data={[{ ...car, kms: estimate.car_kms }]} columns={carTableColumns} title='Dati Auto' />
-                <TableDocument data={[...items, { "quantity": estimate.labor_hours, "description": "Mano d'opera", "unit_price": estimate.labor_hourly_cost, total_price: estimate.labor_hourly_cost * estimate.labor_hours }]} columns={estimateItemsColumns} title='Voci Preventivo' />
-                <Text style={{ marginTop: 20, textAlign: "right" }}>
-                    <Text style={{ fontWeight: "bold" }}>Totale Preventivo:</Text>
-                    <Text style={{ textDecoration: "underline" }}>
-                        € {items.reduce((acc, item) => acc + (item.total_price || 0), 0) + (estimate.labor_hourly_cost * estimate.labor_hours)}{estimate.has_iva ? " IVA compresa" : " + IVA"}
+                <PdfTable data={[{ ...car, kms: estimate.car_kms }]} columns={carTableColumns} title='Dati Auto' />
+                <PdfTable data={[...items, { "quantity": estimate.labor_hours, "description": "Mano d'opera", "unit_price": estimate.labor_hourly_cost, total_price: estimate.labor_hourly_cost * estimate.labor_hours }]} columns={estimateItemsColumns} title='Voci Preventivo' />
+                <View style={{ marginTop: 20, textAlign: "right" }}>
+                    {estimate.discount && <Text>Sconto: € {estimate.discount}</Text>}
+                    <Text style={{ marginTop: 10, textAlign: "right", border: "1px solid black", padding: "5px" }}>
+                        <Text style={{ fontWeight: "bold" }}>Totale Preventivo:    </Text>
+                        <Text style={{ textDecoration: "underline" }}>
+                            € {calculateEstimatePrice(estimate, items)}{estimate.has_iva ? " IVA compresa" : " + IVA"}
+                        </Text>
                     </Text>
-                </Text>
+                </View>
             </View>
         </Page>
     </Document>
