@@ -1,4 +1,7 @@
 import { Button, DatePicker, Form, TimePicker } from "antd";
+import dayjs from "dayjs";
+import { create } from "../../modules/database";
+import { useDatabaseStore, useStore } from "../../modules/state";
 import { Appointment, Estimate } from "../../types/database";
 import DatabasResourceSelect from "../selects/DatabaseResourceSelect";
 
@@ -11,7 +14,21 @@ const format = 'HH:mm';
 
 export default function AppointmentForm({ estimateId, appointmentId }: Props) {
     const [form] = Form.useForm()
-    return <Form form={form}>
+    const { updateDatabaseData } = useDatabaseStore((state) => state)
+    const { settings } = useStore(state => state)
+    function formatData(data: Appointment) {
+        const HOUR_FORMAT = "HH:mm"
+        const date = dayjs(data.date).format("DD-MM-YYYY")
+        const startTime = dayjs(data.from_time).format(HOUR_FORMAT)
+        const endTime = dayjs(data.to_time).format(HOUR_FORMAT)
+        return { ...data, date, "from_time": startTime, "to_time": endTime, "workshop_id": settings.selectedWorkshop?.id }
+    }
+    function onFinish(values: Appointment) {
+        create(formatData(values), () => {
+            updateDatabaseData(["appointments", "estimates"])
+        }, "appointments")
+    }
+    return <Form form={form} onFinish={onFinish}>
         {!estimateId &&
             <>
                 <DatabasResourceSelect resource="estimates" selectLabel="id" name="estimate_id" inputLabel="Preventivo" className="w-50" />
@@ -28,14 +45,14 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
         </Form.Item>
         <Form.Item
             label="Inizio"
-            name="start_time"
+            name="from_time"
             rules={[{ required: true, message: "Inserire Inizio" }]}
         >
             <TimePicker format={format} />
         </Form.Item>
         <Form.Item
             label="Fine"
-            name="end_time"
+            name="to_time"
             rules={[{ required: true, message: "Inserire Fine" }]}
         >
             <TimePicker format={format} />

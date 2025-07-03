@@ -14,7 +14,6 @@ export default function Estimates() {
     const [open, setOpen] = useState(false);
     const { estimates, updateDatabaseData } = useDatabaseStore((state) => state)
     const [selectedEstimate, setSelectedEstimate] = useState<Estimate>();
-    const [isModalOpen, setModalOpen] = useState(true)
 
     const columns = [
         {
@@ -69,12 +68,12 @@ export default function Estimates() {
                     <Button onClick={() => { showDrawer(); setSelectedEstimate(es) }} icon={<EditOutlined />} type="primary" />
                     <SaveEstimatePdf estimateId={es.id} />
                     <Popconfirm
-                        title="Crea Appuntamento"
-                        description={<AppointmentForm estimateId={es.id} />}
+                        title={es.appointment_id}
+                        description={<AppointmentForm estimateId={es.id} appointmentId={es.appointment_id} />}
                         okButtonProps={{ hidden: true }}
                         cancelButtonProps={{ hidden: true }}
                     >
-                        <Button icon={<CalendarOutlined />} type="primary" />
+                        <Button disabled={!!es.appointment_id} icon={<CalendarOutlined />} type="primary" />
                     </Popconfirm>
                     <Popconfirm
                         title="Elimina Preventivo"

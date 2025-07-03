@@ -49,11 +49,13 @@ const customQueries: Record<string, string> = {
                     customer.id as customer_id,
                     customer.name as customer_name,
                     workshop.id as workshop_id,
-                    workshop.name as workshop_name
+                    workshop.name as workshop_name,
+                    appointment.id as appointment_id 
                 FROM estimates 
                 LEFT JOIN cars as car ON estimates.car_id = car.id 
                 LEFT JOIN customers as customer ON estimates.customer_id = customer.id 
-                LEFT JOIN workshops as workshop ON estimates.workshop_id = workshop.id`,
+                LEFT JOIN workshops as workshop ON estimates.workshop_id = workshop.id
+                LEFT JOIN appointments as appointment ON estimates.id = appointment.id`,
 }
 export const useDatabaseStore = create<DatabaseState>()((set) => ({
     workshops: [],
