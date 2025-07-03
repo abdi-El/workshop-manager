@@ -13,7 +13,6 @@ export default function Planner() {
                 right: 'timeGridWeek,timeGridDay'
             }}
             locale={itLocale}
-
         />
     )
 }
