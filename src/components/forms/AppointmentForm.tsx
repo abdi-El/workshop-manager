@@ -60,7 +60,7 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
         {!estimateId &&
             <>
                 <DatabasResourceSelect resource="estimates" selectLabel="id" name="estimate_id" inputLabel="Preventivo" className="w-50" allowClear />
-                {selectedEstimate && <>
+                {!selectedEstimate && <>
                     <DatabasResourceSelect resource="cars" selectLabel="id" name="car_id" inputLabel="Auto" className="w-50" />
                     <DatabasResourceSelect resource="customers" selectLabel="id" name="customer_id" inputLabel="Cliente" className="w-50" />
                 </>}
