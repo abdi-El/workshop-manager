@@ -34,6 +34,12 @@ pub fn run() {
             sql: include_str!("../migrations/005_create_estiamtes_tables.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 6,
+            description: "create_appointments_table",
+            sql: include_str!("../migrations/006_create_appointments_table.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
