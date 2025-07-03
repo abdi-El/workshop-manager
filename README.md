@@ -53,7 +53,7 @@ A lightweight, cross-platform **desktop app** built with **[Tauri](https://tauri
 
 ---
 
-## 🛠️ Build
+## 🛠️ Deploy/Build
 
 To build the app for distribution:
 
