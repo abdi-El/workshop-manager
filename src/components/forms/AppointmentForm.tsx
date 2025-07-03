@@ -21,7 +21,14 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
         const date = dayjs(data.date).format("DD-MM-YYYY")
         const startTime = dayjs(data.from_time).format(HOUR_FORMAT)
         const endTime = dayjs(data.to_time).format(HOUR_FORMAT)
-        return { ...data, date, "from_time": startTime, "to_time": endTime, "workshop_id": settings.selectedWorkshop?.id }
+        return {
+            ...data,
+            date,
+            "from_time": startTime,
+            "to_time": endTime,
+            "workshop_id": settings.selectedWorkshop?.id,
+            "estimate_id": estimateId
+        }
     }
     function onFinish(values: Appointment) {
         create(formatData(values), () => {
