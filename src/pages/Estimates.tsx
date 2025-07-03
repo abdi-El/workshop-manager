@@ -69,6 +69,14 @@ export default function Estimates() {
                     <Button onClick={() => { showDrawer(); setSelectedEstimate(es) }} icon={<EditOutlined />} type="primary" />
                     <SaveEstimatePdf estimateId={es.id} />
                     <Popconfirm
+                        title="Crea Appuntamento"
+                        description={<AppointmentForm estimateId={es.id} />}
+                        okButtonProps={{ hidden: true }}
+                        cancelButtonProps={{ hidden: true }}
+                    >
+                        <Button icon={<CalendarOutlined />} type="primary" />
+                    </Popconfirm>
+                    <Popconfirm
                         title="Elimina Preventivo"
                         description="Sei sicuro di voler eliminare questo preventivo?"
                         okText="Sì"
@@ -80,14 +88,6 @@ export default function Estimates() {
                         }}
                     >
                         <Button icon={<DeleteOutlined />} danger type="primary" />
-                    </Popconfirm>
-                    <Popconfirm
-                        title="Crea Appuntamento"
-                        description={<AppointmentForm estimateId={es.id} />}
-                        okButtonProps={{ hidden: true }}
-                        cancelButtonProps={{ hidden: true }}
-                    >
-                        <Button icon={<CalendarOutlined />} type="primary" />
                     </Popconfirm>
                 </Space >,
         },
