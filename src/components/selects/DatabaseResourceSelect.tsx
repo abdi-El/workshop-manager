@@ -8,11 +8,11 @@ interface Props extends React.ComponentProps<typeof Form.Item> {
     selectLabel: string
     name: string
     inputLabel: string
+    allowClear?: boolean
 }
 
-export default function DatabasResourceSelect({ resource, selectLabel, name, inputLabel, ...props }: Props) {
+export default function DatabasResourceSelect({ resource, selectLabel, name, inputLabel, allowClear, ...props }: Props) {
     const data = useDatabaseStore((state) => state);
-    console.log("DatabasResourceSelect", resource, data[resource]);
     return <Form.Item
         {...props}
         label={inputLabel}
@@ -22,7 +22,7 @@ export default function DatabasResourceSelect({ resource, selectLabel, name, inp
         <Select options={data[resource].map(v => ({
             label: v[selectLabel as keyof typeof v],
             value: v.id
-        }))}>
+        }))} allowClear={allowClear}>
         </Select>
     </Form.Item>
 }

@@ -1,9 +1,11 @@
 import { Button, DatePicker, Form, TimePicker } from "antd";
 import dayjs from "dayjs";
-import { create } from "../../modules/database";
+import { useEffect } from "react";
+import { create, db } from "../../modules/database";
 import { useDatabaseStore, useStore } from "../../modules/state";
 import { Appointment, Estimate } from "../../types/database";
 import DatabasResourceSelect from "../selects/DatabaseResourceSelect";
+
 
 interface Props {
     estimateId?: Estimate["id"]
@@ -16,6 +18,24 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
     const [form] = Form.useForm()
     const { updateDatabaseData } = useDatabaseStore((state) => state)
     const { settings } = useStore(state => state)
+    const selectedEstimate = Form.useWatch("estimate_id")
+
+    useEffect(() => {
+        if (appointmentId) {
+            db.select(`SELECT * FROM appointments WHERE id = ${appointmentId}`).then((res: any) => {
+                if ((res as Appointment[]).length) {
+                    const data = res[0]
+                    form.setFieldsValue({
+                        ...data,
+                        date: dayjs(data.date, "DD-MM-YYYY"),
+                        from_time: dayjs(data.from_time, "HH:MM"),
+                        to_time: dayjs(data.to_time, "HH:MM"),
+                    })
+                }
+            })
+        }
+    }, [appointmentId])
+
     function formatData(data: Appointment) {
         const HOUR_FORMAT = "HH:mm"
         const date = dayjs(data.date).format("DD-MM-YYYY")
@@ -30,6 +50,7 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
             "estimate_id": estimateId
         }
     }
+
     function onFinish(values: Appointment) {
         create(formatData(values), () => {
             updateDatabaseData(["appointments", "estimates"])
@@ -38,9 +59,11 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
     return <Form form={form} onFinish={onFinish}>
         {!estimateId &&
             <>
-                <DatabasResourceSelect resource="estimates" selectLabel="id" name="estimate_id" inputLabel="Preventivo" className="w-50" />
-                <DatabasResourceSelect resource="cars" selectLabel="id" name="car_id" inputLabel="Auto" className="w-50" />
-                <DatabasResourceSelect resource="customers" selectLabel="id" name="customer_id" inputLabel="Cliente" className="w-50" />
+                <DatabasResourceSelect resource="estimates" selectLabel="id" name="estimate_id" inputLabel="Preventivo" className="w-50" allowClear />
+                {selectedEstimate && <>
+                    <DatabasResourceSelect resource="cars" selectLabel="id" name="car_id" inputLabel="Auto" className="w-50" />
+                    <DatabasResourceSelect resource="customers" selectLabel="id" name="customer_id" inputLabel="Cliente" className="w-50" />
+                </>}
             </>
         }
         <Form.Item

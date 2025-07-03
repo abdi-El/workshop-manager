@@ -1,4 +1,4 @@
-import { DeleteOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined } from "@ant-design/icons";
 import { Button, Descriptions, Popconfirm, Popover, Row, Tag } from "antd";
 import { deleteRow } from "../modules/database";
 import { AppointmentEventData } from "../types/database";
@@ -7,6 +7,7 @@ import { AppointmentEventData } from "../types/database";
 interface Props {
     appointment: AppointmentEventData
     onDelete: () => void
+    onEdit: (app: AppointmentEventData) => void
 }
 
 const renderPopoverContent = (data: AppointmentEventData) => (
@@ -28,30 +29,34 @@ const renderPopoverContent = (data: AppointmentEventData) => (
         </Descriptions.Item>
     </Descriptions>
 );
-export default function PlannerEvent({ appointment, onDelete }: Props) {
+export default function PlannerEvent({ appointment, onDelete, onEdit }: Props) {
     return <Popover
         title={
             <Row justify={"space-between"}>
                 <div>
                     Appuntamento #{appointment.id}
                 </div>
-                <Popconfirm
-                    title="Elimina Appuntamento"
-                    description="Sei sicuro di voler eliminare questo appuntamento?"
-                    okText="Sì"
-                    cancelText="No"
-                    onConfirm={() => {
-                        deleteRow(appointment.id, "appointments", () => {
-                            onDelete()
-                        })
-                    }}
-                >
-                    <Button icon={<DeleteOutlined />} danger type="primary" />
-                </Popconfirm>
+                <div>
+                    <Button icon={<EditOutlined />} type={"primary"} style={{ marginRight: "2px" }} onClick={() => onEdit(appointment)} />
+                    <Popconfirm
+                        title="Elimina Appuntamento"
+                        description="Sei sicuro di voler eliminare questo appuntamento?"
+                        okText="Sì"
+                        cancelText="No"
+                        onConfirm={() => {
+                            deleteRow(appointment.id, "appointments", () => {
+                                onDelete()
+                            })
+                        }}
+                    >
+                        <Button icon={<DeleteOutlined />} danger type="primary" />
+                    </Popconfirm>
+                </div>
 
             </Row>
         }
         content={renderPopoverContent(appointment)}
+        trigger={"click"}
     >
         <div className="h-100">{appointment.car_info}</div>
     </Popover>
