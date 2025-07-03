@@ -73,3 +73,17 @@ export type Appointment = {
     to_time: string;
 
 };
+
+
+export interface AppointmentEventData {
+    id: number,
+    workshop_id: number,
+    date: string,
+    from_time: string,
+    to_time: string,
+    customer_name: string,
+    customer_phone: string,
+    car_info: string,
+    number_plate: string,
+    estimate_status: boolean
+}
