@@ -1,7 +1,8 @@
-import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, Popconfirm, Row, Space, Table } from "antd";
+import { CalendarOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { Button, Drawer, Modal, Popconfirm, Row, Space, Table } from "antd";
 import { useState } from "react";
 
+import AppointmentForm from "../components/forms/AppointmentForm";
 import EstimatesForm from "../components/forms/EstimatesForm";
 import SaveEstimatePdf from "../components/pdf/SavePdfButton";
 import { deleteRow } from "../modules/database";
@@ -67,6 +68,14 @@ export default function Estimates() {
                     <Button onClick={() => { showDrawer(); setSelectedEstimate(es) }} icon={<EditOutlined />} type="primary" />
                     <SaveEstimatePdf estimateId={es.id} />
                     <Popconfirm
+                        title={es.appointment_id}
+                        description={<AppointmentForm estimateId={es.id} appointmentId={es.appointment_id} />}
+                        okButtonProps={{ hidden: true }}
+                        cancelButtonProps={{ hidden: true }}
+                    >
+                        <Button disabled={!!es.appointment_id} icon={<CalendarOutlined />} type="primary" />
+                    </Popconfirm>
+                    <Popconfirm
                         title="Elimina Preventivo"
                         description="Sei sicuro di voler eliminare questo preventivo?"
                         okText="Sì"
@@ -79,7 +88,6 @@ export default function Estimates() {
                     >
                         <Button icon={<DeleteOutlined />} danger type="primary" />
                     </Popconfirm>
-
                 </Space >,
         },
     ]
@@ -98,6 +106,9 @@ export default function Estimates() {
                 Crea Preventivo
             </Button>
         </Row>
+        <Modal>
+
+        </Modal>
 
         <Drawer
             title={`${selectedEstimate ? "Aggiorna" : "Crea Nuovo"} Preventivo`}

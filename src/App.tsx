@@ -18,7 +18,7 @@ export default function Page() {
   async function initApp() {
     await initDatabase()
     populateMakers()
-    updateDatabaseData(["workshops", "customers", "makers", "models", "cars", "estimates"])
+    updateDatabaseData()
     updateSettings()
   }
 

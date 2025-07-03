@@ -49,6 +49,7 @@ export type Estimate = {
     discount?: number | null;
     car_kms: number;
     has_iva: boolean;
+    appointment_id?: Appointment["id"]
 };
 
 export type EstimateItem = {
@@ -57,5 +58,32 @@ export type EstimateItem = {
     description: string;
     quantity: number;
     unit_price: number;
-    total_price?: number; // Calculated as quantity * unit_price
+    total_price?: number;
 };
+
+
+export type Appointment = {
+    id: number;
+    workshop_id: number;
+    customer_id: number;
+    car_id: number;
+    estimate_id?: number | null;
+    date: string;
+    from_time: string;
+    to_time: string;
+
+};
+
+
+export interface AppointmentEventData {
+    id: number,
+    workshop_id: number,
+    date: string,
+    from_time: string,
+    to_time: string,
+    customer_name: string,
+    customer_phone: string,
+    car_info: string,
+    number_plate: string,
+    estimate_status: boolean
+}
