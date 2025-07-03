@@ -1,7 +1,8 @@
-import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, Popconfirm, Row, Space, Table } from "antd";
+import { CalendarOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
+import { Button, Drawer, Modal, Popconfirm, Row, Space, Table } from "antd";
 import { useState } from "react";
 
+import AppointmentForm from "../components/forms/AppointmentForm";
 import EstimatesForm from "../components/forms/EstimatesForm";
 import SaveEstimatePdf from "../components/pdf/SavePdfButton";
 import { deleteRow } from "../modules/database";
@@ -13,6 +14,7 @@ export default function Estimates() {
     const [open, setOpen] = useState(false);
     const { estimates, updateDatabaseData } = useDatabaseStore((state) => state)
     const [selectedEstimate, setSelectedEstimate] = useState<Estimate>();
+    const [isModalOpen, setModalOpen] = useState(true)
 
     const columns = [
         {
@@ -79,7 +81,14 @@ export default function Estimates() {
                     >
                         <Button icon={<DeleteOutlined />} danger type="primary" />
                     </Popconfirm>
-
+                    <Popconfirm
+                        title="Crea Appuntamento"
+                        description={<AppointmentForm estimateId={es.id} />}
+                        okButtonProps={{ hidden: true }}
+                        cancelButtonProps={{ hidden: true }}
+                    >
+                        <Button icon={<CalendarOutlined />} type="primary" />
+                    </Popconfirm>
                 </Space >,
         },
     ]
@@ -98,6 +107,9 @@ export default function Estimates() {
                 Crea Preventivo
             </Button>
         </Row>
+        <Modal>
+
+        </Modal>
 
         <Drawer
             title={`${selectedEstimate ? "Aggiorna" : "Crea Nuovo"} Preventivo`}
