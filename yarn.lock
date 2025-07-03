@@ -1016,12 +1016,17 @@ browserslist@^4.24.0:
     node-releases "^2.0.19"
     update-browserslist-db "^1.1.3"
 
+calendar-base@^0.2.1:
+  version "0.2.1"
+  resolved "https://registry.yarnpkg.com/calendar-base/-/calendar-base-0.2.1.tgz#cecefc827901aca2082f847db8cd2f1c26bf1596"
+  integrity sha512-cCdp1PRro3kPjH6CdoIMq6PRRWSz4rKchJ4C+7ja7ZL0OaFmmcrF8w4qCvY2W2UbunkrE/Pea3ey8LTneEzPDQ==
+
 caniuse-lite@^1.0.30001718:
   version "1.0.30001720"
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001720.tgz#c138cb6026d362be9d8d7b0e4bcd0183a850edfd"
   integrity sha512-Ec/2yV2nNPwb4DnTANEV99ZWwm3ZWfdlfkQbWSDDt+PsXEVYwlhPH8tdMaPunYTKKmz7AnHi2oNEi1GcmKCD8g==
 
-classnames@2.x, classnames@^2.2.1, classnames@^2.2.3, classnames@^2.2.5, classnames@^2.2.6, classnames@^2.3.1, classnames@^2.3.2, classnames@^2.5.1:
+classnames@2.x, classnames@^2.2.1, classnames@^2.2.3, classnames@^2.2.4, classnames@^2.2.5, classnames@^2.2.6, classnames@^2.3.1, classnames@^2.3.2, classnames@^2.5.1:
   version "2.5.1"
   resolved "https://registry.yarnpkg.com/classnames/-/classnames-2.5.1.tgz#ba774c614be0f016da105c858e7159eae8e7687b"
   integrity sha512-saHYOzhIQs6wy2sVxTM6bUDsQO4F50V9RQ22qBpEdCW+I+/Wmke2HOl6lS6dTpdxVhb88/I6+Hs+438c3lfUow==
@@ -1712,6 +1717,14 @@ react-dom@^18.3.1:
   dependencies:
     loose-envify "^1.1.0"
     scheduler "^0.23.2"
+
+react-event-calendar@^0.3.0:
+  version "0.3.0"
+  resolved "https://registry.yarnpkg.com/react-event-calendar/-/react-event-calendar-0.3.0.tgz#b4d7d288f8fc5645fabcc120f736a66f6cd6935d"
+  integrity sha512-PWj+85KUdhDRBGd52CKVifPHeSC+PzueHLYdsdALyC/eMlRtfB5wMzrwfNZkhu9ZJsMJyDbMOgnQOgbUDi0s+w==
+  dependencies:
+    calendar-base "^0.2.1"
+    classnames "^2.2.4"
 
 react-icons@^5.5.0:
   version "5.5.0"
