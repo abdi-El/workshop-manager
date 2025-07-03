@@ -1,9 +1,10 @@
 import { message } from 'antd';
 import { create } from 'zustand';
 import { SettingsType } from '../types/common';
-import { Car, Customer, Estimate, Maker, MakerModel, Workshop } from '../types/database';
+import { Appointment, Car, Customer, Estimate, Maker, MakerModel, Workshop } from '../types/database';
 import { db, storeSettings } from './database';
 
+const tables: (keyof DatabaseState)[] = ["workshops", "customers", "makers", "models", "cars", "estimates", "appointments"];
 
 export interface DatabaseState {
     workshops: Workshop[]
@@ -12,8 +13,9 @@ export interface DatabaseState {
     models: MakerModel[]
     cars: Car[]
     estimates: Estimate[]
+    appointments: Appointment[]
     databaseLoading: boolean
-    updateDatabaseData: (key: (keyof DatabaseState)[]) => void
+    updateDatabaseData: (key?: (keyof DatabaseState)[]) => void
 }
 
 interface AppState {
@@ -60,8 +62,9 @@ export const useDatabaseStore = create<DatabaseState>()((set) => ({
     models: [],
     cars: [],
     estimates: [],
+    appointments: [],
     databaseLoading: false,
-    updateDatabaseData: (keys) => {
+    updateDatabaseData: (keys = tables) => {
         keys.forEach(key => {
             set({ databaseLoading: true })
             db.select(customQueries[key] || `SELECT * FROM ${key}`).then((rows) => {

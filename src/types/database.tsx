@@ -57,5 +57,18 @@ export type EstimateItem = {
     description: string;
     quantity: number;
     unit_price: number;
-    total_price?: number; // Calculated as quantity * unit_price
+    total_price?: number;
+};
+
+
+export type Appointment = {
+    id: number;
+    workshop_id: number;
+    customer_id: number;
+    car_id: number;
+    estimate_id?: number | null;
+    date: string;
+    start_time: string;
+    end_time: string;
+
 };
