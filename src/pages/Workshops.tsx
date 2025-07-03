@@ -50,9 +50,10 @@ export default function Workshops() {
             title: "Azioni",
             dataIndex: "",
             key: "actions",
-            render: (_: unknown, ws: Workshop) =>
-                <Space>
-                    <Button onClick={() => { updateSettings({ selectedWorkshop: ws }) }} type={settings.selectedWorkshop?.id == ws.id ? "primary" : "dashed"}>Seleziona</Button>
+            render: (_: unknown, ws: Workshop) => {
+                const isSelected = settings.selectedWorkshop?.id === ws.id;
+                return <Space>
+                    <Button onClick={() => { updateSettings({ selectedWorkshop: ws }) }} type={"primary"} disabled={isSelected}>Seleziona</Button>
                     <Button onClick={() => { showDrawer(); setSelectedWorkshop(ws) }} icon={<EditOutlined />} type="primary" />
                     <Popconfirm
                         title="Elimina Officina"
@@ -68,7 +69,8 @@ export default function Workshops() {
                         <Button icon={<DeleteOutlined />} type="primary" danger />
                     </Popconfirm>
 
-                </Space >,
+                </Space >
+            },
         },
     ]
     const showDrawer = () => {
