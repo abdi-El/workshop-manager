@@ -1,4 +1,7 @@
-.PHONY: up reset
+.PHONY: up reset build
+build:
+	yarn
+
 up:
 	yarn tauri dev
 
