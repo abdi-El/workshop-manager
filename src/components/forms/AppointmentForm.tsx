@@ -5,6 +5,7 @@ import { create, db } from "../../modules/database";
 import { DATE_FORMAT, TIME_FORMAT } from "../../modules/dates";
 import { useDatabaseStore, useStore } from "../../modules/state";
 import { Appointment, Estimate } from "../../types/database";
+import CustomerSelect from "../selects/CustomerSelect";
 import DatabasResourceSelect from "../selects/DatabaseResourceSelect";
 
 
@@ -62,7 +63,7 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
                 <DatabasResourceSelect resource="estimates" selectLabel="id" name="estimate_id" inputLabel="Preventivo" className="w-50" allowClear />
                 {!selectedEstimate && <>
                     <DatabasResourceSelect resource="cars" selectLabel="id" name="car_id" inputLabel="Auto" className="w-50" />
-                    <DatabasResourceSelect resource="customers" selectLabel="id" name="customer_id" inputLabel="Cliente" className="w-50" />
+                    <CustomerSelect />
                 </>}
             </>
         }

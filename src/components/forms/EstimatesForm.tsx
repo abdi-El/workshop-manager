@@ -5,6 +5,7 @@ import { createOrUpdateEstimate, getEstimateItems } from "../../modules/database
 import { DATE_FORMAT } from "../../modules/dates";
 import { useDatabaseStore, useStore } from "../../modules/state";
 import { Estimate } from "../../types/database";
+import CustomerSelect from "../selects/CustomerSelect";
 import DatabasResourceSelect from "../selects/DatabaseResourceSelect";
 import EstimateItemsForm from "./EstimateItemsForm";
 
@@ -47,7 +48,7 @@ export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesForm
     }, [estimate, form]);
     return (
         <Form form={form} layout="vertical" onFinish={handleFinish} className="estimates-form">
-            <DatabasResourceSelect resource="customers" selectLabel="name" name="customer_id" inputLabel="Cliente" className="w-100" />
+            <CustomerSelect />
             <Form.Item
                 label="data"
                 name="date"

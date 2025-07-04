@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { create, update } from "../../modules/database";
 import { useDatabaseStore, useStore } from "../../modules/state";
 import { Car } from "../../types/database";
+import CustomerSelect from "../selects/CustomerSelect";
 import DatabasResourceSelect from "../selects/DatabaseResourceSelect";
 
 type CarFormProps = {
@@ -42,7 +43,7 @@ export default function CarsForm({ car = {}, onSubmit }: CarFormProps) {
 
     return (
         <Form form={form} layout="vertical" onFinish={handleFinish}>
-            <DatabasResourceSelect resource="customers" selectLabel="name" name="customer_id" inputLabel="Cliente" />
+            <CustomerSelect />
             <DatabasResourceSelect resource="makers" selectLabel="name" name="maker_id" inputLabel="Marca" />
             <DatabasResourceSelect resource="models" selectLabel="name" name="model_id" inputLabel="Modello" />
             <Form.Item
