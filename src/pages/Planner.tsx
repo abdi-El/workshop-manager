@@ -12,17 +12,11 @@ import { fromISOFormat, toISOFormat } from '../modules/dates';
 import { getPlannerEvents } from '../modules/queries';
 import { AppointmentEventData } from '../types/database';
 
-
-
 interface EventProps extends EventImpl {
     extendedProps: {
         appointment: AppointmentEventData
     }
 }
-
-
-
-
 
 
 const mapAppointmentsToEvents = (appointments: AppointmentEventData[]) => {
