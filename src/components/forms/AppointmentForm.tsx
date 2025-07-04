@@ -2,6 +2,7 @@ import { Button, DatePicker, Form, TimePicker } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 import { create, db } from "../../modules/database";
+import { DATE_FORMAT, TIME_FORMAT } from "../../modules/dates";
 import { useDatabaseStore, useStore } from "../../modules/state";
 import { Appointment, Estimate } from "../../types/database";
 import DatabasResourceSelect from "../selects/DatabaseResourceSelect";
@@ -12,7 +13,7 @@ interface Props {
     appointmentId?: Appointment["id"]
 }
 
-const format = 'HH:mm';
+
 
 export default function AppointmentForm({ estimateId, appointmentId }: Props) {
     const [form] = Form.useForm()
@@ -27,9 +28,9 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
                     const data = res[0]
                     form.setFieldsValue({
                         ...data,
-                        date: dayjs(data.date, "DD-MM-YYYY"),
-                        from_time: dayjs(data.from_time, "HH:MM"),
-                        to_time: dayjs(data.to_time, "HH:MM"),
+                        date: dayjs(data.date, DATE_FORMAT),
+                        from_time: dayjs(data.from_time, TIME_FORMAT),
+                        to_time: dayjs(data.to_time, TIME_FORMAT),
                     })
                 }
             })
@@ -37,10 +38,9 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
     }, [appointmentId])
 
     function formatData(data: Appointment) {
-        const HOUR_FORMAT = "HH:mm"
-        const date = dayjs(data.date).format("DD-MM-YYYY")
-        const startTime = dayjs(data.from_time).format(HOUR_FORMAT)
-        const endTime = dayjs(data.to_time).format(HOUR_FORMAT)
+        const date = dayjs(data.date).format(DATE_FORMAT)
+        const startTime = dayjs(data.from_time).format(TIME_FORMAT)
+        const endTime = dayjs(data.to_time).format(TIME_FORMAT)
         return {
             ...data,
             date,
@@ -71,21 +71,21 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
             name="date"
             rules={[{ required: true, message: "Inserire la data" }]}
         >
-            <DatePicker format="DD/MM/YYYY" className="w-100" />
+            <DatePicker format={DATE_FORMAT} className="w-100" />
         </Form.Item>
         <Form.Item
             label="Inizio"
             name="from_time"
             rules={[{ required: true, message: "Inserire Inizio" }]}
         >
-            <TimePicker needConfirm={false} format={format} />
+            <TimePicker needConfirm={false} format={TIME_FORMAT} />
         </Form.Item>
         <Form.Item
             label="Fine"
             name="to_time"
             rules={[{ required: true, message: "Inserire Fine" }]}
         >
-            <TimePicker needConfirm={false} format={format} />
+            <TimePicker needConfirm={false} format={TIME_FORMAT} />
         </Form.Item>
 
         <Form.Item>

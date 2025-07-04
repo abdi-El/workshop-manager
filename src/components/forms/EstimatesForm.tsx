@@ -2,6 +2,7 @@ import { Button, DatePicker, Form, InputNumber, Row, Switch } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 import { createOrUpdateEstimate, getEstimateItems } from "../../modules/database";
+import { DATE_FORMAT } from "../../modules/dates";
 import { useDatabaseStore, useStore } from "../../modules/state";
 import { Estimate } from "../../types/database";
 import DatabasResourceSelect from "../selects/DatabaseResourceSelect";
@@ -18,7 +19,7 @@ export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesForm
     const { settings } = useStore((state) => state);
 
     const handleFinish = (values: Omit<Estimate, "id">) => {
-        values.date = dayjs(values.date).format("DD-MM-YYYY");
+        values.date = dayjs(values.date).format(DATE_FORMAT);
         values.workshop_id = settings?.selectedWorkshop?.id as number;
         const { items, ...rest } = values as any;
         createOrUpdateEstimate(rest as any, items, () => {
@@ -37,7 +38,7 @@ export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesForm
         if (estimate.id) {
             form.setFieldsValue({
                 ...estimate,
-                date: dayjs(estimate.date, "DD-MM-YYYY"),
+                date: dayjs(estimate.date, DATE_FORMAT),
             });
             getItems()
         } else {
@@ -52,7 +53,7 @@ export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesForm
                 name="date"
                 rules={[{ required: true, message: "Inserire la data" }]}
             >
-                <DatePicker format="DD/MM/YYYY" className="w-100" />
+                <DatePicker format={DATE_FORMAT} className="w-100" />
             </Form.Item>
             <Row >
                 <DatabasResourceSelect resource="cars" selectLabel="id" name="car_id" inputLabel="Auto" className="w-50" />
