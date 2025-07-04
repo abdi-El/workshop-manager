@@ -78,14 +78,14 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
             name="from_time"
             rules={[{ required: true, message: "Inserire Inizio" }]}
         >
-            <TimePicker format={format} />
+            <TimePicker needConfirm={false} format={format} />
         </Form.Item>
         <Form.Item
             label="Fine"
             name="to_time"
             rules={[{ required: true, message: "Inserire Fine" }]}
         >
-            <TimePicker format={format} />
+            <TimePicker needConfirm={false} format={format} />
         </Form.Item>
 
         <Form.Item>
