@@ -8,6 +8,7 @@ import { useEffect, useMemo, useState } from 'react';
 import AppointmentForm from '../components/forms/AppointmentForm';
 import PlannerEvent from '../components/PlannerEvent';
 import { update } from '../modules/database';
+import { fromISOFormat, toISOFormat } from '../modules/dates';
 import { getPlannerEvents } from '../modules/queries';
 import { AppointmentEventData } from '../types/database';
 
@@ -21,26 +22,7 @@ interface EventProps extends EventImpl {
 
 
 
-function toISOFormat(dateString: string, timeString: string) {
-    const [day, month, year] = dateString.split('-');
-    const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    const isoDateTime = `${isoDate}T${timeString}:00`;
-    return isoDateTime;
-}
 
-function fromISOFormat(isoDateTime: string) {
-    const date = new Date(isoDateTime);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear().toString();
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-
-    return {
-        date: `${day}-${month}-${year}`,
-        time: `${hours}:${minutes}`
-    };
-}
 
 
 const mapAppointmentsToEvents = (appointments: AppointmentEventData[]) => {
