@@ -3,7 +3,7 @@ import { DatabaseState, useDatabaseStore } from "../../modules/state";
 
 
 type Resource = Exclude<keyof DatabaseState, "databaseLoading" | "updateDatabaseData">
-interface Props extends React.ComponentProps<typeof Form.Item> {
+export interface DatabaseSelectProps extends React.ComponentProps<typeof Form.Item> {
     resource: Resource
     selectLabel: string
     name: string
@@ -11,7 +11,7 @@ interface Props extends React.ComponentProps<typeof Form.Item> {
     allowClear?: boolean
 }
 
-export default function DatabasResourceSelect({ resource, selectLabel, name, inputLabel, allowClear, ...props }: Props) {
+export default function DatabasResourceSelect({ resource, selectLabel, name, inputLabel, allowClear, ...props }: DatabaseSelectProps) {
     const data = useDatabaseStore((state) => state);
     return <Form.Item
         {...props}

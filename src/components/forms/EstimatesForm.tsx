@@ -5,8 +5,8 @@ import { createOrUpdateEstimate, getEstimateItems } from "../../modules/database
 import { DATE_FORMAT } from "../../modules/dates";
 import { useDatabaseStore, useStore } from "../../modules/state";
 import { Estimate } from "../../types/database";
+import CarSelect from "../selects/CarSelect";
 import CustomerSelect from "../selects/CustomerSelect";
-import DatabasResourceSelect from "../selects/DatabaseResourceSelect";
 import EstimateItemsForm from "./EstimateItemsForm";
 
 interface EstimatesFormProps {
@@ -57,7 +57,7 @@ export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesForm
                 <DatePicker format={DATE_FORMAT} className="w-100" />
             </Form.Item>
             <Row >
-                <DatabasResourceSelect resource="cars" selectLabel="id" name="car_id" inputLabel="Auto" className="w-50" />
+                <CarSelect className="w-50" />
                 <Form.Item
                     className="w-50"
                     label="Km"
