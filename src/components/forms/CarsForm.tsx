@@ -1,4 +1,4 @@
-import { Button, Form, Input, InputNumber } from "antd";
+import { Button, DatePicker, Form, Input } from "antd";
 import { useEffect } from "react";
 import { create, update } from "../../modules/database";
 import { useDatabaseStore, useStore } from "../../modules/state";
@@ -60,7 +60,7 @@ export default function CarsForm({ car = {}, onSubmit }: CarFormProps) {
                 name="year"
                 rules={[{ required: true, message: "Inserire il l'anno" }]}
             >
-                <InputNumber />
+                <DatePicker picker="year" />
             </Form.Item>
             <Form.Item
                 label="Targa"
