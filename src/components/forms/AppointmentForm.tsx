@@ -1,7 +1,7 @@
 import { Button, DatePicker, Form, TimePicker } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
-import { create, db } from "../../modules/database";
+import { create, db, update } from "../../modules/database";
 import { DATE_FORMAT, TIME_FORMAT } from "../../modules/dates";
 import { useDatabaseStore, useStore } from "../../modules/state";
 import { Appointment, Estimate } from "../../types/database";
@@ -55,10 +55,16 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
     }
 
     function onFinish(values: Appointment) {
-        create(formatData(values), () => {
-            updateDatabaseData(["appointments", "estimates"])
-        }, "appointments")
+        const formattedData = formatData(values)
+        const onExecute = () => updateDatabaseData(["appointments", "estimates"])
+        const table = "appointments"
+        if (appointmentId) {
+            update(formattedData, appointmentId, onExecute, table)
+        } else {
+            create(formattedData, onExecute, table)
+        }
     }
+
     return <Form form={form} onFinish={onFinish}>
         {!estimateId &&
             <>

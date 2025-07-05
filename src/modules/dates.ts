@@ -1,5 +1,5 @@
 export const DATE_FORMAT = "DD-MM-YYYY"
-export const TIME_FORMAT = "HH:MM"
+export const TIME_FORMAT = "hh:mm"
 
 export function toISOFormat(dateString: string, timeString: string) {
     const [day, month, year] = dateString.split('-');
