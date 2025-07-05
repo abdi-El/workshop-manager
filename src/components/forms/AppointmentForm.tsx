@@ -21,7 +21,8 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
     const [form] = Form.useForm()
     const { updateDatabaseData } = useDatabaseStore((state) => state)
     const { settings } = useStore(state => state)
-    const selectedEstimate = Form.useWatch("estimate_id")
+    const selectedEstimate = Form.useWatch("estimate_id", form)
+    const selectedCustomer = Form.useWatch("customer_id", form)
 
     useEffect(() => {
         if (appointmentId) {
@@ -61,10 +62,10 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
     return <Form form={form} onFinish={onFinish}>
         {!estimateId &&
             <>
-                <DatabasResourceSelect resource="estimates" selectLabel="id" name="estimate_id" inputLabel="Preventivo" className="w-50" allowClear />
+                <DatabasResourceSelect resource="estimates" selectLabel="id" name="estimate_id" inputLabel="Preventivo" className="w-50" allowClear required={false} />
                 {!selectedEstimate && <>
-                    <CarSelect />
                     <CustomerSelect />
+                    <CarSelect customerId={selectedCustomer} />
                 </>}
             </>
         }

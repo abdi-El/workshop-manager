@@ -30,7 +30,7 @@ export default function DatabasResourceSelect<T extends { id: number }>({ resour
         {...props}
         label={inputLabel}
         name={name}
-        rules={[{ required: true, message: "Inserire il  cliente" }]}
+        rules={[{ required: true, message: "Inserire il dato" }]}
     >
         <Select
             options={data.map(v => ({
