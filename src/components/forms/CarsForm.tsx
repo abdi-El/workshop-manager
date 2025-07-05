@@ -5,6 +5,7 @@ import { useDatabaseStore, useStore } from "../../modules/state";
 import { Car } from "../../types/database";
 import CustomerSelect from "../selects/CustomerSelect";
 import DatabasResourceSelect from "../selects/DatabaseResourceSelect";
+import ModelSelect from "../selects/ModelSelect";
 
 type CarFormProps = {
     car?: Partial<Car>;
@@ -14,6 +15,7 @@ type CarFormProps = {
 export default function CarsForm({ car = {}, onSubmit }: CarFormProps) {
     const [form] = Form.useForm();
     const { updateDatabaseData } = useDatabaseStore((state) => state)
+    const selectedMaker = Form.useWatch("maker_id", form)
 
     const { settings } = useStore((state) => state);
 
@@ -36,16 +38,23 @@ export default function CarsForm({ car = {}, onSubmit }: CarFormProps) {
     useEffect(() => {
         if (car.id) {
             form.setFieldsValue(car);
-        } else {
-            form.resetFields();
         }
     }, [car, form]);
+
+    useEffect(() => {
+        if (car && car.maker_id == selectedMaker) {
+            form.setFieldValue("model_id", car.model_id)
+        } else {
+            form.setFieldValue("model_id", undefined)
+        }
+
+    }, [selectedMaker])
 
     return (
         <Form form={form} layout="vertical" onFinish={handleFinish}>
             <CustomerSelect />
             <DatabasResourceSelect resource="makers" selectLabel="name" name="maker_id" inputLabel="Marca" />
-            <DatabasResourceSelect resource="models" selectLabel="name" name="model_id" inputLabel="Modello" />
+            <ModelSelect makerId={selectedMaker} />
             <Form.Item
                 label="Anno"
                 name="year"
