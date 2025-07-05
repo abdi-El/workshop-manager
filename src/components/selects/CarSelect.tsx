@@ -17,5 +17,5 @@ export default function CarSelect({ customerId, ...props }: Props) {
         }
     }, [customerId])
 
-    return <DatabasResourceSelect {...updatedProps} resource="cars" selectLabel="id" name="car_id" inputLabel="Auto" />
+    return <DatabasResourceSelect {...updatedProps} resource="cars" selectLabel="car_info" name="car_id" inputLabel="Auto" />
 }

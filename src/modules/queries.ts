@@ -61,6 +61,9 @@ export const carQuery = `SELECT cars.id as car_id,
                 cars.*, 
                 model.id as model_id,
                 model.name as model_name,
-                maker.id as maker_id,  maker.name as maker_name FROM cars 
+                maker.id as maker_id,  
+                maker.name as maker_name, 
+                CONCAT(maker.name, ' ', model.name,' ' , number_plate ,' (', year, ')') as car_info
+                FROM cars 
             LEFT JOIN models as model ON cars.model_id = model.id 
             LEFT JOIN makers as maker ON cars.maker_id = maker.id`
