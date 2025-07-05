@@ -18,6 +18,7 @@ export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesForm
     const [form] = Form.useForm();
     const { updateDatabaseData } = useDatabaseStore((state) => state)
     const { settings } = useStore((state) => state);
+    const customer_id = Form.useWatch("customer_id", form)
 
     const handleFinish = (values: Omit<Estimate, "id">) => {
         values.date = dayjs(values.date).format(DATE_FORMAT);
@@ -44,7 +45,16 @@ export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesForm
             getItems()
         }
     }, [estimate]);
-    const customer_id = Form.useWatch("customer_id", form)
+
+    useEffect(() => {
+        if (estimate && estimate.customer_id == customer_id) {
+            form.setFieldValue("car_id", estimate.car_id)
+        } else {
+            form.setFieldValue("car_id", undefined)
+        }
+
+    }, [customer_id])
+
     return (
         <Form form={form} layout="vertical" onFinish={handleFinish} className="estimates-form">
             <CustomerSelect />
