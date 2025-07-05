@@ -32,10 +32,16 @@ export default function DatabasResourceSelect<T extends { id: number }>({ resour
         name={name}
         rules={[{ required: true, message: "Inserire il  cliente" }]}
     >
-        <Select options={data.map(v => ({
-            label: v[selectLabel as keyof typeof v],
-            value: v.id
-        }))} allowClear={allowClear}>
+        <Select
+            options={data.map(v => ({
+                label: v[selectLabel as keyof typeof v],
+                value: v.id
+            }))} allowClear={allowClear}
+            showSearch
+            filterOption={(input, option) =>
+                ((option?.label as any).toString() ?? '').toLowerCase().includes(input.toLowerCase())
+            }
+        >
         </Select>
     </Form.Item>
 }
