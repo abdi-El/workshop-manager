@@ -27,10 +27,10 @@ export default function DatabasResourceSelect<T extends { id: number }>({ resour
     }, [resource, filterFunc])
 
     return <Form.Item
+        rules={[{ required: true, message: "Inserire il dato" }]}
         {...props}
         label={inputLabel}
         name={name}
-        rules={[{ required: true, message: "Inserire il dato" }]}
     >
         <Select
             options={data.map(v => ({
