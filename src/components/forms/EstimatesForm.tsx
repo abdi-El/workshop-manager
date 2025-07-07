@@ -43,8 +43,12 @@ export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesForm
                 date: dayjs(estimate.date, DATE_FORMAT),
             });
             getItems()
+        } else {
+            form.resetFields()
+
         }
-    }, [estimate]);
+    }, [estimate, form]);
+
 
     useEffect(() => {
         if (estimate && estimate.customer_id == customer_id) {
@@ -66,7 +70,7 @@ export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesForm
                 <DatePicker format={DATE_FORMAT} className="w-100" />
             </Form.Item>
             <Row >
-                <CarSelect className="w-50" customerId={customer_id} />
+                <CarSelect className="w-50" />
                 <Form.Item
                     className="w-50"
                     label="Km"
