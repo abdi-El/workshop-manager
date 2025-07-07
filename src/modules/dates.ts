@@ -1,6 +1,7 @@
+import dayjs, { Dayjs } from "dayjs";
 export const DATE_FORMAT = "DD-MM-YYYY"
 export const TIME_FORMAT = "hh:mm"
-
+export const OLDEST_CAR_YEAR = 1885
 export function toISOFormat(dateString: string, timeString: string) {
     const [day, month, year] = dateString.split('-');
     const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
@@ -20,4 +21,15 @@ export function fromISOFormat(isoDateTime: string) {
         date: `${day}-${month}-${year}`,
         time: `${hours}:${minutes}`
     };
+}
+
+export function transofrmYear(date: number | Dayjs) {
+    if (date) {
+        if (typeof date == "number") {
+            return dayjs(`${date}-01-01`)
+        } else {
+            return date.year()
+        }
+    }
+    return date
 }

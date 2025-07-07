@@ -6,7 +6,9 @@ interface Props extends React.ComponentProps<typeof Form.Item> {
     customerId?: number
 }
 
-export default function CarSelect({ customerId, ...props }: Props) {
+export default function CarSelect(props: React.ComponentProps<typeof Form.Item>) {
+    const form = Form.useFormInstance()
+    const customerId = Form.useWatch("customer_id", form)
     const [updatedProps, setUpdatedProps] = useState({
         ...props,
         filterFunc: undefined as any,

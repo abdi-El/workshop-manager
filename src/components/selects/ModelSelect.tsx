@@ -6,7 +6,9 @@ interface Props extends React.ComponentProps<typeof Form.Item> {
     makerId?: number
 }
 
-export default function ModelSelect({ makerId, ...props }: Props) {
+export default function ModelSelect(props: React.ComponentProps<typeof Form.Item>) {
+    const form = Form.useFormInstance()
+    const makerId = Form.useWatch("maker_id", form)
     const [updatedProps, setUpdatedProps] = useState({
         ...props,
         filterFunc: undefined as any,

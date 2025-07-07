@@ -1,6 +1,8 @@
 import { Button, DatePicker, Form, Input } from "antd";
-import { useEffect } from "react";
+import dayjs from "dayjs";
+import { useEffect, useState } from "react";
 import { create, update } from "../../modules/database";
+import { OLDEST_CAR_YEAR, transofrmYear } from "../../modules/dates";
 import { useDatabaseStore, useStore } from "../../modules/state";
 import { Car } from "../../types/database";
 import CustomerSelect from "../selects/CustomerSelect";
@@ -12,22 +14,31 @@ type CarFormProps = {
     onSubmit: (values: Omit<Car, "id">) => void;
 };
 
+
+
 export default function CarsForm({ car = {}, onSubmit }: CarFormProps) {
     const [form] = Form.useForm();
     const { updateDatabaseData } = useDatabaseStore((state) => state)
     const selectedMaker = Form.useWatch("maker_id", form)
+    const [numberPlate, setNumberPlate] = useState<string>()
 
     const { settings } = useStore((state) => state);
 
     const handleFinish = (values: Omit<Car, "id">) => {
+        let data = {
+            ...values,
+            year: transofrmYear(values.year),
+            number_plate: values.number_plate.toUpperCase(),
+            "workshop_id": settings.selectedWorkshop?.id
+        }
         if (!car.id) {
-            create({ ...values, "workshop_id": settings.selectedWorkshop?.id }, () => {
+            create(data, () => {
                 form.resetFields();
                 updateDatabaseData(["cars"]);
                 onSubmit(values);
             }, "cars");
         } else {
-            update(values, car.id, () => {
+            update(data, car.id, () => {
                 form.resetFields();
                 updateDatabaseData(["cars"]);
                 onSubmit(values);
@@ -36,10 +47,8 @@ export default function CarsForm({ car = {}, onSubmit }: CarFormProps) {
     };
 
     useEffect(() => {
-        if (car.id) {
-            form.setFieldsValue(car);
-        }
-    }, [car, form]);
+        form.setFieldsValue({ ...car, year: transofrmYear(car.year as number) });
+    }, [car]);
 
     useEffect(() => {
         if (car && car.maker_id == selectedMaker) {
@@ -48,26 +57,30 @@ export default function CarsForm({ car = {}, onSubmit }: CarFormProps) {
             form.setFieldValue("model_id", undefined)
         }
 
-    }, [selectedMaker])
+    }, [selectedMaker, car])
 
     return (
         <Form form={form} layout="vertical" onFinish={handleFinish}>
             <CustomerSelect />
             <DatabasResourceSelect resource="makers" selectLabel="name" name="maker_id" inputLabel="Marca" />
-            <ModelSelect makerId={selectedMaker} />
+            <ModelSelect />
             <Form.Item
                 label="Anno"
                 name="year"
                 rules={[{ required: true, message: "Inserire il l'anno" }]}
             >
-                <DatePicker picker="year" />
+                <DatePicker picker="year" disabledDate={(current) => {
+                    const year = current.year();
+                    return year > dayjs().year() || year < OLDEST_CAR_YEAR;
+                }}
+                />
             </Form.Item>
             <Form.Item
                 label="Targa"
                 name="number_plate"
                 rules={[{ required: true, message: "Inserire la targa" }]}
             >
-                <Input />
+                <Input style={{ textTransform: 'uppercase' }} />
             </Form.Item>
 
             <Form.Item>
