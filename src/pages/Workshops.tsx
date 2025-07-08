@@ -1,6 +1,6 @@
 import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Drawer, Popconfirm, Row, Space, Table } from "antd";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import WorkshopForm from "../components/forms/WorkshopForm";
 import { deleteRow } from "../modules/database";
 import { useDatabaseStore, useStore } from "../modules/state";
@@ -13,6 +13,12 @@ export default function Workshops() {
 
     const { settings, updateSettings } = useStore((state) => state);
     const [selectedWorkshop, setSelectedWorkshop] = useState<Workshop>();
+
+    useEffect(() => {
+        if (workshops) {
+            updateSettings({ selectedWorkshop: workshops.find(ws => ws.id == settings.selectedWorkshop?.id) })
+        }
+    }, [workshops])
 
     const columns = [
         {
