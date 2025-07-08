@@ -45,7 +45,7 @@ export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesForm
             getItems()
         } else {
             form.resetFields()
-
+            form.setFieldsValue({ date: dayjs(), labor_hourly_cost: settings.selectedWorkshop?.base_labor_cost })
         }
     }, [estimate, form]);
 
