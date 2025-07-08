@@ -103,7 +103,7 @@ export default function Workshops() {
         >
             <WorkshopForm onSubmit={onClose} workshop={selectedWorkshop} />
         </Drawer>
-        <Table dataSource={workshops} columns={columns} rowKey="id" />;
+        <Table dataSource={workshops} columns={columns} rowKey="id" />
     </>
 };
 

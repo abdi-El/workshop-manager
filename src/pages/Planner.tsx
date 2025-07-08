@@ -10,6 +10,7 @@ import PlannerEvent from '../components/PlannerEvent';
 import { update } from '../modules/database';
 import { fromISOFormat, toISOFormat } from '../modules/dates';
 import { getPlannerEvents } from '../modules/queries';
+import "../styles/full-calendar-dark.css";
 import { AppointmentEventData } from '../types/database';
 
 interface EventProps extends EventImpl {
@@ -80,27 +81,29 @@ export default function Planner() {
             <Modal open={!!editing} onCancel={() => setEditing(undefined)} onOk={() => setEditing(undefined)} zIndex={99999}>
                 <AppointmentForm appointmentId={editing?.id} />
             </Modal>
-            <FullCalendar
-                plugins={[timeGridPlugin, interactionPlugin]}
-                initialView='timeGridWeek'
-                headerToolbar={{
-                    left: 'prev,next',
-                    center: 'title',
-                    right: 'timeGridWeek,timeGridDay'
-                }}
-                eventDrop={handleEventDrop}
-                eventResize={handleEventDrop}
-                editable={true}
-                locale={itLocale}
-                events={events}
-                eventContent={(eventInfo) => {
-                    const { event } = eventInfo;
-                    const { extendedProps } = event as EventProps;
-                    const { appointment } = extendedProps
-                    return <PlannerEvent appointment={appointment} onDelete={getData} onEdit={(appointment) => { setEditing(appointment) }} />
-                }}
+            <div id='calendar'>
+                <FullCalendar
+                    plugins={[timeGridPlugin, interactionPlugin]}
+                    initialView='timeGridWeek'
+                    headerToolbar={{
+                        left: 'prev,next',
+                        center: 'title',
+                        right: 'timeGridWeek,timeGridDay'
+                    }}
+                    eventDrop={handleEventDrop}
+                    eventResize={handleEventDrop}
+                    editable={true}
+                    locale={itLocale}
+                    events={events}
+                    eventContent={(eventInfo) => {
+                        const { event } = eventInfo;
+                        const { extendedProps } = event as EventProps;
+                        const { appointment } = extendedProps
+                        return <PlannerEvent appointment={appointment} onDelete={getData} onEdit={(appointment) => { setEditing(appointment) }} />
+                    }}
 
-            />
+                />
+            </div>
         </>
     );
 }
