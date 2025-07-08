@@ -8,38 +8,15 @@ import { useEffect, useMemo, useState } from 'react';
 import AppointmentForm from '../components/forms/AppointmentForm';
 import PlannerEvent from '../components/PlannerEvent';
 import { update } from '../modules/database';
+import { fromISOFormat, toISOFormat } from '../modules/dates';
 import { getPlannerEvents } from '../modules/queries';
+import "../styles/full-calendar-dark.css";
 import { AppointmentEventData } from '../types/database';
-
-
 
 interface EventProps extends EventImpl {
     extendedProps: {
         appointment: AppointmentEventData
     }
-}
-
-
-
-function toISOFormat(dateString: string, timeString: string) {
-    const [day, month, year] = dateString.split('-');
-    const isoDate = `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
-    const isoDateTime = `${isoDate}T${timeString}:00`;
-    return isoDateTime;
-}
-
-function fromISOFormat(isoDateTime: string) {
-    const date = new Date(isoDateTime);
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    const year = date.getFullYear().toString();
-    const hours = date.getHours().toString().padStart(2, '0');
-    const minutes = date.getMinutes().toString().padStart(2, '0');
-
-    return {
-        date: `${day}-${month}-${year}`,
-        time: `${hours}:${minutes}`
-    };
 }
 
 
@@ -104,27 +81,29 @@ export default function Planner() {
             <Modal open={!!editing} onCancel={() => setEditing(undefined)} onOk={() => setEditing(undefined)} zIndex={99999}>
                 <AppointmentForm appointmentId={editing?.id} />
             </Modal>
-            <FullCalendar
-                plugins={[timeGridPlugin, interactionPlugin]}
-                initialView='timeGridWeek'
-                headerToolbar={{
-                    left: 'prev,next',
-                    center: 'title',
-                    right: 'timeGridWeek,timeGridDay'
-                }}
-                eventDrop={handleEventDrop}
-                eventResize={handleEventDrop}
-                editable={true}
-                locale={itLocale}
-                events={events}
-                eventContent={(eventInfo) => {
-                    const { event } = eventInfo;
-                    const { extendedProps } = event as EventProps;
-                    const { appointment } = extendedProps
-                    return <PlannerEvent appointment={appointment} onDelete={getData} onEdit={(appointment) => { setEditing(appointment) }} />
-                }}
+            <div id='calendar'>
+                <FullCalendar
+                    plugins={[timeGridPlugin, interactionPlugin]}
+                    initialView='timeGridWeek'
+                    headerToolbar={{
+                        left: 'prev,next',
+                        center: 'title',
+                        right: 'timeGridWeek,timeGridDay'
+                    }}
+                    eventDrop={handleEventDrop}
+                    eventResize={handleEventDrop}
+                    editable={true}
+                    locale={itLocale}
+                    events={events}
+                    eventContent={(eventInfo) => {
+                        const { event } = eventInfo;
+                        const { extendedProps } = event as EventProps;
+                        const { appointment } = extendedProps
+                        return <PlannerEvent appointment={appointment} onDelete={getData} onEdit={(appointment) => { setEditing(appointment) }} />
+                    }}
 
-            />
+                />
+            </div>
         </>
     );
 }

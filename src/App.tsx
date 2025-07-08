@@ -31,7 +31,9 @@ export default function Page() {
     theme={{
       algorithm: settings?.theme == "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm,
     }}>
-    <Paginator />
+    <div id={settings?.theme}>
+      <Paginator />
+    </div>
   </ConfigProvider >
 }
 

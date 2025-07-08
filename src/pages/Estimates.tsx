@@ -119,7 +119,7 @@ export default function Estimates() {
         >
             <EstimatesForm onSubmit={onClose} estimate={selectedEstimate} />
         </Drawer>
-        <Table dataSource={estimates} columns={columns} rowKey="id" />;
+        <Table dataSource={estimates} columns={columns} rowKey="id" />
     </>
 };
 

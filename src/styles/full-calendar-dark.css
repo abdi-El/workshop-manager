@@ -1,0 +1,78 @@
+#dark {
+  font-family: Arial, Helvetica Neue, Helvetica, sans-serif;
+  font-size: 14px;
+  background-color: var(--main-page-bg-color);
+  color: #ffffffd9;
+}
+
+#calendar {
+  margin-left: 20px;
+  margin-right: 20px;
+}
+
+#dark #calendar a.fc-event.fc-daygrid-event[href] {
+  color: #69c0ff;
+}
+
+#dark #calendar a.fc-event.fc-daygrid-event[href]:visited {
+  color: #91d5ff;
+}
+
+#dark #calendar .fc .fc-daygrid-day.fc-day-other {
+  background: var(--fc-neutral-bg-color);
+}
+
+#dark #calendar .fc .fc-scrollgrid-section-sticky > * {
+  background: unset;
+  position: sticky;
+  z-index: 3;
+}
+
+#dark #calendar :not(td[aria-labelledby]) > .fc-daygrid-day-frame {
+  background: var(--fc-neutral-bg-color);
+}
+
+#dark #calendar .fc .fc-scrollgrid-section-body {
+  background: var(--fc-page-bg-color);
+}
+
+#dark #calendar .fc .fc-timegrid-slot-label,
+#dark #calendar .fc .fc-timegrid-axis-frame {
+  background-color: var(--main-page-bg-color);
+}
+
+:root #dark {
+  --main-page-bg-color: #141414;
+  --fc-small-font-size: 0.85em;
+  --fc-page-bg-color: #1f1f1f;
+  --fc-neutral-bg-color: #262626;
+  --fc-neutral-text-color: #8c8c8c;
+  --fc-border-color: #303030;
+
+  --fc-button-text-color: #ffffffd9;
+  --fc-button-bg-color: #434343;
+  --fc-button-border-color: #434343;
+  --fc-button-hover-bg-color: #595959;
+  --fc-button-hover-border-color: #595959;
+  --fc-button-active-bg-color: #177ddc;
+  --fc-button-active-border-color: #156dbe;
+
+  --fc-event-bg-color: #177ddc;
+  --fc-event-border-color: #177ddc;
+  --fc-event-text-color: #ffffff;
+  --fc-event-selected-overlay-color: rgba(255, 255, 255, 0.12);
+
+  --fc-more-link-bg-color: #434343;
+  --fc-more-link-text-color: #ffffffa6;
+
+  --fc-event-resizer-thickness: 8px;
+  --fc-event-resizer-dot-total-width: 8px;
+  --fc-event-resizer-dot-border-width: 1px;
+
+  --fc-non-business-color: rgba(255, 255, 255, 0.05);
+  --fc-bg-event-color: #389e0d;
+  --fc-bg-event-opacity: 0.2;
+  --fc-highlight-color: rgba(24, 144, 255, 0.2);
+  --fc-today-bg-color: rgba(24, 144, 255, 0.08);
+  --fc-now-indicator-color: red;
+}

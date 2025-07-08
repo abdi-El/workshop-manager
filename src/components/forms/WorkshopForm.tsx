@@ -20,7 +20,6 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) 
 
     const handleFinish = (values: Workshop) => {
         if (!workshop.id) {
-
             create(values, () => {
                 form.resetFields();
                 updateDatabaseData(["workshops"]);

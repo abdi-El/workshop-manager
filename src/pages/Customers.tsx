@@ -88,7 +88,7 @@ export default function Customers() {
         >
             <CustomerForm onSubmit={onClose} customer={selectedCustomer} />
         </Drawer>
-        <Table dataSource={customers} columns={columns} rowKey="id" />;
+        <Table dataSource={customers} columns={columns} rowKey="id" />
     </>
 };
 

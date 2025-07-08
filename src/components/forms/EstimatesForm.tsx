@@ -2,9 +2,11 @@ import { Button, DatePicker, Form, InputNumber, Row, Switch } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 import { createOrUpdateEstimate, getEstimateItems } from "../../modules/database";
+import { DATE_FORMAT } from "../../modules/dates";
 import { useDatabaseStore, useStore } from "../../modules/state";
 import { Estimate } from "../../types/database";
-import DatabasResourceSelect from "../selects/DatabaseResourceSelect";
+import CarSelect from "../selects/CarSelect";
+import CustomerSelect from "../selects/CustomerSelect";
 import EstimateItemsForm from "./EstimateItemsForm";
 
 interface EstimatesFormProps {
@@ -16,9 +18,10 @@ export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesForm
     const [form] = Form.useForm();
     const { updateDatabaseData } = useDatabaseStore((state) => state)
     const { settings } = useStore((state) => state);
+    const customer_id = Form.useWatch("customer_id", form)
 
     const handleFinish = (values: Omit<Estimate, "id">) => {
-        values.date = dayjs(values.date).format("DD-MM-YYYY");
+        values.date = dayjs(values.date).format(DATE_FORMAT);
         values.workshop_id = settings?.selectedWorkshop?.id as number;
         const { items, ...rest } = values as any;
         createOrUpdateEstimate(rest as any, items, () => {
@@ -34,28 +37,40 @@ export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesForm
     }
 
     useEffect(() => {
-        if (estimate.id) {
+        if (estimate?.id) {
             form.setFieldsValue({
                 ...estimate,
-                date: dayjs(estimate.date, "DD-MM-YYYY"),
+                date: dayjs(estimate.date, DATE_FORMAT),
             });
             getItems()
         } else {
-            form.resetFields();
+            form.resetFields()
+            form.setFieldsValue({ date: dayjs(), labor_hourly_cost: settings.selectedWorkshop?.base_labor_cost })
         }
     }, [estimate, form]);
+
+
+    useEffect(() => {
+        if (estimate && estimate.customer_id == customer_id) {
+            form.setFieldValue("car_id", estimate.car_id)
+        } else {
+            form.setFieldValue("car_id", undefined)
+        }
+
+    }, [customer_id])
+
     return (
         <Form form={form} layout="vertical" onFinish={handleFinish} className="estimates-form">
-            <DatabasResourceSelect resource="customers" selectLabel="name" name="customer_id" inputLabel="Cliente" className="w-100" />
+            <CustomerSelect />
             <Form.Item
                 label="data"
                 name="date"
                 rules={[{ required: true, message: "Inserire la data" }]}
             >
-                <DatePicker format="DD/MM/YYYY" className="w-100" />
+                <DatePicker format={DATE_FORMAT} className="w-100" />
             </Form.Item>
             <Row >
-                <DatabasResourceSelect resource="cars" selectLabel="id" name="car_id" inputLabel="Auto" className="w-50" />
+                <CarSelect className="w-50" />
                 <Form.Item
                     className="w-50"
                     label="Km"
