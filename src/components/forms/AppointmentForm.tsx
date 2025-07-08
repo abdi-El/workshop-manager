@@ -7,7 +7,7 @@ import { useDatabaseStore, useStore } from "../../modules/state";
 import { Appointment, Estimate } from "../../types/database";
 import CarSelect from "../selects/CarSelect";
 import CustomerSelect from "../selects/CustomerSelect";
-import DatabasResourceSelect from "../selects/DatabaseResourceSelect";
+import EstimateSelect from "../selects/EstimateSelect";
 
 
 interface Props {
@@ -67,13 +67,8 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
     return <Form form={form} onFinish={onFinish}>
         {!estimateId &&
             <>
-                <DatabasResourceSelect
-                    resource="estimates"
-                    selectLabel="id"
-                    name="estimate_id"
-                    inputLabel="Preventivo"
+                <EstimateSelect
                     className="w-50"
-                    allowClear
                     required={false}
                     rules={[{ required: false }]} />
                 {!selectedEstimate && <>

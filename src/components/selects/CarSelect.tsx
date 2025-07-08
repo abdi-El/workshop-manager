@@ -2,9 +2,6 @@ import { Form } from "antd";
 import { useEffect, useState } from "react";
 import { Car } from "../../types/database";
 import DatabasResourceSelect from "./DatabaseResourceSelect";
-interface Props extends React.ComponentProps<typeof Form.Item> {
-    customerId?: number
-}
 
 export default function CarSelect(props: React.ComponentProps<typeof Form.Item>) {
     const form = Form.useFormInstance()
