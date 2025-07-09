@@ -64,7 +64,7 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
         }
     }
 
-    return <Form form={form} onFinish={onFinish}>
+    return <Form form={form} onFinish={onFinish} style={{ paddingTop: "40px" }}>
         {!estimateId &&
             <>
                 <EstimateSelect
