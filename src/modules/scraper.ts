@@ -1,4 +1,3 @@
-const ALLORIGINS_URL = "https://api.allorigins.win/get?url="
 const MAKERS_URL = "https://it.wikipedia.org/w/api.php?action=query&cmlimit=500&cmtitle=Categoria%3AAutomobili_per_marca&list=categorymembers&format=json"
 const MODELS_URL = "https://it.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle={TITLE}&cmlimit=500&format=json"
 import { fetch } from '@tauri-apps/plugin-http';
@@ -48,7 +47,7 @@ export async function getModelsAndMakers(onProgress?: (progress: number) => void
             onProgress?.(totalProgress);
         }
 
-        await sleep(500); // 0.5 second delay between makers
+        await sleep(500);
     }
 }
 
