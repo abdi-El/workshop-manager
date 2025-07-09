@@ -10,6 +10,7 @@ import PlannerEvent from '../components/PlannerEvent';
 import { update } from '../modules/database';
 import { fromISOFormat, toISOFormat } from '../modules/dates';
 import { getPlannerEvents } from '../modules/queries';
+import { useDatabaseStore } from '../modules/state';
 import "../styles/full-calendar-dark.css";
 import { AppointmentEventData } from '../types/database';
 
@@ -36,6 +37,7 @@ const mapAppointmentsToEvents = (appointments: AppointmentEventData[]) => {
 
 export default function Planner() {
     const [appointments, setAppointments] = useState<AppointmentEventData[]>([])
+    const { appointments: appInDatabase } = useDatabaseStore()
     const [editing, setEditing] = useState<AppointmentEventData>()
     function getData() {
         getPlannerEvents().then((res) => setAppointments(res as any))
@@ -43,11 +45,11 @@ export default function Planner() {
 
     const events = useMemo(() => {
         return appointments ? mapAppointmentsToEvents(appointments) : [];
-    }, [appointments]);
+    }, [appointments, appInDatabase]);
 
     useEffect(() => {
         getData()
-    }, [])
+    }, [appInDatabase])
 
 
     const handleEventDrop = (info: any) => {
