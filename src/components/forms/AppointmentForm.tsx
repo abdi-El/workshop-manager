@@ -68,7 +68,7 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
         {!estimateId &&
             <>
                 <EstimateSelect
-                    className="w-50"
+                    className="w-100"
                     required={false}
                     rules={[{ required: false }]} />
                 {!selectedEstimate && <>

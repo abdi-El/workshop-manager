@@ -5,7 +5,7 @@ export default function EstimateSelect(props: React.ComponentProps<typeof Form.I
     return <DatabasResourceSelect
         {...props}
         resource="estimates"
-        selectLabel="id"
+        selectLabel="estimate_info"
         name="estimate_id"
         inputLabel="Preventivo"
         allowClear

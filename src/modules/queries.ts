@@ -39,7 +39,6 @@ export const estimatesQuery = `SELECT
                     estimates.customer_id,
                     estimates.workshop_id,
                     estimates.*,
-                    -- add other specific estimates columns here (amount, date, status, etc.)
                     car.id as car_id,
                     car.number_plate as car_number_plate,
                     customer.id as customer_id,
@@ -47,7 +46,9 @@ export const estimatesQuery = `SELECT
                     workshop.id as workshop_id,
                     workshop.name as workshop_name,
                     appointment.id as appointment_id,
-                    appointment.estimate_id
+                    appointment.estimate_id,
+                    CONCAT(estimates.date,' ', car.number_plate,' ', customer.name) as estimate_info
+
                 FROM estimates 
                 LEFT JOIN cars as car ON estimates.car_id = car.id 
                 LEFT JOIN customers as customer ON estimates.customer_id = customer.id 
