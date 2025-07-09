@@ -17,8 +17,20 @@
     "fs:allow-app-write-recursive",
     "fs:allow-app-write",
     "fs:allow-app-read",
+    {
+      "identifier": "fs:allow-exists",
+      "allow": [
+        {
+          "path": "$APPDATA/*"
+        }
+      ]
+    },
+    {
+      "identifier": "http:default",
+      "allow": [{ "url": "https://it.wikipedia.org*" }]
+    },
 
-    { "identifier": "fs:allow-exists", "allow": [{ "path": "$APPDATA/*" }] },
-    "dialog:default"
+    "dialog:default",
+    "http:default"
   ]
 }
