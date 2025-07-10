@@ -1,6 +1,6 @@
 import { Button, DatePicker, Form, Input } from "antd";
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { create, update } from "../../modules/database";
 import { OLDEST_CAR_YEAR, transofrmYear } from "../../modules/dates";
 import { useDatabaseStore, useStore } from "../../modules/state";
@@ -20,7 +20,6 @@ export default function CarsForm({ car = {}, onSubmit }: CarFormProps) {
     const [form] = Form.useForm();
     const { updateDatabaseData } = useDatabaseStore((state) => state)
     const selectedMaker = Form.useWatch("maker_id", form)
-    const [numberPlate, setNumberPlate] = useState<string>()
 
     const { settings } = useStore((state) => state);
 
