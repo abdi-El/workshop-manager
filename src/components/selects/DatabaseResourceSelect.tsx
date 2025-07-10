@@ -17,7 +17,7 @@ export interface DatabaseSelectProps extends React.ComponentProps<typeof Form.It
     onAddClick?: () => void
 }
 
-export default function DatabasResourceSelect<T extends { id: number }>({ resource, selectLabel, name, inputLabel, allowClear, filterFunc, onAddClick, ...props }: DatabaseSelectProps) {
+export default function DatabasResourceSelect<T extends { id: number }>({ resource, selectLabel, name, inputLabel, allowClear, filterFunc, onAddClick, className, ...props }: DatabaseSelectProps) {
     const databaseData = useDatabaseStore((state) => state);
     const [data, setData] = useState<T[]>([])
 
@@ -27,16 +27,17 @@ export default function DatabasResourceSelect<T extends { id: number }>({ resour
             evaluatedData = evaluatedData.filter(filterFunc)
         }
         setData(evaluatedData)
-    }, [resource, filterFunc])
+    }, [resource, filterFunc, databaseData[resource]])
 
-    return <Form.Item
-        rules={[{ required: true, message: "Inserire il dato" }]}
-        {...props}
-        label={inputLabel}
-        name={name}
-    >
-        <Row className='w-100'>
-            <Col span={onAddClick ? 21 : 24}>
+
+    return <Row className={className} justify={"start"}>
+        <Col span={onAddClick ? 21 : 24} style={{ marginRight: onAddClick ? 3 : 0 }}>
+            <Form.Item
+                rules={[{ required: true, message: "Inserire il dato" }]}
+                {...props}
+                label={inputLabel}
+                name={name}
+            >
                 <Select
                     options={data.map(v => ({
                         label: v[selectLabel as keyof typeof v],
@@ -48,11 +49,11 @@ export default function DatabasResourceSelect<T extends { id: number }>({ resour
                     allowClear={allowClear}
                     showSearch
                 />
-            </Col>
-            {onAddClick && <Col span={2}>
-                <Button type="primary" icon={<PlusOutlined />} onClick={onAddClick} />
-            </Col>}
-        </Row>
+            </Form.Item>
+        </Col>
+        {onAddClick && <Col span={2} style={{ display: "flex", alignItems: "center" }} >
+            <Button type="primary" icon={<PlusOutlined />} onClick={onAddClick} style={{ height: "30px", width: "30px", marginTop: "5px" }} />
+        </Col>}
+    </Row>
 
-    </Form.Item>
 }
