@@ -32,11 +32,6 @@ export default function Estimates() {
             key: "car_number_plate",
         },
         {
-            title: "Auto",
-            dataIndex: "car_id",
-            key: "car_id",
-        },
-        {
             title: "Ore Lavoro",
             dataIndex: "labor_hours",
             key: "labor_hours",
