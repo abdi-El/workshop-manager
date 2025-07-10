@@ -14,7 +14,7 @@ interface EstimatesFormProps {
     onSubmit: (values: Omit<Estimate, "id">) => void;
 };
 
-export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesFormProps) {
+export default function EstimatesForm({ estimate, onSubmit }: EstimatesFormProps) {
     const [form] = Form.useForm();
     const { updateDatabaseData } = useDatabaseStore((state) => state)
     const { settings } = useStore((state) => state);
@@ -28,26 +28,26 @@ export default function EstimatesForm({ estimate = {}, onSubmit }: EstimatesForm
             form.resetFields();
             updateDatabaseData(["estimates"]);
             onSubmit(values);
-        }, estimate.id);
+        }, estimate?.id);
     };
     async function getItems() {
-        if (estimate.id) {
+        if (estimate?.id) {
             form.setFieldValue("items", await getEstimateItems(estimate.id));
         }
     }
 
     useEffect(() => {
-        if (estimate?.id) {
+        if (!estimate) {
+            form.resetFields()
+            form.setFieldsValue({ date: dayjs(), labor_hourly_cost: settings.selectedWorkshop?.base_labor_cost })
+        } else {
             form.setFieldsValue({
                 ...estimate,
                 date: dayjs(estimate.date, DATE_FORMAT),
             });
             getItems()
-        } else {
-            form.resetFields()
-            form.setFieldsValue({ date: dayjs(), labor_hourly_cost: settings.selectedWorkshop?.base_labor_cost })
         }
-    }, [estimate, form]);
+    }, [estimate])
 
 
     useEffect(() => {
