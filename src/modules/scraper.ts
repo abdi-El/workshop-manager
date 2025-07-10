@@ -14,9 +14,7 @@ interface dataType {
     }
 }
 
-function sleep(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
+
 
 async function fetchWithProxy(url: string) {
     const response = await fetch(url)
@@ -36,11 +34,10 @@ export async function getModels(title: string) {
 }
 export function formatModelName(name: string, makerName: string) {
     name = name.toUpperCase()
-    const splittedName = name.split(" ")
-    if (splittedName[0] == makerName) {
-        splittedName.shift()
-    }
-    return splittedName.join(" ")
+    name = name.replace(makerName, "")
+    name = name.replace("CATEGORIA:", "")
+    name = name.replace(/"/g, "")
+    return name
 
 }
 
@@ -57,12 +54,11 @@ export async function updateOrCreateMaker(name: string) {
 }
 
 export async function updateOrCreateModels(name: string, makerId: number) {
-    const result = await db.select(`SELECT * FROM models WHERE name = "${name}" AND maker_id = ${makerId}`) as Maker[]
+    const result = await db.select(`SELECT * FROM models WHERE name="${name}" AND maker_id=${makerId}`) as Maker[]
     if (result.length) {
         await update({ name, maker_id: makerId }, result[0].id, () => { }, "models", false)
     } else {
         await create({ name, maker_id: makerId }, () => { }, "models", false)
-
     }
 }
 
@@ -81,12 +77,14 @@ export async function getModelsAndMakers(onProgress?: (progress: number) => void
 
         for (const model of models) {
             const modelName = formatModelName(model.title, makerName)
-            await updateOrCreateModels(modelName, makerId)
+            const isValid = !modelName.includes("DA COMPETIZIONE") || !modelName.includes("CONCEPT CAR")
+            if (isValid) {
+                await updateOrCreateModels(modelName, makerId)
+            }
             totalProgress += modelsStep;
-            onProgress?.(totalProgress);
+            onProgress?.(Math.round(totalProgress * 1e2) / 1e2);
         }
-
-        await sleep(500);
     }
+    onProgress?.(100);
 }
 
