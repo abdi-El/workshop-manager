@@ -90,7 +90,7 @@ export default function EstimatePdf({ estimate, car, customer, workshop, items }
             <View style={styles.titleSection}>
                 <Text style={{ fontSize: 16 }}>AUTOFFICINA</Text>
                 <Text style={{ fontSize: 20 }}>{workshop.name}</Text>
-                <Text style={{ fontSize: 10 }}>TEL: {workshop.phone} - IVA: {workshop.vat_number} - EMAIL: {workshop.email} </Text>
+                <Text style={{ fontSize: 10 }}>{workshop.address} - TEL: {workshop.phone} - IVA: {workshop.vat_number} - EMAIL: {workshop.email} </Text>
             </View>
             <View style={{ padding: 10, marginBottom: 20 }}>
                 <View style={styles.header}>
