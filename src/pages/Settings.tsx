@@ -1,7 +1,7 @@
-import { Button, Form, Layout, message, Select } from 'antd';
+import { Form, Layout, message, Select } from 'antd';
 import { useEffect } from 'react';
 import MakersModels from '../components/MakersModels';
-import { getModelsAndMakers } from '../modules/scraper';
+import MakersModelsImporter from '../components/MakersModelsImporter';
 import { useStore } from '../modules/state';
 import { SettingsType } from '../types/common';
 
@@ -16,11 +16,7 @@ export default function Settings() {
         form.setFieldsValue(settings);
     }, [])
 
-    async function onClick() {
-        getModelsAndMakers((prog) => console.info(prog))
 
-
-    }
 
     return (
         <Layout>
@@ -38,7 +34,7 @@ export default function Settings() {
 
             </Form>
             <MakersModels />
-            <Button onClick={onClick} >Scrape</Button>
+            <MakersModelsImporter />
         </Layout>
     );
 }
