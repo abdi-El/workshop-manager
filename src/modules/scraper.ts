@@ -14,11 +14,9 @@ interface dataType {
     }
 }
 
-
 function sleep(ms: number) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
-
 
 async function fetchWithProxy(url: string) {
     const response = await fetch(url)
@@ -36,6 +34,7 @@ export async function getModels(title: string) {
     const models = await fetchWithProxy(MODELS_URL.replace("{TITLE}", formatted)) as dataType
     return models.query.categorymembers
 }
+
 export function formatModelName(name: string, makerName: string) {
     name = name.toUpperCase()
     name = name.replace(makerName, "")
@@ -45,7 +44,7 @@ export function formatModelName(name: string, makerName: string) {
 
 }
 
-export async function updateOrCreateMaker(name: string, id) {
+export async function updateOrCreateMaker(name: string, id: number) {
     if (id) {
         update({ name }, id, () => { }, "makers", false)
         return id
@@ -55,15 +54,13 @@ export async function updateOrCreateMaker(name: string, id) {
     }
 }
 
-export async function updateOrCreateModels(name: string, makerId: number, id) {
+export async function updateOrCreateModels(name: string, makerId: number, id: number) {
     if (id) {
         await update({ name, maker_id: makerId }, id, () => { }, "models", false)
     } else {
         await create({ name, maker_id: makerId }, () => { }, "models", false)
     }
 }
-
-
 
 export async function getModelsAndMakers(onProgress?: (progress: number) => void) {
     const fetchedMakers = await getMakers();
