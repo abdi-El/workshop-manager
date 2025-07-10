@@ -1,4 +1,4 @@
-import { Button, DatePicker, Form, message, TimePicker } from "antd";
+import { Button, DatePicker, Form, TimePicker } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 import { create, db, update } from "../../modules/database";
@@ -26,7 +26,6 @@ export default function AppointmentForm({ estimateId, appointmentId, initialData
     const selectedEstimate = Form.useWatch("estimate_id", form)
 
     useEffect(() => {
-        message.error(appointmentId)
         if (!appointmentId) {
             form.resetFields()
         }
