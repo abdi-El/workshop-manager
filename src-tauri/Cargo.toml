@@ -27,4 +27,5 @@ tauri-plugin-store = "2"
 reqwest = "0.12.20"
 tauri-plugin-fs = "2"
 tauri-plugin-dialog = "2"
+tauri-plugin-http = "2"
 

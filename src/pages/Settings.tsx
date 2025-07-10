@@ -1,6 +1,7 @@
-import { Form, Layout, message, Select } from 'antd';
+import { Divider, Form, Layout, message, Select } from 'antd';
 import { useEffect } from 'react';
 import MakersModels from '../components/MakersModels';
+import MakersModelsImporter from '../components/MakersModelsImporter';
 import { useStore } from '../modules/state';
 import { SettingsType } from '../types/common';
 
@@ -15,8 +16,11 @@ export default function Settings() {
         form.setFieldsValue(settings);
     }, [])
 
+
+
     return (
         <Layout>
+            <Divider />
             <Form form={form} layout="vertical" className="settings-form" onValuesChange={() => {
                 form.validateFields().then((values) => updateSettings(values)).catch(err => {
                     message.error('Errore di validazione: ' + err);
@@ -30,7 +34,10 @@ export default function Settings() {
                 </Form.Item>
 
             </Form>
+            <Divider />
             <MakersModels />
+            <Divider />
+            <MakersModelsImporter />
         </Layout>
     );
 }
