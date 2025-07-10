@@ -4,6 +4,7 @@ import interactionPlugin from '@fullcalendar/interaction';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
 import { Modal } from 'antd';
+import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from 'react';
 import AppointmentForm from '../components/forms/AppointmentForm';
 import PlannerEvent from '../components/PlannerEvent';
@@ -19,7 +20,6 @@ interface EventProps extends EventImpl {
         appointment: AppointmentEventData
     }
 }
-
 
 const mapAppointmentsToEvents = (appointments: AppointmentEventData[]) => {
     return appointments.map((appt) => {
@@ -39,8 +39,15 @@ export default function Planner() {
     const [appointments, setAppointments] = useState<AppointmentEventData[]>([])
     const { appointments: appInDatabase } = useDatabaseStore()
     const [editing, setEditing] = useState<AppointmentEventData>()
+    const [selectedDate, setSelectedDate] = useState<Date>()
+
     function getData() {
         getPlannerEvents().then((res) => setAppointments(res as any))
+    }
+
+    function close() {
+        setEditing(undefined)
+        setSelectedDate(undefined)
     }
 
     const events = useMemo(() => {
@@ -80,9 +87,14 @@ export default function Planner() {
 
     return (
         <>
-            <Modal open={!!editing} onCancel={() => setEditing(undefined)} onOk={() => setEditing(undefined)} zIndex={99999}>
-                <AppointmentForm appointmentId={editing?.id} />
+
+            <Modal open={!!editing || !!selectedDate} onCancel={close} footer={false} zIndex={99999}>
+                <AppointmentForm appointmentId={editing?.id} onSubmit={close} initialData={selectedDate && {
+                    date: dayjs(selectedDate),
+                    from_time: dayjs(selectedDate),
+                } as any} />
             </Modal>
+
             <div id='calendar'>
                 <FullCalendar
                     plugins={[timeGridPlugin, interactionPlugin]}
@@ -103,9 +115,12 @@ export default function Planner() {
                         const { appointment } = extendedProps
                         return <PlannerEvent appointment={appointment} onDelete={getData} onEdit={(appointment) => { setEditing(appointment) }} />
                     }}
-
+                    dateClick={(date) => {
+                        setSelectedDate(date.date)
+                    }}
                 />
             </div>
+
         </>
     );
 }

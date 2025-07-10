@@ -13,17 +13,22 @@ import EstimateSelect from "../selects/EstimateSelect";
 interface Props {
     estimateId?: Estimate["id"]
     appointmentId?: Appointment["id"]
+    initialData?: Partial<Appointment>
+    onSubmit?: () => void
 }
 
 
 
-export default function AppointmentForm({ estimateId, appointmentId }: Props) {
+export default function AppointmentForm({ estimateId, appointmentId, initialData, onSubmit }: Props) {
     const [form] = Form.useForm()
     const { updateDatabaseData } = useDatabaseStore((state) => state)
     const { settings } = useStore(state => state)
     const selectedEstimate = Form.useWatch("estimate_id", form)
 
     useEffect(() => {
+        if (initialData && !appointmentId) {
+            form.setFieldsValue(initialData)
+        }
         if (appointmentId) {
             db.select(`SELECT * FROM appointments WHERE id = ${appointmentId}`).then((res: any) => {
                 if ((res as Appointment[]).length) {
@@ -37,7 +42,9 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
                 }
             })
         }
-    }, [appointmentId])
+    }, [appointmentId, initialData])
+
+
 
     function formatData(data: Appointment) {
         const date = dayjs(data.date).format(DATE_FORMAT)
@@ -55,7 +62,10 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
 
     function onFinish(values: Appointment) {
         const formattedData = formatData(values)
-        const onExecute = () => updateDatabaseData(["appointments", "estimates"])
+        const onExecute = () => {
+            updateDatabaseData(["appointments", "estimates"])
+            onSubmit && onSubmit()
+        }
         const table = "appointments"
         if (appointmentId) {
             update(formattedData, appointmentId, onExecute, table)
