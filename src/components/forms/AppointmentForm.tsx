@@ -49,7 +49,7 @@ export default function AppointmentForm({ estimateId, appointmentId }: Props) {
             "from_time": startTime,
             "to_time": endTime,
             "workshop_id": settings.selectedWorkshop?.id,
-            "estimate_id": selectedEstimate
+            "estimate_id": selectedEstimate || estimateId
         }
     }
 

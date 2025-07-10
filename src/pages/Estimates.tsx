@@ -69,7 +69,7 @@ export default function Estimates() {
                     <SaveEstimatePdf estimateId={es.id} />
                     <Popconfirm
                         title={es.appointment_id}
-                        description={<AppointmentForm estimateId={es.id} appointmentId={es.appointment_id} />}
+                        description={<AppointmentForm estimateId={es.id} />}
                         okButtonProps={{ hidden: true }}
                         cancelButtonProps={{ hidden: true }}
                     >
