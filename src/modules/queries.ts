@@ -49,11 +49,13 @@ export const estimatesQuery = `SELECT
                     appointment.estimate_id,
                     CONCAT(estimates.date,' ', car.number_plate,' ', customer.name) as estimate_info
 
-                FROM estimates 
+                FROM estimates
                 LEFT JOIN cars as car ON estimates.car_id = car.id 
                 LEFT JOIN customers as customer ON estimates.customer_id = customer.id 
                 LEFT JOIN workshops as workshop ON estimates.workshop_id = workshop.id
-                LEFT JOIN appointments as appointment ON appointment.estimate_id = estimates.id`
+                LEFT JOIN appointments as appointment ON appointment.estimate_id = estimates.id
+                ORDER BY id DESC 
+                `
 
 
 export const carQuery = `SELECT cars.id as car_id,
@@ -67,4 +69,6 @@ export const carQuery = `SELECT cars.id as car_id,
                 CONCAT(maker.name, ' ', model.name,' ' , number_plate ,' (', year, ')') as car_info
                 FROM cars 
             LEFT JOIN models as model ON cars.model_id = model.id 
-            LEFT JOIN makers as maker ON cars.maker_id = maker.id`
+            LEFT JOIN makers as maker ON cars.maker_id = maker.id
+            ORDER BY id DESC
+            `

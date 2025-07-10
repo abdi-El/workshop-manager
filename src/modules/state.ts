@@ -44,7 +44,7 @@ export const useDatabaseStore = create<DatabaseState>()((set) => ({
     updateDatabaseData: (keys = tables) => {
         keys.forEach(key => {
             set({ databaseLoading: true })
-            db.select(customQueries[key] || `SELECT * FROM ${key}`).then((rows) => {
+            db.select(customQueries[key] || `SELECT * FROM ${key} ORDER BY id DESC`).then((rows) => {
                 set({ [key]: rows })
             }).catch((error) => {
                 message.error("Errore nel recupero dei dati: " + error);
