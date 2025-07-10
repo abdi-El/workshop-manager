@@ -14,9 +14,7 @@ type CarFormProps = {
     onSubmit: (values: Omit<Car, "id">) => void;
 };
 
-
-
-export default function CarsForm({ car = {}, onSubmit }: CarFormProps) {
+export default function CarsForm({ car, onSubmit }: CarFormProps) {
     const [form] = Form.useForm();
     const { updateDatabaseData } = useDatabaseStore((state) => state)
     const selectedMaker = Form.useWatch("maker_id", form)
@@ -30,7 +28,7 @@ export default function CarsForm({ car = {}, onSubmit }: CarFormProps) {
             number_plate: values.number_plate.toUpperCase(),
             "workshop_id": settings.selectedWorkshop?.id
         }
-        if (!car.id) {
+        if (!car?.id) {
             create(data, () => {
                 form.resetFields();
                 updateDatabaseData(["cars"]);
@@ -46,7 +44,11 @@ export default function CarsForm({ car = {}, onSubmit }: CarFormProps) {
     };
 
     useEffect(() => {
-        form.setFieldsValue({ ...car, year: transofrmYear(car.year as number) });
+        if (car) {
+            form.setFieldsValue({ ...car, year: transofrmYear(car.year as number) });
+        } else {
+            form.resetFields()
+        }
     }, [car]);
 
     useEffect(() => {
