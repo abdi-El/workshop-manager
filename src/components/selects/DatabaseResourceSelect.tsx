@@ -1,5 +1,5 @@
 import { PlusOutlined } from '@ant-design/icons';
-import { Button, Col, Form, Row, Select } from "antd";
+import { Button, Col, Form, Row, Select, Tooltip } from "antd";
 import { useEffect, useState } from "react";
 import { DatabaseState, useDatabaseStore } from "../../modules/state";
 
@@ -52,8 +52,9 @@ export default function DatabasResourceSelect<T extends { id: number }>({ resour
             </Form.Item>
         </Col>
         {onAddClick && <Col span={2} style={{ display: "flex", alignItems: "center" }} >
-            <Button type="primary" icon={<PlusOutlined />} onClick={onAddClick} style={{ height: "30px", width: "30px", marginTop: "5px" }} />
+            <Tooltip title={"Crea " + inputLabel}>
+                <Button type="primary" icon={<PlusOutlined />} onClick={onAddClick} style={{ height: "30px", width: "30px", marginTop: "5px" }} />
+            </Tooltip>
         </Col>}
     </Row>
-
 }
