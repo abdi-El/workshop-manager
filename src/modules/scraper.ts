@@ -77,7 +77,7 @@ export async function getModelsAndMakers(onProgress?: (progress: number) => void
 
         for (const model of models) {
             const modelName = formatModelName(model.title, makerName)
-            const isValid = !modelName.includes("DA COMPETIZIONE") || !modelName.includes("CONCEPT CAR")
+            const isValid = !modelName.includes(" DA COMPETIZIONE") || !modelName.includes("CONCEPT CAR")
             if (isValid) {
                 await updateOrCreateModels(modelName, makerId)
             }
