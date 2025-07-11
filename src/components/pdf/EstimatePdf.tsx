@@ -95,7 +95,7 @@ export default function EstimatePdf({ estimate, car, customer, workshop, items }
             <View style={{ padding: 10, marginBottom: 20 }}>
                 <View style={styles.header}>
                     <View>
-                        <Text style={styles.headerTitle}>Preventivo: n°{estimate.id}</Text>
+                        <Text style={styles.headerTitle}>N°: {estimate.id}</Text>
                         <Text>Data: {estimate.date}</Text>
                     </View>
                     <View>
@@ -111,7 +111,7 @@ export default function EstimatePdf({ estimate, car, customer, workshop, items }
                 <View style={{ marginTop: 20, textAlign: "right" }}>
                     {estimate.discount && <Text>Sconto: € {estimate.discount}</Text>}
                     <Text style={{ marginTop: 10, textAlign: "right", border: "1px solid black", padding: "5px" }}>
-                        <Text style={{ fontWeight: "bold" }}>Totale Preventivo:    </Text>
+                        <Text style={{ fontWeight: "bold" }}>Totale:    </Text>
                         <Text style={{ textDecoration: "underline" }}>
                             € {calculateEstimatePrice(estimate, items)}{estimate.has_iva ? " IVA compresa" : " + IVA"}
                         </Text>
