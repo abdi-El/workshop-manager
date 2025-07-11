@@ -1,6 +1,8 @@
-import { DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, Popconfirm, Row, Space, Table } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { Button, Drawer, Row, Space, Table } from "antd";
 import { useEffect, useState } from "react";
+import DeleteButton from "../components/buttons/DeleteButton";
+import EditButton from "../components/buttons/EditButton";
 import WorkshopForm from "../components/forms/WorkshopForm";
 import { deleteRow } from "../modules/database";
 import { useDatabaseStore, useStore } from "../modules/state";
@@ -60,21 +62,12 @@ export default function Workshops() {
                 const isSelected = settings.selectedWorkshop?.id === ws.id;
                 return <Space>
                     <Button onClick={() => { updateSettings({ selectedWorkshop: ws }) }} type={"primary"} disabled={isSelected}>Seleziona</Button>
-                    <Button onClick={() => { showDrawer(); setSelectedWorkshop(ws) }} icon={<EditOutlined />} type="primary" />
-                    <Popconfirm
-                        title="Elimina Officina"
-                        description="Sei sicuro di voler eliminare questa officina?"
-                        okText="Sì"
-                        cancelText="No"
-                        onConfirm={() => {
-                            deleteRow(ws.id, "workshops", () => {
-                                updateDatabaseData(["workshops"]);
-                            })
-                        }}
-                    >
-                        <Button icon={<DeleteOutlined />} type="primary" danger />
-                    </Popconfirm>
-
+                    <EditButton onClick={() => { showDrawer(); setSelectedWorkshop(ws) }} />
+                    <DeleteButton onConfirm={() => {
+                        deleteRow(ws.id, "workshops", () => {
+                            updateDatabaseData([]);
+                        })
+                    }} disabled={isSelected || workshops.length < 2} />
                 </Space >
             },
         },
