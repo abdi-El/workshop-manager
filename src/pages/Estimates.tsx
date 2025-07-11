@@ -1,10 +1,11 @@
 import { CalendarOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, Modal, Popconfirm, Row, Space, Table } from "antd";
-import { useState } from "react";
+import { Button, Drawer, InputRef, Modal, Popconfirm, Row, Space, Table } from "antd";
+import { useRef, useState } from "react";
 
 import AppointmentForm from "../components/forms/AppointmentForm";
 import EstimatesForm from "../components/forms/EstimatesForm";
 import SaveEstimatePdf from "../components/pdf/SavePdfButton";
+import { getColumnSearchProps } from "../components/TableSearchProps";
 import { deleteRow } from "../modules/database";
 import { sortBytDate } from "../modules/dates";
 import { useDatabaseStore } from "../modules/state";
@@ -19,6 +20,7 @@ export default function Estimates() {
     const [open, setOpen] = useState(false);
     const { estimates, updateDatabaseData } = useDatabaseStore((state) => state)
     const [selectedEstimate, setSelectedEstimate] = useState<Estimate>();
+    const searchInput = useRef<InputRef>(null);
 
     const columns = [
         {
@@ -31,11 +33,13 @@ export default function Estimates() {
             title: "Cliente",
             dataIndex: "customer_name",
             key: "customer_name",
+            ...getColumnSearchProps("customer_name", "cliente", searchInput)
         },
         {
             title: "Targa",
             dataIndex: "car_number_plate",
             key: "car_number_plate",
+            ...getColumnSearchProps("car_number_plate", "targa", searchInput)
         },
         {
             title: "Ore Lavoro",
@@ -123,7 +127,7 @@ export default function Estimates() {
         >
             <EstimatesForm onSubmit={onClose} estimate={selectedEstimate} />
         </Drawer>
-        <Table dataSource={estimates} columns={columns} rowKey="id" />
+        <Table dataSource={estimates} columns={columns as any} rowKey="id" />
     </>
 };
 
