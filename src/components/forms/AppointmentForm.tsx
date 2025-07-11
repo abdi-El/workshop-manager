@@ -1,4 +1,4 @@
-import { Button, DatePicker, Form, TimePicker } from "antd";
+import { Button, DatePicker, Form, FormProps, TimePicker } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 import { create, db, update } from "../../modules/database";
@@ -10,7 +10,7 @@ import CustomerSelect from "../selects/CustomerSelect";
 import EstimateSelect from "../selects/EstimateSelect";
 
 
-interface Props {
+interface Props extends FormProps {
     estimateId?: Estimate["id"]
     appointmentId?: Appointment["id"]
     initialData?: Partial<Appointment>
@@ -19,7 +19,7 @@ interface Props {
 
 
 
-export default function AppointmentForm({ estimateId, appointmentId, initialData, onSubmit }: Props) {
+export default function AppointmentForm({ estimateId, appointmentId, initialData, onSubmit, ...props }: Props) {
     const [form] = Form.useForm()
     const { updateDatabaseData } = useDatabaseStore((state) => state)
     const { settings } = useStore(state => state)
@@ -77,7 +77,7 @@ export default function AppointmentForm({ estimateId, appointmentId, initialData
         }
     }
 
-    return <Form form={form} onFinish={onFinish}>
+    return <Form form={form} onFinish={onFinish} {...props}>
         {!estimateId &&
             <>
                 <EstimateSelect

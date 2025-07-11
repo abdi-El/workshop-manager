@@ -89,7 +89,7 @@ export default function Planner() {
         <>
 
             <Modal open={!!editing || !!selectedDate} onCancel={close} footer={false} zIndex={99999}>
-                <AppointmentForm appointmentId={editing?.id} onSubmit={close} initialData={selectedDate && {
+                <AppointmentForm style={{ marginTop: "40px" }} appointmentId={editing?.id} onSubmit={close} initialData={selectedDate && {
                     date: dayjs(selectedDate),
                     from_time: dayjs(selectedDate),
                 } as any} />
