@@ -1,19 +1,10 @@
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { Button, Col, Form, Input, InputNumber, Row } from 'antd';
-import { useEffect } from 'react';
 
 export default function EstimateItemsForm() {
     const form = Form.useFormInstance();
     const items = Form.useWatch('items', form);
 
-    useEffect(() => {
-        if (items && items.length > 0) {
-            return;
-        }
-        form.setFieldsValue({
-            items: [{}],
-        });
-    }, [form, items]);
 
 
     return <Form.List name="items">
