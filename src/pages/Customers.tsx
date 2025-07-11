@@ -1,7 +1,9 @@
 import { PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, InputRef, Popconfirm, Radio, Row, Space, Table } from "antd";
+import { Button, Drawer, InputRef, Row, Space, Table } from "antd";
 import { useRef, useState } from "react";
 
+import DeleteButton from "../components/buttons/DeleteButton";
+import EditButton from "../components/buttons/EditButton";
 import CustomerForm from "../components/forms/CustomerForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import { deleteRow } from "../modules/database";
@@ -50,22 +52,12 @@ export default function Customers() {
             key: "actions",
             render: (_: unknown, cs: Customer) =>
                 <Space>
-                    <Radio.Group buttonStyle="solid">
-                        <Radio.Button onClick={() => { showDrawer(); setSelectedCustomer(cs) }}>Modifica</Radio.Button>
-                        <Popconfirm
-                            title="Elimina Officina"
-                            description="Sei sicuro di voler eliminare questa officina?"
-                            okText="Sì"
-                            cancelText="No"
-                            onConfirm={() => {
-                                deleteRow(cs.id, "customers", () => {
-                                    updateDatabaseData(["customers"]);
-                                })
-                            }}
-                        >
-                            <Radio.Button>Elimina</Radio.Button>
-                        </Popconfirm>
-                    </Radio.Group>
+                    <EditButton onClick={() => { showDrawer(); setSelectedCustomer(cs) }} />
+                    <DeleteButton onConfirm={() => {
+                        deleteRow(cs.id, "customers", () => {
+                            updateDatabaseData(["customers", "cars", "estimates"]);
+                        })
+                    }} />
                 </Space >,
         },
     ]
@@ -93,7 +85,7 @@ export default function Customers() {
         >
             <CustomerForm onSubmit={onClose} customer={selectedCustomer} />
         </Drawer>
-        <Table dataSource={customers} columns={columns} rowKey="id" />
+        <Table dataSource={customers} columns={columns as any} rowKey="id" />
     </>
 };
 

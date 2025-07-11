@@ -1,7 +1,9 @@
-import { CalendarOutlined, DeleteOutlined, EditOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, InputRef, Modal, Popconfirm, Row, Space, Table } from "antd";
+import { CalendarOutlined, PlusOutlined } from "@ant-design/icons";
+import { Button, Drawer, InputRef, Modal, Popover, Row, Space, Table } from "antd";
 import { useRef, useState } from "react";
 
+import DeleteButton from "../components/buttons/DeleteButton";
+import EditButton from "../components/buttons/EditButton";
 import AppointmentForm from "../components/forms/AppointmentForm";
 import EstimatesForm from "../components/forms/EstimatesForm";
 import SaveEstimatePdf from "../components/pdf/SavePdfButton";
@@ -73,29 +75,19 @@ export default function Estimates() {
             key: "actions",
             render: (_: unknown, es: Estimate) =>
                 <Space>
-                    <Button onClick={() => { showDrawer(); setSelectedEstimate(es) }} icon={<EditOutlined />} type="primary" />
+                    <EditButton onClick={() => { showDrawer(); setSelectedEstimate(es) }} />
                     <SaveEstimatePdf estimateId={es.id} />
-                    <Popconfirm
-                        title={es.appointment_id}
-                        description={<AppointmentForm estimateId={es.id} />}
-                        okButtonProps={{ hidden: true }}
-                        cancelButtonProps={{ hidden: true }}
+                    <Popover
+                        title={!es.appointment_id ? "Crea appuntamento" : `Appuntamento già creato`}
+                        content={!es.appointment_id && <AppointmentForm estimateId={es.id} />}
                     >
-                        <Button disabled={!!es.appointment_id} icon={<CalendarOutlined />} type="primary" />
-                    </Popconfirm>
-                    <Popconfirm
-                        title="Elimina Preventivo"
-                        description="Sei sicuro di voler eliminare questo preventivo?"
-                        okText="Sì"
-                        cancelText="No"
-                        onConfirm={() => {
-                            deleteRow(es.id, "estimates", () => {
-                                updateDatabaseData(["estimates"]);
-                            })
-                        }}
-                    >
-                        <Button icon={<DeleteOutlined />} danger type="primary" />
-                    </Popconfirm>
+                        <Button icon={<CalendarOutlined />} type={!!es.appointment_id ? "primary" : "dashed"} />
+                    </Popover>
+                    <DeleteButton onConfirm={() => {
+                        deleteRow(es.id, "estimates", () => {
+                            updateDatabaseData(["estimates", "appointments"]);
+                        })
+                    }} />
                 </Space >,
         },
     ]

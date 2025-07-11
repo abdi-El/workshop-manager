@@ -1,7 +1,9 @@
 import { PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, InputRef, Popconfirm, Radio, Row, Space, Table } from "antd";
+import { Button, Drawer, InputRef, Row, Space, Table } from "antd";
 import { useRef, useState } from "react";
 
+import DeleteButton from "../components/buttons/DeleteButton";
+import EditButton from "../components/buttons/EditButton";
 import CarsForm from "../components/forms/CarsForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import { deleteRow } from "../modules/database";
@@ -48,22 +50,12 @@ export default function Cars() {
             key: "actions",
             render: (_: unknown, cr: Car) =>
                 <Space>
-                    <Radio.Group buttonStyle="solid">
-                        <Radio.Button onClick={() => { showDrawer(); setSelectedCar(cr) }}>Modifica</Radio.Button>
-                        <Popconfirm
-                            title="Elimina Officina"
-                            description="Sei sicuro di voler eliminare questa officina?"
-                            okText="Sì"
-                            cancelText="No"
-                            onConfirm={() => {
-                                deleteRow(cr.id, "cars", () => {
-                                    updateDatabaseData(["cars"]);
-                                })
-                            }}
-                        >
-                            <Radio.Button>Elimina</Radio.Button>
-                        </Popconfirm>
-                    </Radio.Group>
+                    <EditButton onClick={() => { showDrawer(); setSelectedCar(cr) }} />
+                    <DeleteButton onConfirm={() => {
+                        deleteRow(cr.id, "cars", () => {
+                            updateDatabaseData(["cars", "estimates"]);
+                        })
+                    }} />
                 </Space >,
         },
     ]

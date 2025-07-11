@@ -77,7 +77,7 @@ export default function AppointmentForm({ estimateId, appointmentId, initialData
         }
     }
 
-    return <Form form={form} onFinish={onFinish} style={{ paddingTop: "40px" }}>
+    return <Form form={form} onFinish={onFinish}>
         {!estimateId &&
             <>
                 <EstimateSelect
