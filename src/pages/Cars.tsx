@@ -1,8 +1,9 @@
 import { PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, Popconfirm, Radio, Row, Space, Table } from "antd";
-import { useState } from "react";
+import { Button, Drawer, InputRef, Popconfirm, Radio, Row, Space, Table } from "antd";
+import { useRef, useState } from "react";
 
 import CarsForm from "../components/forms/CarsForm";
+import { getColumnSearchProps } from "../components/TableSearchProps";
 import { deleteRow } from "../modules/database";
 import { useDatabaseStore } from "../modules/state";
 import { Car } from "../types/database";
@@ -12,6 +13,8 @@ export default function Cars() {
     const [open, setOpen] = useState(false);
     const { cars, updateDatabaseData } = useDatabaseStore((state) => state)
     const [selectedCar, setSelectedCar] = useState<Car>();
+    const searchInput = useRef<InputRef>(null);
+
 
     const columns = [
         {
@@ -23,16 +26,21 @@ export default function Cars() {
             title: "Targa",
             dataIndex: "number_plate",
             key: "number_plate",
+            ...getColumnSearchProps("number_plate", "targa", searchInput)
+
         },
         {
             title: "Marca",
             dataIndex: "maker_name",
             key: "maker_name",
+            ...getColumnSearchProps("maker_name", "marca", searchInput)
+
         },
         {
             title: "Modello",
             dataIndex: "model_name",
             key: "model_name",
+            ...getColumnSearchProps("model_name", "modello", searchInput)
         },
         {
             title: "Azioni",
