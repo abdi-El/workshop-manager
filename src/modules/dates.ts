@@ -33,3 +33,8 @@ export function transofrmYear(date: number | Dayjs) {
     }
     return date
 }
+
+
+export function sortBytDate(a: string, b: string) {
+    return dayjs(a, "DD-MM-YYYY").valueOf() - dayjs(b, "DD-MM-YYYY").valueOf();
+}

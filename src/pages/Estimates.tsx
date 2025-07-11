@@ -6,8 +6,13 @@ import AppointmentForm from "../components/forms/AppointmentForm";
 import EstimatesForm from "../components/forms/EstimatesForm";
 import SaveEstimatePdf from "../components/pdf/SavePdfButton";
 import { deleteRow } from "../modules/database";
+import { sortBytDate } from "../modules/dates";
 import { useDatabaseStore } from "../modules/state";
 import { Estimate } from "../types/database";
+
+function estimateSorter(a: Estimate, b: Estimate, key: keyof Estimate) {
+    return (a[key] as number) - (b[key] as number)
+}
 
 
 export default function Estimates() {
@@ -20,6 +25,7 @@ export default function Estimates() {
             title: "Data",
             dataIndex: "date",
             key: "date",
+            sorter: (a: Estimate, b: Estimate) => sortBytDate(a.date, b.date)
         },
         {
             title: "Cliente",
@@ -35,6 +41,8 @@ export default function Estimates() {
             title: "Ore Lavoro",
             dataIndex: "labor_hours",
             key: "labor_hours",
+            sorter: (a: Estimate, b: Estimate) => estimateSorter(a, b, "labor_hours"),
+
         },
         {
             title: "Costo Orario",
@@ -47,6 +55,7 @@ export default function Estimates() {
             dataIndex: "discount",
             key: "discount",
             render: (discount: number | null) => discount ? `€ ${discount}` : 'N/A',
+            sorter: (a: Estimate, b: Estimate) => estimateSorter(a, b, "discount"),
         },
         {
             title: "IVA",
