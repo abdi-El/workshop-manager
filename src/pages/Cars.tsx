@@ -83,7 +83,7 @@ export default function Cars() {
         >
             <CarsForm onSubmit={onClose} car={selectedCar} />
         </Drawer>
-        <Table dataSource={cars} columns={columns} rowKey="id" />
+        <Table dataSource={cars} columns={columns as any} rowKey="id" />
     </>
 };
 
