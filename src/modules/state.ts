@@ -26,12 +26,14 @@ interface AppState {
     setLoading: (loading: boolean) => void
     settings: SettingsType
     updateSettings: (values?: Partial<SettingsType>) => void
-
 }
+
 const customQueries: Record<string, string> = {
     cars: carQuery,
     estimates: estimatesQuery,
 }
+
+
 export const useDatabaseStore = create<DatabaseState>()((set) => ({
     workshops: [],
     customers: [],
