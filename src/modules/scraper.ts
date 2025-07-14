@@ -92,8 +92,6 @@ export async function getModelsAndMakers(onProgress?: (progress: number) => void
             totalProgress += modelsStep;
             onProgress?.(Math.round(totalProgress * 1e2) / 1e2);
         }
-
-        await sleep(500);
     }
     const otherMaker = await updateOrCreateMaker("ALTRA MARCA", formattedMakers["ALTRA MARCA"])
     await updateOrCreateModels("ALTRO MODELLO", otherMaker, formattedModels[`${"ALTRO MODELLO"}-${otherMaker}`])
