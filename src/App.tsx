@@ -5,7 +5,7 @@ import 'dayjs/locale/it'; // Import Italian locale
 import updateLocale from 'dayjs/plugin/updateLocale';
 import { useEffect } from "react";
 import Paginator from "./components/Paginator";
-import { initDatabase, populateMakers } from './modules/database';
+import { initDatabase } from './modules/database';
 import { useDatabaseStore, useStore } from './modules/state';
 
 dayjs.locale('it'); // Set default locale to Italian
@@ -17,9 +17,8 @@ export default function Page() {
   const { updateDatabaseData } = useDatabaseStore((state) => state)
   async function initApp() {
     await initDatabase()
-    populateMakers()
-    updateDatabaseData()
     updateSettings()
+    updateDatabaseData()
   }
 
   useEffect(() => {
