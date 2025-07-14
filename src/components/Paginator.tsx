@@ -1,5 +1,6 @@
 import { CalendarOutlined, CarOutlined, FileTextOutlined, LoadingOutlined, SettingOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
-import { Layout, Menu, Spin, Typography } from "antd";
+import { Layout, Menu, Spin, Tooltip, Typography } from "antd";
+import { useScraper } from '../modules/hooks';
 import { useDatabaseStore, useStore } from "../modules/state";
 import Cars from '../pages/Cars';
 import Customers from '../pages/Customers';
@@ -11,8 +12,9 @@ import Workshops from '../pages/Workshops';
 const { Title } = Typography;
 
 export default function Paginator() {
-    const { page, loading, updatePage } = useStore((state) => state)
-    const { databaseLoading } = useDatabaseStore((state) => state)
+    const { page, loading, updatePage } = useStore()
+    const { databaseLoading } = useDatabaseStore()
+    const { percentage, loading: scraping } = useScraper()
     const items = {
         "planner": {
             label: 'Calendario',
@@ -65,6 +67,11 @@ export default function Paginator() {
                 {items[page as keyof typeof items]?.page}
             </div>
         </Spin>
+        {page != "settings" && scraping && <Tooltip title={`Caricamento Merche e Modelli ${percentage}%`}>
+            <Spin percent={percentage} tip={percentage} spinning={scraping} style={{ position: "fixed", bottom: "2%", right: "2%" }} size="large" />
+        </Tooltip>
+        }
+
     </Layout>
 
 }
