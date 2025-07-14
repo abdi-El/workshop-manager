@@ -1,28 +1,13 @@
-import { Button, message, Progress, Row } from "antd"
-import { useEffect, useState } from "react"
-import { getModelsAndMakers } from "../modules/scraper"
+import { Button, Progress, Row } from "antd"
+import { useScraper } from "../modules/hooks"
 import { useDatabaseStore } from "../modules/state"
 
 export default function MakersModelsImporter() {
-    const { makers, updateDatabaseData } = useDatabaseStore()
-    const [percent, setPercent] = useState<number>(makers.length ? 100 : 0)
-    const [isLoading, setIsLoading] = useState(false)
+    const { makers, } = useDatabaseStore()
+    const { trigger, scraperLoading, percentage } = useScraper()
 
-    async function onClick() {
-        setIsLoading(true)
-        getModelsAndMakers((percentage: number) => {
-            if (percentage == 100) {
-                setIsLoading(false)
-                message.success("Marche e Modelli importati con successo")
-                updateDatabaseData(["makers", "models"])
-            }
-            setPercent(percentage)
-        })
-    }
-
-    useEffect(() => { }, [])
     return <Row justify={"center"} style={{ margin: "15px 0px" }}>
-        <Progress percent={percent} size={["100%", 20]} />
-        <Button onClick={onClick} loading={isLoading} className="w-100" >{makers.length ? "Aggiorna" : "Crea"} Marche e Modelli</Button>
+        <Progress percent={percentage} size={["100%", 20]} />
+        <Button onClick={() => trigger()} loading={scraperLoading} className="w-100" >{makers.length ? "Aggiorna" : "Crea"} Marche e Modelli</Button>
     </Row>
 }
