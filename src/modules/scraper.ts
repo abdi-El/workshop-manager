@@ -14,10 +14,6 @@ interface dataType {
     }
 }
 
-function sleep(ms: number) {
-    return new Promise(resolve => setTimeout(resolve, ms));
-}
-
 async function fetchWithProxy(url: string) {
     const response = await fetch(url)
     const data = await response.json()
