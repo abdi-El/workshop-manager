@@ -25,3 +25,14 @@ body {
   background-color: #b3b1b1;
   cursor: pointer;
 }
+
+.activator {
+  position: fixed;
+  width: 100vw;
+  height: 100vh;
+  top: 0;
+  right: 0;
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  z-index: 2;
+}
