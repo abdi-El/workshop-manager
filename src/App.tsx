@@ -4,7 +4,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/it';
 import updateLocale from 'dayjs/plugin/updateLocale';
 import { useEffect } from "react";
-import ActivatorOverlay from './components/ActivatorOverlay';
+import ActivatorOverlay from './components/ActivatonKeyOverlay';
 import Paginator from "./components/Paginator";
 import { initDatabase } from './modules/database';
 import { useScraper } from './modules/hooks';
