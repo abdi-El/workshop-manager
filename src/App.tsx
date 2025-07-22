@@ -4,6 +4,7 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/it';
 import updateLocale from 'dayjs/plugin/updateLocale';
 import { useEffect } from "react";
+import ActivatorOverlay from './components/ActivatonKeyOverlay';
 import Paginator from "./components/Paginator";
 import { initDatabase } from './modules/database';
 import { useScraper } from './modules/hooks';
@@ -35,10 +36,12 @@ export default function Page() {
     locale={itIT}
     theme={{
       algorithm: settings?.theme == "dark" ? theme.darkAlgorithm : theme.defaultAlgorithm,
-    }}>
+    }}
+  >
     <div id={settings?.theme}>
       <Paginator />
     </div>
+    <ActivatorOverlay />
   </ConfigProvider >
 }
 
