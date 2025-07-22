@@ -1,22 +1,19 @@
-import { Button, Input, message } from "antd";
-import { useState } from "react";
+import { Button, Form, Input, message } from "antd";
+import FormItem from "antd/es/form/FormItem";
 
 export default function ActivationKeyInput() {
-    const [value, setValue] = useState<string>()
-    const [error, setError] = useState(false)
-
-    function onClick() {
-        message.success(value)
+    const [form] = Form.useForm()
+    function onFinish({ activationKey }: { activationKey: string }) {
+        message.success(activationKey)
     }
     return <>
-        <Input status={error ? "error" : ""} style={{ marginBottom: "10px" }} onInput={(event) => {
-            if (error) {
-                setError(false)
-            }
-            setValue(event.currentTarget.value)
-        }} onKeyDown={(event) => {
-            if (event.key == "Enter") onClick()
-        }} maxLength={31} placeholder="Inserire chiave di attivazione" />
-        <Button className="w-100" type="primary" onClick={onClick} disabled={!value || value.length != 31}>Verfica Chiave</Button>
+        <Form form={form} name="activator" onFinish={onFinish}>
+            <FormItem name="activationKey" rules={[{ required: true }]} label={"Chiave:"}>
+                <Input maxLength={31} placeholder="Inserire chiave di attivazione" />
+            </FormItem>
+            <FormItem name={null}>
+                <Button htmlType="submit" className="w-100" type="primary" >Verfica Chiave</Button>
+            </FormItem>
+        </Form>
     </>
 }
