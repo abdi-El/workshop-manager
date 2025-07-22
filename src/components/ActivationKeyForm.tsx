@@ -20,8 +20,9 @@ export default function ActivationKeyForm() {
             const keyType = getKeyType(activationKey as any)
             if (settings.activationKey && keyType == "DEMO") {
                 message.error("Non è possibile ri-inserire una chiave demo")
+                return
             }
-            message.success(keyType)
+            message.success("Chiave inserita con successo")
             updateSettings({ activationDate: dayjs(), activationKey })
         } else {
             message.error("Chiave non valida")

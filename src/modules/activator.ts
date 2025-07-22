@@ -26,7 +26,7 @@ export async function checkActivation() {
         const keyType = getKeyType(settings.activationKey as any)
         if (keyType == "DEMO") {
             const activationDate = dayjs(settings.activationDate).subtract(3, 'day');
-            return dayjs().diff(activationDate, "day") < 15
+            return dayjs().diff(activationDate, "day") < 30
         }
         return true
 
