@@ -1,7 +1,7 @@
 import { Button, Form, Input, message } from "antd";
 import FormItem from "antd/es/form/FormItem";
 
-export default function ActivationKeyInput() {
+export default function ActivationKeyForm() {
     const [form] = Form.useForm()
     function onFinish({ activationKey }: { activationKey: string }) {
         message.success(activationKey)
