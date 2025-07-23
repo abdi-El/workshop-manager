@@ -1,11 +1,10 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 mod commands;
 
-#[cfg(dev)]
 
 #[tauri::command]
 fn is_debug() -> bool {
-  return cfg!(dev);
+  return tauri::is_dev();
 }
 
 
@@ -62,8 +61,7 @@ pub fn run() {
                 .build(),
         )
         .plugin(tauri_plugin_opener::init())
-        .invoke_handler(tauri::generate_handler![commands::fetch])
-        .invoke_handler(tauri::generate_handler![is_debug])
+        .invoke_handler(tauri::generate_handler![commands::fetch, is_debug])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

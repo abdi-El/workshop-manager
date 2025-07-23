@@ -20,7 +20,7 @@ export default function ActivatorOverlay() {
         <Row className="h-100 w-100" align={"middle"} justify={"center"} >
             <Col span={18}>
                 <Card title="Inserire chaive di attivazione" styles={{ "title": { textAlign: "center" } }}>
-                    <ActivationKeyForm />
+                    <ActivationKeyForm onSubmit={updateActiveStatus} />
                 </Card>
             </Col>
         </Row>

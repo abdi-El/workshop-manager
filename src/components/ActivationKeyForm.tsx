@@ -5,11 +5,16 @@ import { useEffect } from "react";
 import { getKeyType, validateKey } from "../modules/activator";
 import { useStore } from "../modules/state";
 
+
+interface Props {
+    onSubmit: () => {}
+}
+
 interface FormType {
     activationKey: string
 }
 
-export default function ActivationKeyForm() {
+export default function ActivationKeyForm({ onSubmit }: Props) {
     const [form] = Form.useForm<FormType>()
     const { settings, updateSettings } = useStore((state) => state)
 
@@ -24,6 +29,7 @@ export default function ActivationKeyForm() {
             }
             message.success("Chiave inserita con successo")
             updateSettings({ activationDate: dayjs(), activationKey })
+            onSubmit()
         } else {
             message.error("Chiave non valida")
         }
