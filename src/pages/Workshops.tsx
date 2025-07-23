@@ -65,7 +65,7 @@ export default function Workshops() {
                     <EditButton onClick={() => { showDrawer(); setSelectedWorkshop(ws) }} />
                     <DeleteButton onConfirm={() => {
                         deleteRow(ws.id, "workshops", () => {
-                            updateDatabaseData([]);
+                            updateDatabaseData(["workshops", "cars", "customers", "appointments", "estimates"]);
                         })
                     }} disabled={isSelected || workshops.length < 2} />
                 </Space >
