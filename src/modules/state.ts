@@ -64,7 +64,7 @@ export const useStore = create<AppState>()((set) => ({
     loading: false,
     updatePage: (page: string) => set((current) => {
         if (!current.settings?.selectedWorkshop && page !== "workshop") {
-            message.warning("Seleziona un'officina prima di procedere.");
+            message.warning("Compila dati dell'officina prima di procedere.");
             return { page: "workshop" }
         }
         return { page }
