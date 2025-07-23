@@ -40,7 +40,13 @@ export default function Settings() {
             <MakersModels />
             <Divider />
             <MakersModelsImporter />
-            {isDebug && <Button onClick={() => storeSettings.reset()}>RESET STORE</Button>}
+            {isDebug && <Button onClick={
+                () => {
+                    storeSettings.reset().then(() => {
+                        updateSettings()
+                    })
+                }
+            }>RESET STORE</Button>}
         </Layout>
     );
 }
