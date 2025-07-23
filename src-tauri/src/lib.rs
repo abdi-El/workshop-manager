@@ -1,6 +1,15 @@
 use tauri_plugin_sql::{Migration, MigrationKind};
 mod commands;
 
+#[cfg(dev)]
+
+#[tauri::command]
+fn is_debug() -> bool {
+  return cfg!(dev);
+}
+
+
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     let migrations = vec![
@@ -54,6 +63,7 @@ pub fn run() {
         )
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![commands::fetch])
+        .invoke_handler(tauri::generate_handler![is_debug])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

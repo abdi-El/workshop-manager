@@ -5,7 +5,7 @@ import { useStore } from "../modules/state";
 import ActivationKeyForm from "./ActivationKeyForm";
 
 export default function ActivatorOverlay() {
-    const { page } = useStore((state) => state)
+    const { page, isDebug } = useStore((state) => state)
     const [isActive, setIsActive] = useState(true)
 
     async function updateActiveStatus() {
@@ -16,7 +16,7 @@ export default function ActivatorOverlay() {
         updateActiveStatus()
     }, [page])
 
-    return !isActive && <div className="activator"  >
+    return !isActive && !isDebug && <div className="activator"  >
         <Row className="h-100 w-100" align={"middle"} justify={"center"} >
             <Col span={18}>
                 <Card title="Inserire chaive di attivazione" styles={{ "title": { textAlign: "center" } }}>

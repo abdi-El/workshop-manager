@@ -1,14 +1,16 @@
-import { Divider, Form, Layout, message, Select } from 'antd';
+import { Button, Divider, Form, Layout, message, Select } from 'antd';
 import { useEffect } from 'react';
 import MakersModels from '../components/MakersModels';
 import MakersModelsImporter from '../components/MakersModelsImporter';
+import { storeSettings } from '../modules/database';
 import { useStore } from '../modules/state';
 import { SettingsType } from '../types/common';
 
 
 
+
 export default function Settings() {
-    const { settings, updateSettings } = useStore((state) => state)
+    const { settings, updateSettings, isDebug } = useStore((state) => state)
 
     const [form] = Form.useForm<SettingsType>()
 
@@ -38,6 +40,13 @@ export default function Settings() {
             <MakersModels />
             <Divider />
             <MakersModelsImporter />
+            {isDebug && <Button onClick={
+                () => {
+                    storeSettings.reset().then(() => {
+                        updateSettings()
+                    })
+                }
+            }>RESET STORE</Button>}
         </Layout>
     );
 }

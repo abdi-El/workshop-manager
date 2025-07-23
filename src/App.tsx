@@ -1,3 +1,4 @@
+import { invoke } from '@tauri-apps/api/core';
 import { ConfigProvider, theme } from 'antd';
 import itIT from 'antd/locale/it_IT';
 import dayjs from 'dayjs';
@@ -14,10 +15,12 @@ dayjs.locale('it');
 dayjs.extend(updateLocale);
 
 export default function Page() {
-  const { settings, updateSettings } = useStore((state) => state)
+  const { settings, updateSettings, setIsDebug } = useStore((state) => state)
   const { updateDatabaseData, makers } = useDatabaseStore((state) => state)
   const { trigger, setPercentage } = useScraper()
   async function initApp() {
+    const isDebug = await invoke("is_debug") as boolean
+    setIsDebug(isDebug)
     await initDatabase()
     updateSettings()
     updateDatabaseData()
