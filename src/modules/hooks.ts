@@ -1,5 +1,7 @@
 import { message } from "antd";
+import { useEffect, useState } from "react";
 import { create } from "zustand";
+import { storeSettings } from "./database";
 import { getModelsAndMakers } from "./scraper";
 
 interface ScraperState {
@@ -30,3 +32,28 @@ export const useScraper = create<ScraperState>()((set) => {
         )
     }
 })
+
+
+async function updateTourState(name: string, value: boolean) {
+    storeSettings.get("tours").then(values => {
+        let newValues = {
+            ...(values || {}), [name]: value
+        }
+        storeSettings.set("tours", newValues)
+    })
+
+}
+
+export function useTour(name: string): [boolean, ((value: boolean) => Promise<void>)] {
+    const [isOpen, setIsOpen] = useState(false)
+    useEffect(() => {
+        storeSettings.get("tours").then((values) => {
+            setIsOpen((values as Record<string, boolean>)?.[name] || false)
+        })
+    }, [])
+    async function setOpenState(value: boolean) {
+        updateTourState(name, value)
+        setIsOpen(value)
+    }
+    return [isOpen, setOpenState]
+}

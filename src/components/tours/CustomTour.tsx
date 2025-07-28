@@ -1,6 +1,6 @@
 import type { TourProps } from 'antd';
 import { FloatButton, Tour } from 'antd';
-import { useState } from 'react';
+import { useTour } from '../../modules/hooks';
 
 interface Props {
     name: string,
@@ -9,7 +9,7 @@ interface Props {
 
 
 export default function CustomTour({ name, steps }: Props) {
-    const [open, setOpen] = useState<boolean>(true);
+    const [open, setOpen] = useTour(name);
 
     return (
         <>

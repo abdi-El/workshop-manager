@@ -16,6 +16,6 @@ export default function WorkshopTour() {
         },
     ];
 
-    return <CustomTour steps={steps} name='TEST' />
+    return <CustomTour steps={steps} name='workshopPage' />
 };
 
