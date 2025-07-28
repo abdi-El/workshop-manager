@@ -2321,23 +2321,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "mechanic-estimates"
-version = "0.1.0"
-dependencies = [
- "reqwest",
- "serde",
- "serde_json",
- "tauri",
- "tauri-build",
- "tauri-plugin-dialog",
- "tauri-plugin-fs",
- "tauri-plugin-http",
- "tauri-plugin-opener",
- "tauri-plugin-sql",
- "tauri-plugin-store",
-]
-
-[[package]]
 name = "memchr"
 version = "2.7.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6144,6 +6127,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6f42320e61fe2cfd34354ecb597f86f413484a798ba44a8ca1165c58d42da6c1"
 dependencies = [
  "bitflags 2.9.1",
+]
+
+[[package]]
+name = "workshop-manager"
+version = "0.1.0"
+dependencies = [
+ "reqwest",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-build",
+ "tauri-plugin-dialog",
+ "tauri-plugin-fs",
+ "tauri-plugin-http",
+ "tauri-plugin-opener",
+ "tauri-plugin-sql",
+ "tauri-plugin-store",
 ]
 
 [[package]]

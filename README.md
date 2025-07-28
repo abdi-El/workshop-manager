@@ -1,4 +1,4 @@
-# 🔧 Mechanic Estimate Manager
+# 🔧 Mechanic Manager
 
 A lightweight, cross-platform **desktop app** built with **[Tauri](https://tauri.app/)** that helps automotive workshops manage and generate **repair estimates** with ease.
 

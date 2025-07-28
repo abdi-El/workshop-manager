@@ -1,8 +1,8 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "mechanic-estimates",
+  "productName": "Workshop Manager",
   "version": "1.0.0",
-  "identifier": "com.mechanic-estimates.app",
+  "identifier": "com.workshop-manager.app",
   "build": {
     "beforeDevCommand": "yarn dev",
     "devUrl": "http://localhost:1420",
