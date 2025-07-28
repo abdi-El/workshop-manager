@@ -58,7 +58,7 @@ A lightweight, cross-platform **desktop app** built with **[Tauri](https://tauri
 To build the app for distribution:
 
 ```bash
-make deploy
+make dist
 ```
 
 ---
