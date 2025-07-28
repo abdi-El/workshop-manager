@@ -71,7 +71,7 @@ export const useStore = create<AppState>()((set) => ({
     }
     ),
     setLoading: (loading: boolean) => set({ loading }),
-    settings: { theme: 'light', activationKey: "" },
+    settings: { theme: 'light' },
     updateSettings: (values) => {
         set({ loading: true })
         if (values) {
