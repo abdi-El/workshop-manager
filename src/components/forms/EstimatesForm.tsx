@@ -1,5 +1,6 @@
 import { Button, DatePicker, Form, InputNumber, Row, Switch } from "antd";
 import dayjs from "dayjs";
+import customParseFormat from 'dayjs/plugin/customParseFormat';
 import { useEffect } from "react";
 import { createOrUpdateEstimate, getEstimateItems } from "../../modules/database";
 import { DATE_FORMAT } from "../../modules/dates";
@@ -8,6 +9,8 @@ import { Estimate } from "../../types/database";
 import CarSelect from "../selects/CarSelect";
 import CustomerSelect from "../selects/CustomerSelect";
 import EstimateItemsForm from "./EstimateItemsForm";
+
+dayjs.extend(customParseFormat);
 
 interface EstimatesFormProps {
     estimate?: Partial<Estimate>;
