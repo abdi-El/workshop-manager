@@ -1,5 +1,5 @@
 import { CalendarOutlined, CarOutlined, FileTextOutlined, LoadingOutlined, SettingOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
-import { Layout, Menu, Spin, Tooltip, Typography } from "antd";
+import { Layout, Menu, Row, Spin, Typography } from "antd";
 import { useScraper } from '../modules/hooks';
 import { useDatabaseStore, useStore } from "../modules/state";
 import Cars from '../pages/Cars';
@@ -67,10 +67,14 @@ export default function Paginator() {
                 {items[page as keyof typeof items]?.page}
             </div>
         </Spin>
-        {page != "settings" && scraping && <Tooltip title={`Caricamento Merche e Modelli ${percentage}%`}>
-            <Spin percent={percentage} tip={percentage} spinning={scraping} style={{ position: "fixed", bottom: "2%", right: "2%" }} size="large" />
-        </Tooltip>
-        }
+        {scraping && <div className='scraper'>
+            <Row className='scraper-spinner' >
+                <Spin percent={percentage} tip={"caricamento"} spinning={true} size="large" />
+                <div style={{ marginTop: "15px" }}>
+                    Caricamento: {percentage}%
+                </div>
+            </Row>
+        </div>}
 
     </Layout>
 

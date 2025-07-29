@@ -25,3 +25,23 @@ body {
   background-color: #b3b1b1;
   cursor: pointer;
 }
+
+.scraper {
+  background-color: rgba(80, 77, 77, 0.7);
+  position: absolute;
+  bottom: 50% !important;
+  right: 50% !important;
+  height: 100%;
+  width: 100%;
+  transform: translate(50%, 50%);
+  z-index: 2;
+}
+
+.scraper-spinner {
+  position: absolute;
+  bottom: 50% !important;
+  right: 50% !important;
+  transform: translate(50%, 50%);
+  flex-direction: column;
+  align-items: center;
+}
