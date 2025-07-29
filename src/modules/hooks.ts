@@ -48,7 +48,12 @@ export function useTour(name: string): [boolean, ((value: boolean) => Promise<vo
     const [isOpen, setIsOpen] = useState(false)
     useEffect(() => {
         storeSettings.get("tours").then((values) => {
-            setIsOpen((values as Record<string, boolean>)?.[name] || true)
+            const storeValue = (values as Record<string, boolean>)?.[name]
+            if (storeValue == undefined) {
+                setIsOpen(true)
+                return
+            }
+            setIsOpen(storeValue)
         })
     }, [])
     async function setOpenState(value: boolean) {
