@@ -23,7 +23,7 @@ export default function Page() {
     await initDatabase()
     updateSettings()
     updateDatabaseData()
-    if (!makers) {
+    if (!makers?.length) {
       trigger()
     } else {
       setPercentage(100)
