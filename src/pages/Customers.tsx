@@ -6,6 +6,7 @@ import DeleteButton from "../components/buttons/DeleteButton";
 import EditButton from "../components/buttons/EditButton";
 import CustomerForm from "../components/forms/CustomerForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
+import CustomersTour from "../components/tours/CustomerTour";
 import { deleteRow } from "../modules/database";
 import { useDatabaseStore } from "../modules/state";
 import { Customer } from "../types/database";
@@ -72,7 +73,7 @@ export default function Customers() {
 
     return <>
         <Row justify="end" align="middle" style={{ marginBottom: 16 }}>
-            <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />}>
+            <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />} id="CreateNewCustomer">
                 Crea Cliente
             </Button>
         </Row>
@@ -86,6 +87,7 @@ export default function Customers() {
             <CustomerForm onSubmit={onClose} customer={selectedCustomer} />
         </Drawer>
         <Table dataSource={customers} columns={columns as any} rowKey="id" />
+        <CustomersTour />
     </>
 };
 

@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import WorkshopForm from "../components/forms/WorkshopForm";
+import WorkshopTour from "../components/tours/WorkshopTour";
 import { useDatabaseStore, useStore } from "../modules/state";
 
 
@@ -15,6 +16,7 @@ export default function Workshops() {
 
     return <>
         <WorkshopForm onSubmit={() => { }} workshop={settings?.selectedWorkshop} />
+        <WorkshopTour />
     </>
 };
 

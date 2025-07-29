@@ -15,9 +15,6 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) 
     const [form] = Form.useForm();
     const { updateDatabaseData } = useDatabaseStore((state) => state)
 
-
-
-
     const handleFinish = (values: Workshop) => {
         if (!workshop.id) {
             create(values, () => {
@@ -52,6 +49,7 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) 
             form={form}
             layout="vertical"
             onFinish={handleFinish}
+            id="WorkshopForm"
         >
             <Form.Item
                 label="Nome Officina"
@@ -105,7 +103,7 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) 
             </Form.Item>
 
             <Form.Item>
-                <Button type="primary" htmlType="submit">
+                <Button type="primary" htmlType="submit" id="WorkshopFormSubmit">
                     {workshop?.id ? "Aggiorna" : "Crea"} Officina
                 </Button>
             </Form.Item>
