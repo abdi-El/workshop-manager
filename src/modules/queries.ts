@@ -93,3 +93,12 @@ LEFT JOIN (
     GROUP BY estimate_id
 ) ei ON e.id = ei.estimate_id;
 `
+export const CarBrandsByCount = `
+SELECT 
+    m.name as brand_name,
+    COUNT(c.id) as car_count
+FROM cars c
+JOIN makers m ON c.maker_id = m.id
+GROUP BY m.id, m.name
+ORDER BY car_count DESC;
+`
