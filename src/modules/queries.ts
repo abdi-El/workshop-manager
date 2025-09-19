@@ -72,3 +72,24 @@ export const carQuery = `SELECT cars.id as car_id,
             LEFT JOIN makers as maker ON cars.maker_id = maker.id
             ORDER BY id DESC
             `
+
+export const dashboardAverages = `SELECT 
+    COUNT(*) as total_estimates,
+    AVG(e.labor_hours) as avg_labor_hours,
+    AVG(e.labor_hourly_cost) as avg_hourly_cost,
+    AVG(COALESCE(e.discount, 0)) as avg_discount,
+    AVG(COALESCE(ei.items_total, 0)) as avg_parts_cost,
+    AVG(
+        (e.labor_hours * e.labor_hourly_cost) + 
+        COALESCE(ei.items_total, 0) - 
+        COALESCE(e.discount, 0)
+    ) as avg_total_estimate_value
+FROM estimates e
+LEFT JOIN (
+    SELECT 
+        estimate_id,
+        SUM(quantity * unit_price) as items_total
+    FROM estimate_items
+    GROUP BY estimate_id
+) ei ON e.id = ei.estimate_id;
+`
