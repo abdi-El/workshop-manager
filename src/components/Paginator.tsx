@@ -1,9 +1,10 @@
-import { CalendarOutlined, CarOutlined, FileTextOutlined, LoadingOutlined, SettingOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
+import { CalendarOutlined, CarOutlined, DashboardOutlined, FileTextOutlined, LoadingOutlined, SettingOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
 import { Layout, Menu, Row, Spin, Typography } from "antd";
 import { useScraper } from '../modules/hooks';
 import { useDatabaseStore, useStore } from "../modules/state";
 import Cars from '../pages/Cars';
 import Customers from '../pages/Customers';
+import Dashboard from '../pages/Dashboard';
 import Estimates from '../pages/Estimates';
 import Planner from '../pages/Planner';
 import Settings from '../pages/Settings';
@@ -16,6 +17,12 @@ export default function Paginator() {
     const { databaseLoading } = useDatabaseStore()
     const { percentage, loading: scraping } = useScraper()
     const items = {
+        "dashboard": {
+            label: 'Dashboard',
+            key: 'dashboard',
+            icon: <DashboardOutlined />,
+            page: <Dashboard />
+        },
         "planner": {
             label: 'Calendario',
             key: 'planner',
