@@ -60,7 +60,7 @@ export const useDatabaseStore = create<DatabaseState>()((set) => ({
 export const useStore = create<AppState>()((set) => ({
     isDebug: false,
     setIsDebug: (isDebug) => set({ isDebug }),
-    page: "planner",
+    page: "dashboard",
     loading: false,
     updatePage: (page: string) => set((current) => {
         if (!current.settings?.selectedWorkshop && page !== "workshop") {

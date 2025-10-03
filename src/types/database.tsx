@@ -87,3 +87,13 @@ export interface AppointmentEventData {
     number_plate: string,
     estimate_status: boolean
 }
+
+export interface EstiamatesAverages {
+    avg_discount: number
+    avg_hourly_cost: number
+    avg_labor_hours: number
+    avg_parts_cost: number
+    avg_total_estimate_value: number
+    total_estimates: number
+
+}
