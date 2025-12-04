@@ -1,4 +1,4 @@
-import { Button, DatePicker, Form, InputNumber, Row, Switch } from "antd";
+import { Button, Checkbox, DatePicker, Form, InputNumber, Row } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 import { createOrUpdateEstimate, getEstimateItems } from "../../modules/database";
@@ -100,7 +100,7 @@ export default function EstimatesForm({ estimate, onSubmit }: EstimatesFormProps
                 </Form.Item>
             </Row>
             <EstimateItemsForm />
-            <Row>
+            <Row >
                 <Form.Item
                     label="Sconto"
                     name="discount"
@@ -115,8 +115,9 @@ export default function EstimatesForm({ estimate, onSubmit }: EstimatesFormProps
                     valuePropName="checked"
                     rules={[{ required: true, message: "Selezionare se ha IVA" }]}
                     className="w-50"
+                    style={{ display: "flex", justifyContent: "space-evenly" }}
                 >
-                    <Switch defaultChecked />
+                    <Checkbox />
                 </Form.Item>
             </Row>
 

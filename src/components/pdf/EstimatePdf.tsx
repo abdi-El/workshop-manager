@@ -83,6 +83,10 @@ const estimateItemsColumns: Column[] = [
 
 // Create Document Component
 export default function EstimatePdf({ estimate, car, customer, workshop, items }: DataProps) {
+    let updatedItems = items
+    if (estimate.labor_hours && estimate.labor_hourly_cost) {
+        updatedItems.push({ "quantity": estimate.labor_hours, "description": "Mano d'opera", "unit_price": estimate.labor_hourly_cost, total_price: estimate.labor_hourly_cost * estimate.labor_hours, estimate_id: estimate.id } as EstimateItem)
+    }
 
 
     return <Document style={styles.body}>
@@ -107,7 +111,7 @@ export default function EstimatePdf({ estimate, car, customer, workshop, items }
                     </View>
                 </View>
                 <PdfTable data={[{ ...car, kms: estimate.car_kms }]} columns={carTableColumns} title='Dati Auto' />
-                {estimate.labor_hours && estimate.labor_hourly_cost && <PdfTable data={[...items, { "quantity": estimate.labor_hours, "description": "Mano d'opera", "unit_price": estimate.labor_hourly_cost, total_price: estimate.labor_hourly_cost * estimate.labor_hours }]} columns={estimateItemsColumns} title='Lavori' />}
+                {<PdfTable data={items} columns={estimateItemsColumns} title='Lavori' />}
                 <View style={{ marginTop: 20, textAlign: "right" }}>
                     {estimate.discount && <Text>Sconto: € {estimate.discount}</Text>}
                     <Text style={{ marginTop: 10, textAlign: "right", border: "1px solid black", padding: "5px" }}>

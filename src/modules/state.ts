@@ -49,7 +49,11 @@ export const useDatabaseStore = create<DatabaseState>()((set) => ({
         keys.forEach(key => {
             set({ databaseLoading: true })
             db.select(customQueries[key] || `SELECT * FROM ${key} ORDER BY id DESC`).then((rows) => {
-                set({ [key]: rows })
+                if (key === 'estimates') {
+                    set({ estimates: (rows as Estimate[]).map((r: Estimate) => ({ ...r, has_iva: (r.has_iva as any) == "true" })) })
+                } else {
+                    set({ [key]: rows })
+                }
             }).catch((error) => {
                 message.error("Errore nel recupero dei dati: " + error);
             }).finally(() => set({ databaseLoading: false }))
