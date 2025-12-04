@@ -34,6 +34,14 @@ export function transofrmYear(date: number | Dayjs) {
     return date
 }
 
+export function transformDate(date?: string | Dayjs | null) {
+    if (!date) return null;
+    if (typeof date === "string") {
+        return dayjs(date, DATE_FORMAT);
+    }
+    return date.format(DATE_FORMAT);
+}
+
 
 export function sortBytDate(a: string, b: string) {
     return dayjs(a, "DD-MM-YYYY").valueOf() - dayjs(b, "DD-MM-YYYY").valueOf();
