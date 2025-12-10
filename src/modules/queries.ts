@@ -62,7 +62,7 @@ export async function getUpcomingInspections() {
                         ELSE '+2 years'
                     END
                 )
-            ) <= DATE('now', '+30 days')
+            ) <= DATE('now', '+30 days') ORDER BY c.last_inspection_date ASC;
         `)
 }
 
