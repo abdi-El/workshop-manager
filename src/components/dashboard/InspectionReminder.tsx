@@ -45,19 +45,18 @@ const columns = [
 export default function InspectionReminder(props: Props) {
     const { cars } = useDatabaseStore()
     const [inspections, setInspections] = useState<DataType[]>()
-    const [loading, setLoading] = useState<boolean>(false)
+
 
     useEffect(() => {
         if (cars.length) {
-            setLoading(true)
             getUpcomingInspections().then((data) => {
                 setInspections(data as DataType[])
-            }).finally(() => setLoading(false))
+            })
         }
     }, [cars])
     return <div {...props}>
         <Title level={4}>Prossime revisioni</Title>
-        <Table dataSource={inspections} columns={columns} loading={loading} />
+        <Table dataSource={inspections} columns={columns} loading={inspections === undefined} />
     </div>
 
 }
