@@ -83,7 +83,7 @@ const estimateItemsColumns: Column[] = [
 
 // Create Document Component
 export default function EstimatePdf({ estimate, car, customer, workshop, items }: DataProps) {
-    let updatedItems = items
+    let updatedItems = [...items]
     if (estimate.labor_hours && estimate.labor_hourly_cost) {
         updatedItems.push({ "quantity": estimate.labor_hours, "description": "Mano d'opera", "unit_price": estimate.labor_hourly_cost, total_price: estimate.labor_hourly_cost * estimate.labor_hours, estimate_id: estimate.id } as EstimateItem)
     }
