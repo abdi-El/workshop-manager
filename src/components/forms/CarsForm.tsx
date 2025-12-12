@@ -2,7 +2,7 @@ import { Button, DatePicker, Form, Input } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 import { create, update } from "../../modules/database";
-import { OLDEST_CAR_YEAR, transofrmYear } from "../../modules/dates";
+import { OLDEST_CAR_YEAR, transformDate, transofrmYear } from "../../modules/dates";
 import { useDatabaseStore, useStore } from "../../modules/state";
 import { Car } from "../../types/database";
 import CustomerSelect from "../selects/CustomerSelect";
@@ -26,6 +26,7 @@ export default function CarsForm({ car, onSubmit }: CarFormProps) {
             ...values,
             year: transofrmYear(values.year),
             number_plate: values.number_plate.toUpperCase(),
+            last_inspection_date: transformDate(values.last_inspection_date),
             "workshop_id": settings.selectedWorkshop?.id
         }
         if (!car?.id) {
@@ -45,7 +46,11 @@ export default function CarsForm({ car, onSubmit }: CarFormProps) {
 
     useEffect(() => {
         if (car) {
-            form.setFieldsValue({ ...car, year: transofrmYear(car.year as number) });
+            form.setFieldsValue({
+                ...car,
+                year: transofrmYear(car.year as number),
+                last_inspection_date: transformDate(car.last_inspection_date)
+            });
         } else {
             form.resetFields()
         }
@@ -76,6 +81,17 @@ export default function CarsForm({ car, onSubmit }: CarFormProps) {
                 }}
                 />
             </Form.Item>
+
+            <Form.Item
+                label="Data ultima revisione"
+                name="last_inspection_date"
+            >
+                <DatePicker disabledDate={(current) => {
+                    return current > dayjs();
+                }}
+                />
+            </Form.Item>
+
             <Form.Item
                 label="Targa"
                 name="number_plate"

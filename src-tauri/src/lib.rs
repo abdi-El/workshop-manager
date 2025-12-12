@@ -48,6 +48,12 @@ pub fn run() {
             sql: include_str!("../migrations/006_create_appointments_table.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 7,
+            description: "add_last_inspection_date_to_cars",
+            sql: include_str!("../migrations/007_add_last_inspecion_date.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

@@ -32,6 +32,39 @@ export async function getPlannerEvents() {
                 ORDER BY a.date DESC, a.from_time;`
     )
 }
+export async function getUpcomingInspections() {
+    return await db.select(
+        `
+        SELECT 
+            c.id as car_id,
+            c.year,
+            c.last_inspection_date,
+            c.customer_id,
+            cust.name as customer_name,
+            cust.phone as customer_phone,
+            ma.name as maker_name,
+            md.name as model_name
+        FROM cars c
+        JOIN customers cust ON c.customer_id = cust.id
+        JOIN makers ma ON c.maker_id = ma.id
+        JOIN models md ON c.model_id = md.id
+        WHERE c.last_inspection_date IS NOT NULL
+        AND (
+                -- Convert last inspection date to YYYY-MM-DD
+                DATE(
+                    SUBSTR(c.last_inspection_date, 7, 4) || '-' ||
+                    SUBSTR(c.last_inspection_date, 4, 2) || '-' ||
+                    SUBSTR(c.last_inspection_date, 1, 2),
+                    CASE
+                        -- First inspection: 4 years after registration
+                        WHEN c.last_inspection_date = c.year THEN '+4 years'
+                        -- Otherwise every 2 years
+                        ELSE '+2 years'
+                    END
+                )
+            ) <= DATE('now', '+30 days') ORDER BY c.last_inspection_date ASC;   
+        `)
+}
 
 export const estimatesQuery = `SELECT 
                     estimates.id as estimate_id,
