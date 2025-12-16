@@ -1,5 +1,6 @@
 import { Button, Divider, Form, Layout, message, Select } from 'antd';
 import { useEffect } from 'react';
+import BackupManager from '../components/BackupManager';
 import MakersModels from '../components/MakersModels';
 import MakersModelsImporter from '../components/MakersModelsImporter';
 import { storeSettings } from '../modules/database';
@@ -40,6 +41,7 @@ export default function Settings() {
             <MakersModels />
             <Divider />
             <MakersModelsImporter />
+            <BackupManager />
             {isDebug && <Button onClick={
                 () => {
                     storeSettings.reset().then(() => {
