@@ -1,3 +1,4 @@
+import { SupabaseClient } from '@supabase/supabase-js';
 import { message } from 'antd';
 import { create } from 'zustand';
 import { SettingsType } from '../types/common';
@@ -26,6 +27,8 @@ interface AppState {
     loading: boolean
     updatePage: (page: string) => void
     setLoading: (loading: boolean) => void
+    supabaseClient: SupabaseClient | null
+    setSupabaseClient: (client: SupabaseClient | null) => void
     settings: SettingsType
     updateSettings: (values?: Partial<SettingsType>) => void
 }
@@ -75,6 +78,8 @@ export const useStore = create<AppState>()((set) => ({
     }
     ),
     setLoading: (loading: boolean) => set({ loading }),
+    supabaseClient: null,
+    setSupabaseClient: (client: SupabaseClient | null) => set({ supabaseClient: client }),
     settings: { theme: 'light' },
     updateSettings: (values) => {
         set({ loading: true })
