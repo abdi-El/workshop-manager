@@ -52,7 +52,7 @@ export default function BackupManager() {
                         }).then((file) => {
                             const now = new Date();
                             const formattedDate = `${now.getDate().toString().padStart(2, '0')}-${(now.getMonth() + 1).toString().padStart(2, '0')}-${now.getFullYear()}`;
-                            supabaseClient.storage.from('backups').upload(`dbs/estimates_${formattedDate}.db`, file, { upsert: true }).then(({ data, error }) => {
+                            supabaseClient.storage.from('backups').upload(`dbs/estimates_${formattedDate}.db`, file, { upsert: true }).then(({ error }) => {
                                 if (error) {
                                     throw error;
                                 } else {
