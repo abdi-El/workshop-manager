@@ -33,15 +33,12 @@ export async function updateOrCreate(values: Record<string, any>, table: string)
         VALUES(${Object.keys(values).map((_, index) => `$${index + 1}`).join(", ")})`, Object.values(values))
 
 }
-export async function update(values: Record<string, any>, id: number, onUpdate: () => void, table: string, showMessage: boolean = true) {
-    db.execute(`
+export async function update(values: Record<string, any>, id: number, table: string, showMessage: boolean = true) {
+    return db.execute(`
         UPDATE ${table} SET ${Object.keys(values).filter(key => key !== 'id').map((key, index) => `${key} = $${index + 1}`).join(", ")}
         WHERE id = ${id}
     `, [...Object.values(values)]).then(() => {
         showMessage && message.success("Aggiornato con successo!");
-        onUpdate()
-    }).catch((error) => {
-        message.error("Errore nell'aggiornamento : " + error);
     })
 }
 
@@ -60,7 +57,7 @@ export { db, storeSettings };
 
 export async function createOrUpdateEstimate(estimate: Estimate, items: EstimateItem[], onFinish: () => void, estimateId?: number) {
     if (estimateId != undefined) {
-        update(estimate, estimateId, onFinish, 'estimates', false)
+        update(estimate, estimateId, 'estimates', false).then(onFinish)
     }
     else {
         let result = (await create(estimate, onFinish, 'estimates', false))

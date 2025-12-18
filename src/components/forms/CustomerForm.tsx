@@ -1,4 +1,4 @@
-import { Button, Form, Input } from "antd";
+import { Button, Form, Input, message } from "antd";
 import React, { useEffect } from "react";
 import { create, update } from "../../modules/database";
 import { useDatabaseStore, useStore } from "../../modules/state";
@@ -12,9 +12,7 @@ type CustomerFormProps = {
 const CustomerForm: React.FC<CustomerFormProps> = ({ customer = {}, onSubmit }) => {
     const [form] = Form.useForm();
     const { updateDatabaseData } = useDatabaseStore((state) => state)
-
     const { settings } = useStore((state) => state);
-
     const handleFinish = (values: Omit<Customer, "id">) => {
         if (!customer.id) {
             create({ ...values, "workshop_id": settings.selectedWorkshop?.id }, () => {
@@ -23,11 +21,11 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ customer = {}, onSubmit }) 
                 onSubmit(values);
             }, "customers");
         } else {
-            update(values, customer.id, () => {
+            update(values, customer.id, "customers").then(() => {
                 form.resetFields();
                 updateDatabaseData(["customers"]);
                 onSubmit(values);
-            }, "customers");
+            }).catch(err => message.error("Errore durante l'aggiornamento del cliente: " + err));
         }
     };
 

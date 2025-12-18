@@ -42,7 +42,7 @@ export function formatModelName(name: string, makerName: string) {
 
 export async function updateOrCreateMaker(name: string, id: number) {
     if (id) {
-        update({ name }, id, () => { }, "makers", false)
+        update({ name }, id, "makers", false).catch(() => { console.log("Errore aggiornamento marca") })
         return id
     } else {
         const query = await create({ name }, () => { }, "makers", false)
@@ -52,7 +52,7 @@ export async function updateOrCreateMaker(name: string, id: number) {
 
 export async function updateOrCreateModels(name: string, makerId: number, id: number) {
     if (id) {
-        await update({ name, maker_id: makerId }, id, () => { }, "models", false)
+        await update({ name, maker_id: makerId }, id, "models", false).catch(() => { console.log("Errore aggiornamento modello") })
     } else {
         await create({ name, maker_id: makerId }, () => { }, "models", false)
     }

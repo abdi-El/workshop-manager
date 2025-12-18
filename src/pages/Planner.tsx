@@ -3,7 +3,7 @@ import itLocale from '@fullcalendar/core/locales/it';
 import interactionPlugin from '@fullcalendar/interaction';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import { Modal } from 'antd';
+import { message, Modal } from 'antd';
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from 'react';
 import AppointmentForm from '../components/forms/AppointmentForm';
@@ -72,7 +72,7 @@ export default function Planner() {
             to_time: newEnd.time
         }
 
-        update(newDates, appointment.id, () => {
+        update(newDates, appointment.id, "appointments", false).then(() => {
             setAppointments(prev =>
                 prev.map(appt =>
                     appt.id === appointment.id ? {
@@ -81,7 +81,7 @@ export default function Planner() {
                     } : appt
                 )
             );
-        }, "appointments", false)
+        }).catch(err => message.error("Errore durante l'aggiornamento dell'appuntamento: " + err))
     };
 
 

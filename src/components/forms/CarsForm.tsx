@@ -1,6 +1,6 @@
-import { Button, DatePicker, Form, Input } from "antd";
+import { Button, DatePicker, Form, Input, message } from "antd";
 import dayjs from "dayjs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { create, update } from "../../modules/database";
 import { OLDEST_CAR_YEAR, transformDate, transofrmYear } from "../../modules/dates";
 import { useDatabaseStore, useStore } from "../../modules/state";
@@ -16,7 +16,12 @@ type CarFormProps = {
 
 export default function CarsForm({ car, onSubmit }: CarFormProps) {
     const [form] = Form.useForm();
-    const { updateDatabaseData } = useDatabaseStore((state) => state)
+    const { updateDatabaseData, cars } = useDatabaseStore((state) => state)
+    const [numberPlates, setNumberPlates] = useState<string[]>([])
+    useEffect(() => {
+        const plates = cars.map(c => c.number_plate);
+        setNumberPlates(plates);
+    }, [cars])
     const selectedMaker = Form.useWatch("maker_id", form)
 
     const { settings } = useStore((state) => state);
@@ -36,11 +41,11 @@ export default function CarsForm({ car, onSubmit }: CarFormProps) {
                 onSubmit(values);
             }, "cars");
         } else {
-            update(data, car.id, () => {
+            update(data, car.id, "cars").then(() => {
                 form.resetFields();
                 updateDatabaseData(["cars"]);
                 onSubmit(values);
-            }, "cars");
+            }).catch(err => message.error("Errore durante l'aggiornamento del veicolo: " + err));
         }
     };
 
@@ -95,7 +100,20 @@ export default function CarsForm({ car, onSubmit }: CarFormProps) {
             <Form.Item
                 label="Targa"
                 name="number_plate"
-                rules={[{ required: true, message: "Inserire la targa" }]}
+                rules={[
+                    { required: true, message: "Inserire la targa" },
+                    {
+                        validator: (_, value) => {
+                            if (value) {
+                                if (numberPlates.includes(value.toUpperCase()) && value.toUpperCase() !== car?.number_plate) {
+                                    return Promise.reject(new Error('Targa già esistente'));
+                                }
+                                return Promise.resolve();
+                            }
+
+                        },
+                    },
+                ]}
             >
                 <Input style={{ textTransform: 'uppercase' }} />
             </Form.Item>
