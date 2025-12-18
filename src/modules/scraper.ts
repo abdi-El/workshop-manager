@@ -45,16 +45,16 @@ export async function updateOrCreateMaker(name: string, id: number) {
         update({ name }, id, "makers", false).catch(() => { console.log("Errore aggiornamento marca") })
         return id
     } else {
-        const query = await create({ name }, () => { }, "makers", false)
+        const query = await create({ name }, "makers", false)
         return query?.lastInsertId || 0
     }
 }
 
 export async function updateOrCreateModels(name: string, makerId: number, id: number) {
     if (id) {
-        await update({ name, maker_id: makerId }, id, "models", false).catch(() => { console.log("Errore aggiornamento modello") })
+        await update({ name, maker_id: makerId }, id, "models", false)
     } else {
-        await create({ name, maker_id: makerId }, () => { }, "models", false)
+        await create({ name, maker_id: makerId }, "models", false)
     }
 }
 

@@ -14,17 +14,17 @@ export async function initDatabase() {
 }
 
 
-export async function create(values: Record<string, any>, onCreate: () => void, table: string, showMessage: boolean = true) {
+export async function create(values: Record<string, any>, table: string, showMessage: boolean = true) {
     return db.execute(`
         INSERT INTO ${table} (${Object.keys(values).join(", ")})
         VALUES (${Object.keys(values).map((_, index) => `$${index + 1}`).join(", ")})
     `, Object.values(values)).then((queryResult) => {
         showMessage && message.success("Creato con successo!");
-        onCreate()
         return queryResult;
     }).catch((error) => {
-        message.error("Errore nella crezione : " + error);
-    });
+        message.error("Errore nella creazione: " + error);
+        throw error;
+    })
 
 }
 export async function updateOrCreate(values: Record<string, any>, table: string) {
@@ -39,6 +39,9 @@ export async function update(values: Record<string, any>, id: number, table: str
         WHERE id = ${id}
     `, [...Object.values(values)]).then(() => {
         showMessage && message.success("Aggiornato con successo!");
+    }).catch((error) => {
+        message.error("Errore nell'aggiornamento: " + error);
+        throw error;
     })
 }
 
@@ -60,12 +63,15 @@ export async function createOrUpdateEstimate(estimate: Estimate, items: Estimate
         update(estimate, estimateId, 'estimates', false).then(onFinish)
     }
     else {
-        let result = (await create(estimate, onFinish, 'estimates', false))
+        let result = (await create(estimate, 'estimates', false).then(res => {
+            onFinish()
+            return res
+        }))
         estimateId = result?.lastInsertId;
     }
     db.execute(`DELETE FROM estimate_items WHERE estimate_id = ${estimateId}`).then(() => {
         items.forEach(async ({ total_price, ...item }) => {
-            await create({ ...item, estimate_id: estimateId }, () => { }, 'estimate_items', false);
+            await create({ ...item, estimate_id: estimateId }, 'estimate_items', false);
         });
         message.success(`Operazione completata con successo!`);
         onFinish();

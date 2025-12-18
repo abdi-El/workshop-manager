@@ -1,4 +1,4 @@
-import { Button, DatePicker, Form, FormProps, message, TimePicker } from "antd";
+import { Button, DatePicker, Form, FormProps, TimePicker } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 import { create, db, update } from "../../modules/database";
@@ -71,9 +71,9 @@ export default function AppointmentForm({ estimateId, appointmentId, initialData
         }
         const table = "appointments"
         if (appointmentId) {
-            update(formattedData, appointmentId, table).then(onExecute).catch(err => message.error("Errore durante l'aggiornamento dell'appuntamento: " + err))
+            update(formattedData, appointmentId, table).then(onExecute)
         } else {
-            create(formattedData, onExecute, table)
+            create(formattedData, table).then(onExecute)
         }
     }
 

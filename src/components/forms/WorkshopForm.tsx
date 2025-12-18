@@ -1,4 +1,4 @@
-import { Button, Form, Input, InputNumber, message } from "antd";
+import { Button, Form, Input, InputNumber } from "antd";
 import React, { useEffect } from "react";
 import { create, update } from "../../modules/database";
 import { useDatabaseStore } from "../../modules/state";
@@ -17,18 +17,18 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) 
 
     const handleFinish = (values: Workshop) => {
         if (!workshop.id) {
-            create(values, () => {
+            create(values, "workshops").then(() => {
                 form.resetFields();
                 updateDatabaseData(["workshops"]);
                 onSubmit(values);
-            }, "workshops")
+            })
         }
         else {
             update(values, workshop.id, "workshops").then(() => {
                 form.resetFields();
                 updateDatabaseData(["workshops"]);
                 onSubmit(values);
-            }).catch(err => message.error("Errore durante l'aggiornamento dell'officina: " + err))
+            })
         }
     }
 

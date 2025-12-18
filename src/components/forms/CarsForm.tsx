@@ -1,9 +1,10 @@
-import { Button, DatePicker, Form, Input, message } from "antd";
+import { Button, DatePicker, Form, Input } from "antd";
 import dayjs from "dayjs";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { create, update } from "../../modules/database";
 import { OLDEST_CAR_YEAR, transformDate, transofrmYear } from "../../modules/dates";
 import { useDatabaseStore, useStore } from "../../modules/state";
+import { parseError } from "../../modules/utils";
 import { Car } from "../../types/database";
 import CustomerSelect from "../selects/CustomerSelect";
 import DatabasResourceSelect from "../selects/DatabaseResourceSelect";
@@ -16,15 +17,12 @@ type CarFormProps = {
 
 export default function CarsForm({ car, onSubmit }: CarFormProps) {
     const [form] = Form.useForm();
-    const { updateDatabaseData, cars } = useDatabaseStore((state) => state)
-    const [numberPlates, setNumberPlates] = useState<string[]>([])
-    useEffect(() => {
-        const plates = cars.map(c => c.number_plate);
-        setNumberPlates(plates);
-    }, [cars])
+    const { updateDatabaseData } = useDatabaseStore((state) => state)
+
     const selectedMaker = Form.useWatch("maker_id", form)
 
     const { settings } = useStore((state) => state);
+
 
     const handleFinish = (values: Omit<Car, "id">) => {
         let data = {
@@ -34,18 +32,21 @@ export default function CarsForm({ car, onSubmit }: CarFormProps) {
             last_inspection_date: transformDate(values.last_inspection_date),
             "workshop_id": settings.selectedWorkshop?.id
         }
+        function onError(error: string) {
+            form.setFields(parseError(error));
+        }
         if (!car?.id) {
-            create(data, () => {
+            create(data, "cars").then(() => {
                 form.resetFields();
                 updateDatabaseData(["cars"]);
                 onSubmit(values);
-            }, "cars");
+            }).catch(onError);
         } else {
             update(data, car.id, "cars").then(() => {
                 form.resetFields();
                 updateDatabaseData(["cars"]);
                 onSubmit(values);
-            }).catch(err => message.error("Errore durante l'aggiornamento del veicolo: " + err));
+            }).catch(onError);
         }
     };
 
@@ -102,17 +103,6 @@ export default function CarsForm({ car, onSubmit }: CarFormProps) {
                 name="number_plate"
                 rules={[
                     { required: true, message: "Inserire la targa" },
-                    {
-                        validator: (_, value) => {
-                            if (value) {
-                                if (numberPlates.includes(value.toUpperCase()) && value.toUpperCase() !== car?.number_plate) {
-                                    return Promise.reject(new Error('Targa già esistente'));
-                                }
-                                return Promise.resolve();
-                            }
-
-                        },
-                    },
                 ]}
             >
                 <Input style={{ textTransform: 'uppercase' }} />

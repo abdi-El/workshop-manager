@@ -3,7 +3,7 @@ import itLocale from '@fullcalendar/core/locales/it';
 import interactionPlugin from '@fullcalendar/interaction';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import { message, Modal } from 'antd';
+import { Modal } from 'antd';
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from 'react';
 import AppointmentForm from '../components/forms/AppointmentForm';
@@ -81,7 +81,7 @@ export default function Planner() {
                     } : appt
                 )
             );
-        }).catch(err => message.error("Errore durante l'aggiornamento dell'appuntamento: " + err))
+        })
     };
 
 
