@@ -2,6 +2,7 @@ import { Button, Form, Input } from "antd";
 import React, { useEffect } from "react";
 import { create, update } from "../../modules/database";
 import { useDatabaseStore, useStore } from "../../modules/state";
+import { parseError } from "../../modules/utils";
 import { Customer } from "../../types/database";
 
 type CustomerFormProps = {
@@ -12,22 +13,23 @@ type CustomerFormProps = {
 const CustomerForm: React.FC<CustomerFormProps> = ({ customer = {}, onSubmit }) => {
     const [form] = Form.useForm();
     const { updateDatabaseData } = useDatabaseStore((state) => state)
-
     const { settings } = useStore((state) => state);
-
     const handleFinish = (values: Omit<Customer, "id">) => {
+        function onError(error: string) {
+            form.setFields(parseError(error));
+        }
         if (!customer.id) {
-            create({ ...values, "workshop_id": settings.selectedWorkshop?.id }, () => {
+            create({ ...values, "workshop_id": settings.selectedWorkshop?.id }, "customers").then(() => {
                 form.resetFields();
                 updateDatabaseData(["customers"]);
                 onSubmit(values);
-            }, "customers");
+            }).catch(onError);
         } else {
-            update(values, customer.id, () => {
+            update(values, customer.id, "customers").then(() => {
                 form.resetFields();
                 updateDatabaseData(["customers"]);
                 onSubmit(values);
-            }, "customers");
+            }).catch(onError)
         }
     };
 

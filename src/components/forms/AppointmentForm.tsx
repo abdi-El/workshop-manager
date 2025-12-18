@@ -71,9 +71,9 @@ export default function AppointmentForm({ estimateId, appointmentId, initialData
         }
         const table = "appointments"
         if (appointmentId) {
-            update(formattedData, appointmentId, onExecute, table)
+            update(formattedData, appointmentId, table).then(onExecute)
         } else {
-            create(formattedData, onExecute, table)
+            create(formattedData, table).then(onExecute)
         }
     }
 

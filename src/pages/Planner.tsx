@@ -72,7 +72,7 @@ export default function Planner() {
             to_time: newEnd.time
         }
 
-        update(newDates, appointment.id, () => {
+        update(newDates, appointment.id, "appointments", false).then(() => {
             setAppointments(prev =>
                 prev.map(appt =>
                     appt.id === appointment.id ? {
@@ -81,7 +81,7 @@ export default function Planner() {
                     } : appt
                 )
             );
-        }, "appointments", false)
+        })
     };
 
 

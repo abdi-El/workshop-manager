@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { create, update } from "../../modules/database";
 import { OLDEST_CAR_YEAR, transformDate, transofrmYear } from "../../modules/dates";
 import { useDatabaseStore, useStore } from "../../modules/state";
+import { parseError } from "../../modules/utils";
 import { Car } from "../../types/database";
 import CustomerSelect from "../selects/CustomerSelect";
 import DatabasResourceSelect from "../selects/DatabaseResourceSelect";
@@ -17,9 +18,11 @@ type CarFormProps = {
 export default function CarsForm({ car, onSubmit }: CarFormProps) {
     const [form] = Form.useForm();
     const { updateDatabaseData } = useDatabaseStore((state) => state)
+
     const selectedMaker = Form.useWatch("maker_id", form)
 
     const { settings } = useStore((state) => state);
+
 
     const handleFinish = (values: Omit<Car, "id">) => {
         let data = {
@@ -29,18 +32,21 @@ export default function CarsForm({ car, onSubmit }: CarFormProps) {
             last_inspection_date: transformDate(values.last_inspection_date),
             "workshop_id": settings.selectedWorkshop?.id
         }
+        function onError(error: string) {
+            form.setFields(parseError(error));
+        }
         if (!car?.id) {
-            create(data, () => {
+            create(data, "cars").then(() => {
                 form.resetFields();
                 updateDatabaseData(["cars"]);
                 onSubmit(values);
-            }, "cars");
+            }).catch(onError);
         } else {
-            update(data, car.id, () => {
+            update(data, car.id, "cars").then(() => {
                 form.resetFields();
                 updateDatabaseData(["cars"]);
                 onSubmit(values);
-            }, "cars");
+            }).catch(onError);
         }
     };
 
@@ -95,7 +101,9 @@ export default function CarsForm({ car, onSubmit }: CarFormProps) {
             <Form.Item
                 label="Targa"
                 name="number_plate"
-                rules={[{ required: true, message: "Inserire la targa" }]}
+                rules={[
+                    { required: true, message: "Inserire la targa" },
+                ]}
             >
                 <Input style={{ textTransform: 'uppercase' }} />
             </Form.Item>

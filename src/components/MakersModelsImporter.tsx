@@ -3,7 +3,7 @@ import { useScraper } from "../modules/hooks"
 import { useDatabaseStore } from "../modules/state"
 
 export default function MakersModelsImporter() {
-    const { makers, } = useDatabaseStore()
+    const { makers } = useDatabaseStore()
     const { percentage, loading, trigger } = useScraper(state => state)
 
     return <Row justify={"center"} style={{ margin: "15px 0px" }}>

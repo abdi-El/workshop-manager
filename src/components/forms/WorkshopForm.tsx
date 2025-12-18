@@ -17,18 +17,18 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) 
 
     const handleFinish = (values: Workshop) => {
         if (!workshop.id) {
-            create(values, () => {
+            create(values, "workshops").then(() => {
                 form.resetFields();
                 updateDatabaseData(["workshops"]);
                 onSubmit(values);
-            }, "workshops")
+            })
         }
         else {
-            update(values, workshop.id, () => {
+            update(values, workshop.id, "workshops").then(() => {
                 form.resetFields();
                 updateDatabaseData(["workshops"]);
                 onSubmit(values);
-            }, "workshops")
+            })
         }
     }
 

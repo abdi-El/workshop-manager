@@ -1,12 +1,10 @@
 import { Button, Divider, Form, Layout, message, Select } from 'antd';
 import { useEffect } from 'react';
-import MakersModels from '../components/MakersModels';
+import BackupManager from '../components/BackupManager';
 import MakersModelsImporter from '../components/MakersModelsImporter';
 import { storeSettings } from '../modules/database';
 import { useStore } from '../modules/state';
 import { SettingsType } from '../types/common';
-
-
 
 
 export default function Settings() {
@@ -22,7 +20,6 @@ export default function Settings() {
 
     return (
         <Layout>
-            <Divider />
             <Form form={form} layout="vertical" className="settings-form" onValuesChange={() => {
                 form.validateFields().then((values) => updateSettings(values)).catch(err => {
                     message.error('Errore di validazione: ' + err);
@@ -37,16 +34,20 @@ export default function Settings() {
 
             </Form>
             <Divider />
-            <MakersModels />
+            <BackupManager />
             <Divider />
             <MakersModelsImporter />
-            {isDebug && <Button onClick={
-                () => {
-                    storeSettings.reset().then(() => {
-                        updateSettings()
-                    })
-                }
-            }>RESET STORE</Button>}
+            {isDebug &&
+                <div>
+                    <Button style={{ width: "100%" }} onClick={
+                        () => {
+                            storeSettings.reset().then(() => {
+                                updateSettings()
+                            })
+                        }
+                    }>RESET STORE</Button>
+                </div>
+            }
         </Layout>
     );
 }
