@@ -2,11 +2,11 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { message } from 'antd';
 import { create } from 'zustand';
 import { SettingsType } from '../types/common';
-import { Appointment, Car, Customer, Estimate, Maker, MakerModel, Workshop } from '../types/database';
+import { Appointment, Car, Customer, Estimate, EstimateDefaultItem, Maker, MakerModel, Workshop } from '../types/database';
 import { db, storeSettings } from './database';
 import { carQuery, estimatesQuery } from './queries';
 
-const tables: (keyof DatabaseState)[] = ["workshops", "customers", "makers", "models", "cars", "estimates", "appointments"];
+const tables: (keyof DatabaseState)[] = ["workshops", "customers", "makers", "models", "cars", "estimates", "appointments", "default_estimate_items"];
 
 export interface DatabaseState {
     workshops: Workshop[]
@@ -15,6 +15,7 @@ export interface DatabaseState {
     models: MakerModel[]
     cars: Car[]
     estimates: Estimate[]
+    default_estimate_items: EstimateDefaultItem[]
     appointments: Appointment[]
     databaseLoading: boolean
     updateDatabaseData: (key?: (keyof DatabaseState)[]) => void
@@ -46,6 +47,7 @@ export const useDatabaseStore = create<DatabaseState>()((set) => ({
     models: [],
     cars: [],
     estimates: [],
+    default_estimate_items: [],
     appointments: [],
     databaseLoading: false,
     updateDatabaseData: (keys = tables) => {
