@@ -54,6 +54,12 @@ pub fn run() {
             sql: include_str!("../migrations/007_add_last_inspecion_date.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 8,
+            description: "add_default_items_table",
+            sql: include_str!("../migrations/008_add_default_items.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

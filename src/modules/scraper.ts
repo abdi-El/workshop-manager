@@ -40,21 +40,25 @@ export function formatModelName(name: string, makerName: string) {
 
 }
 
+function handleError(error: any) {
+    console.log("Errore durante il fetch:", error);
+}
+
 export async function updateOrCreateMaker(name: string, id: number) {
     if (id) {
-        update({ name }, id, "makers", false).catch(() => { console.log("Errore aggiornamento marca") })
+        update({ name }, id, "makers", false).catch(handleError)
         return id
     } else {
-        const query = await create({ name }, "makers", false)
+        const query = await create({ name }, "makers", false).catch(handleError)
         return query?.lastInsertId || 0
     }
 }
 
 export async function updateOrCreateModels(name: string, makerId: number, id: number) {
     if (id) {
-        await update({ name, maker_id: makerId }, id, "models", false)
+        await update({ name, maker_id: makerId }, id, "models", false).catch(handleError)
     } else {
-        await create({ name, maker_id: makerId }, "models", false)
+        await create({ name, maker_id: makerId }, "models", false).catch(handleError)
     }
 }
 

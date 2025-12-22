@@ -62,6 +62,12 @@ export type EstimateItem = {
     total_price?: number;
 };
 
+export type EstimateDefaultItem = {
+    id: number;
+    description: string;
+    unit_price: number;
+};
+
 
 export type Appointment = {
     id: number;

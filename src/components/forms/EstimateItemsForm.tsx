@@ -1,11 +1,14 @@
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Col, Form, Input, InputNumber, Row } from 'antd';
+import { AutoComplete, Button, Col, Form, Input, InputNumber, Row } from 'antd';
+import { useState } from 'react';
+import { useDatabaseStore } from '../../modules/state';
+import { EstimateDefaultItem } from '../../types/database';
 
 export default function EstimateItemsForm() {
     const form = Form.useFormInstance();
     const items = Form.useWatch('items', form);
-
-
+    const { default_estimate_items } = useDatabaseStore();
+    const [mappedItems, setMappedItems] = useState<Record<string, EstimateDefaultItem>>({});
 
     return <Form.List name="items">
         {(fields, { add, remove }) => {
@@ -18,7 +21,27 @@ export default function EstimateItemsForm() {
                                 name={[name, 'description']}
                                 rules={[{ required: true, message: 'Inserire descrizione' }]}
                             >
-                                <Input.TextArea className='w-100' placeholder="descrizione" />
+                                <AutoComplete
+                                    className='w-100'
+                                    options={Object.keys(mappedItems).map(desc => ({ value: desc }))}
+                                    onSelect={(val) => {
+                                        const selectedItem = mappedItems[val];
+                                        if (selectedItem) {
+                                            form.setFieldValue(['items', name, 'unit_price'], selectedItem.unit_price);
+                                        }
+                                    }}
+                                    onSearch={(val) => {
+                                        setMappedItems(default_estimate_items.reduce((acc, item) => {
+                                            if (item.description.toLowerCase().includes(val.toLowerCase())) {
+                                                acc[item.description] = item;
+                                            }
+                                            return acc;
+                                        }, {} as Record<string, EstimateDefaultItem>))
+                                    }}
+
+                                >
+                                    <Input.TextArea className='w-100' placeholder="descrizione" />
+                                </AutoComplete>
                             </Form.Item >
                         </Col>
                         <Col span={3}>
