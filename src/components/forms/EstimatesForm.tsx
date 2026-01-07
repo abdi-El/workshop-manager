@@ -123,7 +123,7 @@ export default function EstimatesForm({ estimate, onSubmit }: EstimatesFormProps
 
             <Form.Item>
                 <Button type="primary" htmlType="submit" className="w-100">
-                    {estimate?.id ? "Aggiorna" : "Crea"} Preventivo
+                    {estimate?.id ? "Aggiorna" : "Crea"} Lavoro
                 </Button>
             </Form.Item>
         </Form>

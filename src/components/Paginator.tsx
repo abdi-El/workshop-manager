@@ -30,7 +30,7 @@ export default function Paginator() {
             page: <Planner />
         },
         "estimates": {
-            label: 'Preventivi',
+            label: 'Lavori',
             key: 'estimates',
             icon: <FileTextOutlined />,
             page: <Estimates />
