@@ -45,7 +45,7 @@ export default function PlannerEvent({ appointment, onDelete, onEdit }: Props) {
             <Descriptions.Item label="Data">
                 {appointment.date} ({appointment.from_time} - {appointment.to_time})
             </Descriptions.Item>
-            <Descriptions.Item label="Preventivo">
+            <Descriptions.Item label="Lavoro">
                 {appointment.estimate_status ? <Tag color="green">Creato</Tag> : <Tag color="orange">Da Creare</Tag>}
             </Descriptions.Item>
         </Descriptions>}

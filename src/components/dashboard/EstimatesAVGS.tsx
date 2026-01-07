@@ -78,7 +78,7 @@ export default function EstimatesAVGS() {
             <Card variant="borderless">
                 <Statistic
                     loading={loading}
-                    title="Costo medio voci preventivo"
+                    title="Costo medio voci lavoro"
                     value={estimatesAverages?.avg_parts_cost}
                     precision={2}
                     prefix="€"

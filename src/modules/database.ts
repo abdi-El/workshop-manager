@@ -76,7 +76,7 @@ export async function createOrUpdateEstimate(estimate: Estimate, items: Estimate
         message.success(`Operazione completata con successo!`);
         onFinish();
     }).catch((error) => {
-        message.error("Errore nella creazione del preventivo : " + error);
+        message.error("Errore nella creazione del lavoro : " + error);
     });
 
 }

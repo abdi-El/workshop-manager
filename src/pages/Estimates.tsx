@@ -103,7 +103,7 @@ export default function Estimates() {
     return <>
         <Row justify="end" align="middle" style={{ marginBottom: 16 }}>
             <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />}>
-                Crea Preventivo
+                Crea Lavoro
             </Button>
         </Row>
         <Modal>
@@ -111,7 +111,7 @@ export default function Estimates() {
         </Modal>
 
         <Drawer
-            title={`${selectedEstimate ? "Aggiorna" : "Crea Nuovo"} Preventivo`}
+            title={`${selectedEstimate ? "Aggiorna" : "Crea Nuovo"} Lavoro`}
             closable={{ 'aria-label': 'Chiudi' }}
             onClose={onClose}
             open={open}

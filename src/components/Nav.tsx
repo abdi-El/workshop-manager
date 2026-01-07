@@ -7,7 +7,7 @@ type MenuItem = Required<MenuProps>['items'][number];
 
 const items: MenuItem[] = [
     {
-        label: 'Preventivi',
+        label: 'Lavori',
         key: 'estimates',
         icon: <FileTextOutlined />,
     },
