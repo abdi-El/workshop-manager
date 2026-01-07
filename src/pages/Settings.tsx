@@ -1,6 +1,5 @@
 import { Button, Collapse, Form, Layout, message, Select } from 'antd';
 import { useEffect } from 'react';
-import BackupManager from '../components/BackupManager';
 import DefaultEstimateItems from '../components/DefaultEstimateItems';
 import MakersModelsImporter from '../components/MakersModelsImporter';
 import { storeSettings } from '../modules/database';
@@ -37,9 +36,6 @@ export default function Settings() {
             <Collapse>
                 <Collapse.Panel header="Voci di default" key="1">
                     <DefaultEstimateItems />
-                </Collapse.Panel>
-                <Collapse.Panel header="Backup" key="2">
-                    <BackupManager />
                 </Collapse.Panel>
                 <Collapse.Panel header="Importa Modelli e Marche" key="3">
                     <MakersModelsImporter />
