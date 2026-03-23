@@ -2,39 +2,18 @@ import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 import { calculateEstimatePrice } from '../../modules/pricing';
 import { Car, Customer, Estimate, EstimateItem, Workshop } from '../../types/database';
 import PdfTable, { Column } from './PdfTable';
+import themes from "./themes.json";
 
 export interface DataProps {
     estimate: Estimate,
     car: Car,
     customer: Customer,
     workshop: Workshop,
-    items: EstimateItem[]
+    items: EstimateItem[],
+    pdfTheme?: string
 }
 
 // Create styles
-const styles = StyleSheet.create({
-    body: {
-        padding: 20,
-        fontSize: 12,
-    },
-    titleSection: {
-        margin: "20 0",
-        textAlign: 'center',
-        fontWeight: 'bold',
-    },
-    header: {
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        width: '80%',
-        margin: '0 auto',
-    },
-    headerTitle: {
-        fontWeight: 'bold',
-        fontSize: 14,
-        marginBottom: 5,
-    },
-});
 
 const carTableColumns: Column[] = [
     {
@@ -82,7 +61,10 @@ const estimateItemsColumns: Column[] = [
 
 
 // Create Document Component
-export default function EstimatePdf({ estimate, car, customer, workshop, items }: DataProps) {
+export default function EstimatePdf({ estimate, car, customer, workshop, items, pdfTheme = 'default' }: DataProps) {
+    const themeKey = (pdfTheme in themes ? pdfTheme : 'default') as keyof typeof themes
+    const styles = StyleSheet.create(themes[themeKey] as any)
+
     let updatedItems = [...items]
     if (estimate.labor_hours && estimate.labor_hourly_cost) {
         updatedItems.push({ "quantity": estimate.labor_hours, "description": "Mano d'opera", "unit_price": estimate.labor_hourly_cost, total_price: estimate.labor_hourly_cost * estimate.labor_hours, estimate_id: estimate.id } as EstimateItem)
@@ -110,8 +92,8 @@ export default function EstimatePdf({ estimate, car, customer, workshop, items }
                         <Text>Email: {customer.email}</Text>
                     </View>
                 </View>
-                <PdfTable data={[{ ...car, kms: estimate.car_kms }]} columns={carTableColumns} title='Dati Auto' />
-                <PdfTable data={updatedItems} columns={estimateItemsColumns} title='Lavori' />
+                <PdfTable data={[{ ...car, kms: estimate.car_kms }]} columns={carTableColumns} title='Dati Auto' pdfTheme={pdfTheme} />
+                <PdfTable data={updatedItems} columns={estimateItemsColumns} title='Lavori' pdfTheme={pdfTheme} />
                 <View style={{ marginTop: 20, textAlign: "right" }}>
                     {estimate.discount && <Text>Sconto: € {estimate.discount}</Text>}
                     <Text style={{ marginTop: 10, textAlign: "right", border: "1px solid black", padding: "5px" }}>

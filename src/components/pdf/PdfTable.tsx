@@ -4,6 +4,8 @@ import {
     Text,
     View
 } from '@react-pdf/renderer';
+import themes from "./themes.json";
+
 
 export interface Column {
     header: string;
@@ -15,47 +17,13 @@ interface Props<T> {
     columns: Column[];
     data: T[];
     title?: string;
+    pdfTheme?: string;
 }
 
-// Styles
-const styles = StyleSheet.create({
-    title: {
-        fontSize: 14,
-        margin: "10px 0px",
-        textAlign: 'center',
-        fontWeight: 'bold',
-    },
-    tableContainer: {
-        width: '100%',
-        borderWidth: 1,
-        borderColor: '#000',
-        marginBottom: 10,
-    },
-    tableRow: {
-        flexDirection: 'row',
-    },
-    tableColHeader: {
-        flex: 1,
-        backgroundColor: '#eee',
-        borderRightWidth: 1,
-        borderBottomWidth: 1,
-        borderColor: '#000',
-        padding: 5,
-    },
-    tableCol: {
-        flex: 1,
-        borderRightWidth: 1,
-        borderBottomWidth: 1,
-        borderColor: '#000',
-        padding: 5,
-    },
-    tableText: {
-        fontSize: 10,
-    },
-});
-
 // Component
-export default function PdfTable<T>({ data, columns, title = "Dati" }: Props<T>) {
+export default function PdfTable<T>({ data, columns, title = "Dati", pdfTheme = 'default' }: Props<T>) {
+    const themeKey = (pdfTheme in themes ? pdfTheme : 'default') as keyof typeof themes
+    const styles = StyleSheet.create(themes[themeKey].table as any)
     return <>
         <Text style={styles.title}>{title}</Text>
         <View style={styles.tableContainer}>

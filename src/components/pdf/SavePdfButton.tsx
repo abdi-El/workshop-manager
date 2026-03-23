@@ -5,7 +5,7 @@ import { writeFile } from "@tauri-apps/plugin-fs";
 import { Button, message, Modal } from "antd";
 import { useEffect, useState } from "react";
 import { getEstimateItems } from "../../modules/database";
-import { useDatabaseStore } from "../../modules/state";
+import { useDatabaseStore, useStore } from "../../modules/state";
 import { EstimateItem } from "../../types/database";
 import EstimatePdf, { DataProps } from "./EstimatePdf";
 import MissingDataPdf from "./MissingDataPdf";
@@ -17,6 +17,7 @@ interface Props {
 export default function SaveEstimatePdf({ estimateId }: Props) {
     const [rendered, setRendered] = useState(false);
     const state = useDatabaseStore(state => state);
+    const { settings } = useStore(state => state);
     const [data, setData] = useState<DataProps | null>(null);
     const [estimateItems, setEstimateItems] = useState<EstimateItem[]>([]);
 
@@ -65,7 +66,7 @@ export default function SaveEstimatePdf({ estimateId }: Props) {
         }
 
         const blob = await pdf(
-            <EstimatePdf {...data} items={estimateItems} />
+            <EstimatePdf {...data} items={estimateItems} pdfTheme={settings.pdfTheme} />
         ).toBlob();
         const arrayBuffer = await blob.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
@@ -78,7 +79,7 @@ export default function SaveEstimatePdf({ estimateId }: Props) {
         <Button onClick={() => setRendered(true)} icon={<EyeOutlined />} />
         <Modal open={rendered} onCancel={() => setRendered(false)} footer={null} title="Anteprima PDF" centered width="85%">
             {rendered && <PDFViewer style={{ width: "100%", height: "100vh" }} >
-                {data ? <EstimatePdf {...data} items={estimateItems} /> : <MissingDataPdf />}
+                {data ? <EstimatePdf {...data} items={estimateItems} pdfTheme={settings.pdfTheme} /> : <MissingDataPdf />}
             </PDFViewer>}
         </Modal>
 

@@ -77,7 +77,7 @@ export const useStore = create<AppState>()((set) => ({
     }
     ),
     setLoading: (loading: boolean) => set({ loading }),
-    settings: { theme: 'light' },
+    settings: { theme: 'light', pdfTheme: 'default' },
     updateSettings: (values) => {
         set({ loading: true })
         if (values) {
