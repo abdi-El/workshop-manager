@@ -63,7 +63,9 @@ const estimateItemsColumns: Column[] = [
 // Create Document Component
 export default function EstimatePdf({ estimate, car, customer, workshop, items, pdfTheme = 'default' }: DataProps) {
     const themeKey = (pdfTheme in themes ? pdfTheme : 'default') as keyof typeof themes
-    const styles = StyleSheet.create(themes[themeKey] as any)
+    const theme = themes[themeKey]
+    const styles = StyleSheet.create(theme as any)
+    const summaryStyles = StyleSheet.create(theme.summary as any)
 
     let updatedItems = [...items]
     if (estimate.labor_hours && estimate.labor_hourly_cost) {
@@ -95,10 +97,10 @@ export default function EstimatePdf({ estimate, car, customer, workshop, items, 
                 <PdfTable data={[{ ...car, kms: estimate.car_kms }]} columns={carTableColumns} title='Dati Auto' pdfTheme={pdfTheme} />
                 <PdfTable data={updatedItems} columns={estimateItemsColumns} title='Lavori' pdfTheme={pdfTheme} />
                 <View style={{ marginTop: 20, textAlign: "right" }}>
-                    {estimate.discount && <Text>Sconto: € {estimate.discount}</Text>}
-                    <Text style={{ marginTop: 10, textAlign: "right", border: "1px solid black", padding: "5px" }}>
-                        <Text style={{ fontWeight: "bold" }}>Totale:    </Text>
-                        <Text style={{ textDecoration: "underline" }}>
+                    {estimate.discount && <Text style={summaryStyles.discountText}>Sconto: € {estimate.discount}</Text>}
+                    <Text style={summaryStyles.totalBox}>
+                        <Text style={summaryStyles.totalLabel}>Totale:    </Text>
+                        <Text style={summaryStyles.totalValue}>
                             € {calculateEstimatePrice(estimate, items)}{estimate.has_iva ? " IVA compresa" : " + IVA"}
                         </Text>
                     </Text>

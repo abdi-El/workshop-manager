@@ -23,6 +23,24 @@
       "fontSize": 14,
       "marginBottom": 5
     },
+    "summary": {
+      "discountText": {
+        "textAlign": "right",
+        "fontSize": 11
+      },
+      "totalBox": {
+        "marginTop": 10,
+        "textAlign": "right",
+        "border": "1px solid #000000",
+        "padding": 5
+      },
+      "totalLabel": {
+        "fontWeight": "bold"
+      },
+      "totalValue": {
+        "textDecoration": "underline"
+      }
+    },
     "table": {
       "title": {
         "fontSize": 14,
@@ -76,6 +94,24 @@
       "margin": "0 auto"
     },
     "headerTitle": { "fontWeight": "bold", "fontSize": 14, "marginBottom": 5 },
+    "summary": {
+      "discountText": {
+        "textAlign": "right",
+        "fontSize": 11
+      },
+      "totalBox": {
+        "marginTop": 10,
+        "textAlign": "right",
+        "border": "1px solid #000000",
+        "padding": 5
+      },
+      "totalLabel": {
+        "fontWeight": "bold"
+      },
+      "totalValue": {
+        "textDecoration": "underline"
+      }
+    },
     "table": {
       "title": {
         "fontSize": 14,
@@ -134,6 +170,28 @@
       "marginBottom": 5,
       "color": "#1a3c6e"
     },
+    "summary": {
+      "discountText": {
+        "textAlign": "right",
+        "fontSize": 11,
+        "color": "#1a3c6e"
+      },
+      "totalBox": {
+        "marginTop": 10,
+        "textAlign": "right",
+        "border": "1px solid #1a3c6e",
+        "padding": 5,
+        "color": "#1a3c6e"
+      },
+      "totalLabel": {
+        "fontWeight": "bold",
+        "color": "#1a3c6e"
+      },
+      "totalValue": {
+        "textDecoration": "underline",
+        "color": "#1a3c6e"
+      }
+    },
     "table": {
       "title": {
         "fontSize": 14,
@@ -191,6 +249,29 @@
       "margin": "0 auto"
     },
     "headerTitle": { "fontWeight": "bold", "fontSize": 13, "marginBottom": 5 },
+    "summary": {
+      "discountText": {
+        "textAlign": "right",
+        "fontSize": 11,
+        "color": "#222222"
+      },
+      "totalBox": {
+        "marginTop": 10,
+        "textAlign": "right",
+        "borderBottomWidth": 2,
+        "borderColor": "#111111",
+        "padding": 5,
+        "color": "#222222"
+      },
+      "totalLabel": {
+        "fontWeight": "bold",
+        "color": "#111111"
+      },
+      "totalValue": {
+        "textDecoration": "underline",
+        "color": "#222222"
+      }
+    },
     "table": {
       "title": {
         "fontSize": 11,
@@ -240,6 +321,28 @@
       "fontSize": 13,
       "marginBottom": 5,
       "color": "#c8501a"
+    },
+    "summary": {
+      "discountText": {
+        "textAlign": "right",
+        "fontSize": 11,
+        "color": "#3d2b1f"
+      },
+      "totalBox": {
+        "marginTop": 10,
+        "textAlign": "right",
+        "border": "1px solid #c8501a",
+        "padding": 5,
+        "color": "#3d2b1f"
+      },
+      "totalLabel": {
+        "fontWeight": "bold",
+        "color": "#7a3010"
+      },
+      "totalValue": {
+        "textDecoration": "underline",
+        "color": "#c8501a"
+      }
     },
     "table": {
       "title": {

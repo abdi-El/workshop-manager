@@ -32,7 +32,7 @@ export default function PdfTable<T>({ data, columns, title = "Dati", pdfTheme = 
                 {
                     columns.map((col) => (
                         <View key={col.accessor as string} style={styles.tableColHeader}>
-                            <Text style={styles.tableText}>{col.header}</Text>
+                            <Text style={[styles.tableText, styles.tableHeaderText]}>{col.header}</Text>
                         </View>
                     ))
                 }
