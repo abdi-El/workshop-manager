@@ -1,5 +1,6 @@
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
 import { calculateEstimatePrice } from '../../modules/pricing';
+import { getLogoUrl } from '../../modules/utils';
 import { Car, Customer, Estimate, EstimateItem, Workshop } from '../../types/database';
 import PdfTable, { Column } from './PdfTable';
 import themes from "./themes.json";
@@ -66,6 +67,9 @@ export default function EstimatePdf({ estimate, car, customer, workshop, items, 
     const theme = themes[themeKey]
     const styles = StyleSheet.create(theme as any)
     const summaryStyles = StyleSheet.create(theme.summary as any)
+    const makerLogoUrl = car.maker_name
+        ? getLogoUrl(car.maker_name)
+        : undefined
 
     let updatedItems = [...items]
     if (estimate.labor_hours && estimate.labor_hourly_cost) {
@@ -94,7 +98,7 @@ export default function EstimatePdf({ estimate, car, customer, workshop, items, 
                         <Text>Email: {customer.email}</Text>
                     </View>
                 </View>
-                <PdfTable data={[{ ...car, kms: estimate.car_kms }]} columns={carTableColumns} title='Dati Auto' pdfTheme={pdfTheme} />
+                <PdfTable data={[{ ...car, kms: estimate.car_kms }]} columns={carTableColumns} title='Dati Auto' pdfTheme={pdfTheme} logoUrl={makerLogoUrl} />
                 <PdfTable data={updatedItems} columns={estimateItemsColumns} title='Lavori' pdfTheme={pdfTheme} />
                 <View style={{ marginTop: 20, textAlign: "right" }}>
                     {estimate.discount && <Text style={summaryStyles.discountText}>Sconto: € {estimate.discount}</Text>}

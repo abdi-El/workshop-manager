@@ -66,7 +66,7 @@ export async function getUpcomingInspections() {
         `)
 }
 
-export const estimatesQuery = `SELECT 
+export const estimatesQuery = `SELECT
                     estimates.id as estimate_id,
                     estimates.car_id,
                     estimates.customer_id,
@@ -80,14 +80,16 @@ export const estimatesQuery = `SELECT
                     workshop.name as workshop_name,
                     appointment.id as appointment_id,
                     appointment.estimate_id,
+                    maker.name as maker_name,
                     CONCAT(estimates.date,' ', car.number_plate,' ', customer.name) as estimate_info
 
                 FROM estimates
-                LEFT JOIN cars as car ON estimates.car_id = car.id 
-                LEFT JOIN customers as customer ON estimates.customer_id = customer.id 
+                LEFT JOIN cars as car ON estimates.car_id = car.id
+                LEFT JOIN customers as customer ON estimates.customer_id = customer.id
                 LEFT JOIN workshops as workshop ON estimates.workshop_id = workshop.id
                 LEFT JOIN appointments as appointment ON appointment.estimate_id = estimates.id
-                ORDER BY id DESC 
+                LEFT JOIN makers as maker ON car.maker_id = maker.id
+                ORDER BY id DESC
                 `
 
 

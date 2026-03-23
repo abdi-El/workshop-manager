@@ -37,6 +37,8 @@ export type Car = {
     year: number;
     number_plate: string;
     last_inspection_date: string | null;
+    maker_name?: string;
+    model_name?: string;
 };
 
 export type Estimate = {

@@ -11,6 +11,7 @@ import { getColumnSearchProps } from "../components/TableSearchProps";
 import { deleteRow } from "../modules/database";
 import { sortBytDate } from "../modules/dates";
 import { useDatabaseStore } from "../modules/state";
+import { getLogoUrl } from "../modules/utils";
 import { Estimate } from "../types/database";
 
 function estimateSorter(a: Estimate, b: Estimate, key: keyof Estimate) {
@@ -30,6 +31,20 @@ export default function Estimates() {
             dataIndex: "date",
             key: "date",
             sorter: (a: Estimate, b: Estimate) => sortBytDate(a.date, b.date)
+        },
+        {
+            title: "Marca",
+            dataIndex: "maker_name",
+            key: "maker_name",
+            render: (maker: string) => maker ? (
+                <img
+                    src={getLogoUrl(maker)}
+                    alt={maker}
+                    title={maker}
+                    style={{ height: 28, maxWidth: 60, objectFit: 'contain' }}
+                    onError={(e) => { (e.target as HTMLImageElement).replaceWith(Object.assign(document.createElement('span'), { textContent: maker })) }}
+                />
+            ) : null
         },
         {
             title: "Cliente",

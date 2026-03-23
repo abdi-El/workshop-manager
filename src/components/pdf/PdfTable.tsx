@@ -1,5 +1,6 @@
 // PDFDocument.js
 import {
+    Image,
     StyleSheet,
     Text,
     View
@@ -18,14 +19,18 @@ interface Props<T> {
     data: T[];
     title?: string;
     pdfTheme?: string;
+    logoUrl?: string;
 }
 
 // Component
-export default function PdfTable<T>({ data, columns, title = "Dati", pdfTheme = 'default' }: Props<T>) {
+export default function PdfTable<T>({ data, columns, title = "Dati", pdfTheme = 'default', logoUrl }: Props<T>) {
     const themeKey = (pdfTheme in themes ? pdfTheme : 'default') as keyof typeof themes
     const styles = StyleSheet.create(themes[themeKey].table as any)
     return <>
-        <Text style={styles.title}>{title}</Text>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+            {logoUrl && <Image src={logoUrl} style={{ width: 20, height: 20, marginRight: 6, objectFit: 'contain' }} />}
+            <Text style={styles.title}>{title}</Text>
+        </View>
         <View style={styles.tableContainer}>
             {/* Header Row */}
             <View style={styles.tableRow}>
