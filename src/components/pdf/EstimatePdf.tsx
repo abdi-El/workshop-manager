@@ -1,5 +1,4 @@
 import { Document, Page, StyleSheet, Text, View } from '@react-pdf/renderer';
-import { calculateEstimatePrice } from '../../modules/pricing';
 import { getLogoUrl } from '../../modules/utils';
 import { Car, Customer, Estimate, EstimateItem, Workshop } from '../../types/database';
 import PdfTable, { Column } from './PdfTable';
@@ -105,7 +104,7 @@ export default function EstimatePdf({ estimate, car, customer, workshop, items, 
                     <Text style={summaryStyles.totalBox}>
                         <Text style={summaryStyles.totalLabel}>Totale:    </Text>
                         <Text style={summaryStyles.totalValue}>
-                            € {calculateEstimatePrice(estimate, items)}{estimate.has_iva ? " IVA compresa" : " + IVA"}
+                            € {(estimate.total ?? 0).toFixed(2)}{estimate.has_iva ? " IVA compresa" : " + IVA"}
                         </Text>
                     </Text>
                 </View>
