@@ -2,6 +2,7 @@ import { Button, Collapse, Form, Layout, message, Select } from 'antd';
 import { useEffect } from 'react';
 import DefaultEstimateItems from '../components/DefaultEstimateItems';
 import MakersModelsImporter from '../components/MakersModelsImporter';
+import ThemeSelector from '../components/pdf/ThemeSelector';
 import { storeSettings } from '../modules/database';
 import { useStore } from '../modules/state';
 import { SettingsType } from '../types/common';
@@ -37,8 +38,11 @@ export default function Settings() {
                 <Collapse.Panel header="Voci di default" key="1">
                     <DefaultEstimateItems />
                 </Collapse.Panel>
-                <Collapse.Panel header="Importa Modelli e Marche" key="3">
+                <Collapse.Panel header="Importa Modelli e Marche" key="2">
                     <MakersModelsImporter />
+                </Collapse.Panel>
+                <Collapse.Panel header="Tema preventivo PDF" key="3">
+                    <ThemeSelector />
                 </Collapse.Panel>
             </Collapse>
             {isDebug &&

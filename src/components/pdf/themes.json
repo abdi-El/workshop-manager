@@ -1,0 +1,386 @@
+{
+  "default": {
+    "name": "Default",
+    "desciption": "Tema semplice e pulito",
+    "body": {
+      "padding": 20,
+      "fontSize": 12
+    },
+    "titleSection": {
+      "margin": "20 0",
+      "textAlign": "center",
+      "fontWeight": "bold"
+    },
+    "header": {
+      "display": "flex",
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "width": "80%",
+      "margin": "0 auto"
+    },
+    "headerTitle": {
+      "fontWeight": "bold",
+      "fontSize": 14,
+      "marginBottom": 5
+    },
+    "summary": {
+      "discountText": {
+        "textAlign": "right",
+        "fontSize": 11
+      },
+      "totalBox": {
+        "marginTop": 10,
+        "textAlign": "right",
+        "border": "1px solid #000000",
+        "padding": 5
+      },
+      "totalLabel": {
+        "fontWeight": "bold"
+      },
+      "totalValue": {
+        "textDecoration": "underline"
+      }
+    },
+    "table": {
+      "title": {
+        "fontSize": 14,
+        "margin": "10px 0px",
+        "textAlign": "center",
+        "fontWeight": "bold"
+      },
+      "tableContainer": {
+        "width": "100%",
+        "borderWidth": 1,
+        "borderColor": "#000",
+        "marginBottom": 10
+      },
+      "tableRow": {
+        "flexDirection": "row"
+      },
+      "tableColHeader": {
+        "flex": 1,
+        "backgroundColor": "#eee",
+        "borderRightWidth": 1,
+        "borderBottomWidth": 1,
+        "borderColor": "#000",
+        "padding": 5
+      },
+      "tableCol": {
+        "flex": 1,
+        "borderRightWidth": 1,
+        "borderBottomWidth": 1,
+        "borderColor": "#000",
+        "padding": 5
+      },
+      "tableText": {
+        "fontSize": 10
+      }
+    }
+  },
+  "classic": {
+    "name": "Classico",
+    "desciption": "Tema classico con bordi e titoli evidenziati, ideale per preventivi formali.",
+    "body": { "padding": 20, "fontSize": 12 },
+    "titleSection": {
+      "margin": "20 0",
+      "textAlign": "center",
+      "fontWeight": "bold"
+    },
+    "header": {
+      "display": "flex",
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "width": "80%",
+      "margin": "0 auto"
+    },
+    "headerTitle": { "fontWeight": "bold", "fontSize": 14, "marginBottom": 5 },
+    "summary": {
+      "discountText": {
+        "textAlign": "right",
+        "fontSize": 11
+      },
+      "totalBox": {
+        "marginTop": 10,
+        "textAlign": "right",
+        "border": "1px solid #000000",
+        "padding": 5
+      },
+      "totalLabel": {
+        "fontWeight": "bold"
+      },
+      "totalValue": {
+        "textDecoration": "underline"
+      }
+    },
+    "table": {
+      "title": {
+        "fontSize": 14,
+        "margin": "10px 0px",
+        "textAlign": "center",
+        "fontWeight": "bold"
+      },
+      "tableContainer": {
+        "width": "100%",
+        "borderWidth": 1,
+        "borderColor": "#000",
+        "marginBottom": 10
+      },
+      "tableRow": { "flexDirection": "row" },
+      "tableColHeader": {
+        "flex": 1,
+        "backgroundColor": "#eee",
+        "borderRightWidth": 1,
+        "borderBottomWidth": 1,
+        "borderColor": "#000",
+        "padding": 5
+      },
+      "tableCol": {
+        "flex": 1,
+        "borderRightWidth": 1,
+        "borderBottomWidth": 1,
+        "borderColor": "#000",
+        "padding": 5
+      },
+      "tableText": { "fontSize": 10 },
+      "tableHeaderText": { "fontSize": 10, "fontWeight": "bold" }
+    }
+  },
+  "professionalBlue": {
+    "name": "Blue Professionale",
+    "desciption": "Tema professionale con colori blu, perfetto per officine e aziende che vogliono un look più serio.",
+    "body": { "padding": 20, "fontSize": 12, "backgroundColor": "#ffffff" },
+    "titleSection": {
+      "margin": "20 0",
+      "textAlign": "center",
+      "fontWeight": "bold",
+      "backgroundColor": "#1a3c6e",
+      "color": "#ffffff",
+      "padding": 15
+    },
+    "header": {
+      "display": "flex",
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "width": "80%",
+      "margin": "0 auto"
+    },
+    "headerTitle": {
+      "fontWeight": "bold",
+      "fontSize": 14,
+      "marginBottom": 5,
+      "color": "#1a3c6e"
+    },
+    "summary": {
+      "discountText": {
+        "textAlign": "right",
+        "fontSize": 11,
+        "color": "#1a3c6e"
+      },
+      "totalBox": {
+        "marginTop": 10,
+        "textAlign": "right",
+        "border": "1px solid #1a3c6e",
+        "padding": 5,
+        "color": "#1a3c6e"
+      },
+      "totalLabel": {
+        "fontWeight": "bold",
+        "color": "#1a3c6e"
+      },
+      "totalValue": {
+        "textDecoration": "underline",
+        "color": "#1a3c6e"
+      }
+    },
+    "table": {
+      "title": {
+        "fontSize": 14,
+        "margin": "10px 0px",
+        "textAlign": "center",
+        "fontWeight": "bold",
+        "color": "#1a3c6e"
+      },
+      "tableContainer": {
+        "width": "100%",
+        "borderWidth": 1,
+        "borderColor": "#1a3c6e",
+        "marginBottom": 10
+      },
+      "tableRow": { "flexDirection": "row" },
+      "tableColHeader": {
+        "flex": 1,
+        "backgroundColor": "#1a3c6e",
+        "borderRightWidth": 1,
+        "borderBottomWidth": 1,
+        "borderColor": "#2a5298",
+        "padding": 6
+      },
+      "tableCol": {
+        "flex": 1,
+        "borderRightWidth": 1,
+        "borderBottomWidth": 1,
+        "borderColor": "#c8d8f0",
+        "padding": 5,
+        "backgroundColor": "#f4f7fc"
+      },
+      "tableText": { "fontSize": 10, "color": "#1a3c6e" },
+      "tableHeaderText": {
+        "fontSize": 10,
+        "color": "#ffffff",
+        "fontWeight": "bold"
+      }
+    }
+  },
+  "minimalDark": {
+    "name": "Scuro Minimalista",
+    "desciption": "Tema minimalista con sfondo scuro e testo chiaro, ideale per un look moderno e distintivo.",
+    "body": { "padding": 30, "fontSize": 12, "backgroundColor": "#f9f9f9" },
+    "titleSection": {
+      "margin": "20 0",
+      "textAlign": "center",
+      "fontWeight": "bold",
+      "paddingVertical": 12
+    },
+    "header": {
+      "display": "flex",
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "width": "80%",
+      "margin": "0 auto"
+    },
+    "headerTitle": { "fontWeight": "bold", "fontSize": 13, "marginBottom": 5 },
+    "summary": {
+      "discountText": {
+        "textAlign": "right",
+        "fontSize": 11,
+        "color": "#222222"
+      },
+      "totalBox": {
+        "marginTop": 10,
+        "textAlign": "right",
+        "borderBottomWidth": 2,
+        "borderColor": "#111111",
+        "padding": 5,
+        "color": "#222222"
+      },
+      "totalLabel": {
+        "fontWeight": "bold",
+        "color": "#111111"
+      },
+      "totalValue": {
+        "textDecoration": "underline",
+        "color": "#222222"
+      }
+    },
+    "table": {
+      "title": {
+        "fontSize": 11,
+        "margin": "10px 0px 4px",
+        "fontWeight": "bold",
+        "color": "#333333"
+      },
+      "tableContainer": { "width": "100%", "marginBottom": 10 },
+      "tableRow": { "flexDirection": "row" },
+      "tableColHeader": {
+        "flex": 1,
+        "borderBottomWidth": 2,
+        "borderColor": "#111111",
+        "paddingVertical": 6,
+        "paddingHorizontal": 5
+      },
+      "tableCol": { "flex": 1, "paddingVertical": 5, "paddingHorizontal": 5 },
+      "tableText": { "fontSize": 10, "color": "#222222" },
+      "tableHeaderText": {
+        "fontSize": 10,
+        "fontWeight": "bold",
+        "color": "#111111"
+      }
+    }
+  },
+  "warmEarthy": {
+    "name": "Terra Calda",
+    "desciption": "Tema con colori caldi e terrosi, perfetto per officine che vogliono un look accogliente e artigianale.",
+    "body": { "padding": 24, "fontSize": 12, "backgroundColor": "#fffdf8" },
+    "titleSection": {
+      "margin": "20 0",
+      "textAlign": "center",
+      "fontWeight": "bold",
+      "backgroundColor": "#c8501a",
+      "color": "#ffffff",
+      "padding": 14
+    },
+    "header": {
+      "display": "flex",
+      "flexDirection": "row",
+      "justifyContent": "space-between",
+      "width": "80%",
+      "margin": "0 auto"
+    },
+    "headerTitle": {
+      "fontWeight": "bold",
+      "fontSize": 13,
+      "marginBottom": 5,
+      "color": "#c8501a"
+    },
+    "summary": {
+      "discountText": {
+        "textAlign": "right",
+        "fontSize": 11,
+        "color": "#3d2b1f"
+      },
+      "totalBox": {
+        "marginTop": 10,
+        "textAlign": "right",
+        "border": "1px solid #c8501a",
+        "padding": 5,
+        "color": "#3d2b1f"
+      },
+      "totalLabel": {
+        "fontWeight": "bold",
+        "color": "#7a3010"
+      },
+      "totalValue": {
+        "textDecoration": "underline",
+        "color": "#c8501a"
+      }
+    },
+    "table": {
+      "title": {
+        "fontSize": 13,
+        "margin": "10px 0px",
+        "textAlign": "center",
+        "fontWeight": "bold",
+        "color": "#c8501a"
+      },
+      "tableContainer": {
+        "width": "100%",
+        "borderWidth": 1,
+        "borderColor": "#d4a97a",
+        "marginBottom": 10
+      },
+      "tableRow": { "flexDirection": "row" },
+      "tableColHeader": {
+        "flex": 1,
+        "backgroundColor": "#f5e6d3",
+        "borderRightWidth": 1,
+        "borderBottomWidth": 2,
+        "borderColor": "#c8501a",
+        "padding": 6
+      },
+      "tableCol": {
+        "flex": 1,
+        "borderRightWidth": 1,
+        "borderBottomWidth": 1,
+        "borderColor": "#e8d0b0",
+        "padding": 5,
+        "backgroundColor": "#fffdf8"
+      },
+      "tableText": { "fontSize": 10, "color": "#3d2b1f" },
+      "tableHeaderText": {
+        "fontSize": 10,
+        "fontWeight": "bold",
+        "color": "#7a3010"
+      }
+    }
+  }
+}

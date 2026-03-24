@@ -3,4 +3,6 @@ export interface SettingsType {
     theme: string;
     selectedWorkshop?: Workshop;
     makersPopulated?: boolean;
+    pdfTheme: string;
+    lastPage?: string;
 }

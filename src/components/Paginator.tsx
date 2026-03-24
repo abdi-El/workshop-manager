@@ -61,15 +61,16 @@ export default function Paginator() {
         },
     }
 
-    return <Layout style={{ width: '100%', height: '100vh' }}>
+    return <Layout style={{ width: '100%', minHeight: '100vh' }}>
 
-        <Spin spinning={loading || databaseLoading} indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} >
-
-            <Menu style={{ marginBottom: "10px" }} onClick={(e) => {
+        <Layout.Header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: 0 }}>
+            <Menu onClick={(e) => {
                 updatePage(e.key)
             }} selectedKeys={[page]} mode="horizontal" items={Object.values(items)} />
+        </Layout.Header>
 
-            <div style={{ padding: '0px 10px', }}>
+        <Spin spinning={loading || databaseLoading} indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} >
+            <div style={{ padding: '0px 10px', marginTop: 74 }}>
                 <Title level={2}>{items[page as keyof typeof items]?.label}</Title>
                 {items[page as keyof typeof items]?.page}
             </div>
