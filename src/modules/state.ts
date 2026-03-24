@@ -69,13 +69,16 @@ export const useStore = create<AppState>()((set) => ({
     page: "dashboard",
     loading: false,
     updatePage: (page: string) => set((current) => {
-        if (!current.settings?.selectedWorkshop && page !== "workshop") {
+        const actualPage = (!current.settings?.selectedWorkshop && page !== "workshop")
+            ? "workshop"
+            : page;
+        if (actualPage !== page) {
             message.warning("Compila dati dell'officina prima di procedere.");
-            return { page: "workshop" }
         }
-        return { page }
-    }
-    ),
+        const newSettings = { ...current.settings, lastPage: actualPage };
+        storeSettings.set('settings', newSettings);
+        return { page: actualPage, settings: newSettings };
+    }),
     setLoading: (loading: boolean) => set({ loading }),
     settings: { theme: 'light', pdfTheme: 'default' },
     updateSettings: (values) => {
@@ -88,10 +91,13 @@ export const useStore = create<AppState>()((set) => ({
                 return { settings: newValues }
             })
         } else {
-            storeSettings.get('settings').then(storeSettings => {
-                set({ settings: storeSettings as SettingsType })
-                if (!(storeSettings as SettingsType)?.selectedWorkshop) {
-                    set({ page: "workshop" })
+            storeSettings.get('settings').then(stored => {
+                const settings = stored as SettingsType;
+                set({ settings });
+                if (!settings?.selectedWorkshop) {
+                    set({ page: "workshop" });
+                } else {
+                    set({ page: settings?.lastPage ?? "dashboard" });
                 }
             }).finally(() => set({ loading: false }))
         }

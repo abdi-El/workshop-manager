@@ -4,4 +4,5 @@ export interface SettingsType {
     selectedWorkshop?: Workshop;
     makersPopulated?: boolean;
     pdfTheme: string;
+    lastPage?: string;
 }
