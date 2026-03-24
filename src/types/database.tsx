@@ -52,7 +52,8 @@ export type Estimate = {
     discount?: number | null;
     car_kms: number;
     has_iva: boolean;
-    appointment_id?: Appointment["id"]
+    appointment_id?: Appointment["id"];
+    total?: number;
 };
 
 export type EstimateItem = {

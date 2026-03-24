@@ -71,24 +71,33 @@ export default function Estimates() {
             key: "labor_hourly_cost",
             render: (cost: number) => `€ ${cost}`,
         },
+        // {
+        //     title: "Sconto",
+        //     dataIndex: "discount",
+        //     key: "discount",
+        //     render: (discount: number | null) => discount ? `€ ${discount}` : 'N/A',
+        //     sorter: (a: Estimate, b: Estimate) => estimateSorter(a, b, "discount"),
+        // },
+        // {
+        //     title: "IVA",
+        //     dataIndex: "has_iva",
+        //     key: "has_iva",
+        //     render: (hasIva: boolean) => hasIva ? 'Sì' : 'No',
+        // },
         {
-            title: "Sconto",
-            dataIndex: "discount",
-            key: "discount",
-            render: (discount: number | null) => discount ? `€ ${discount}` : 'N/A',
-            sorter: (a: Estimate, b: Estimate) => estimateSorter(a, b, "discount"),
-        },
-        {
-            title: "IVA",
-            dataIndex: "has_iva",
-            key: "has_iva",
-            render: (hasIva: boolean) => hasIva ? 'Sì' : 'No',
+            title: "Totale",
+            dataIndex: "total",
+            key: "total",
+            render: (total: number | undefined, es: Estimate) =>
+                `€ ${(total ?? 0).toFixed(2)}${!es.has_iva ? ' + IVA' : ""}`,
+            sorter: (a: Estimate, b: Estimate) => (a.total ?? 0) - (b.total ?? 0),
         },
         {
             title: "Azioni",
             dataIndex: "",
             key: "actions",
             render: (_: unknown, es: Estimate) =>
+
                 <Space>
                     <EditButton onClick={() => { showDrawer(); setSelectedEstimate(es) }} />
                     <SaveEstimatePdf estimateId={es.id} />

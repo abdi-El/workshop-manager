@@ -59,26 +59,24 @@ export { db, storeSettings };
 
 
 export async function createOrUpdateEstimate(estimate: Estimate, items: EstimateItem[], onFinish: () => void, estimateId?: number) {
-    if (estimateId != undefined) {
-        update(estimate, estimateId, 'estimates', false).then(onFinish)
-    }
-    else {
-        let result = (await create(estimate, 'estimates', false).then(res => {
-            onFinish()
-            return res
-        }))
-        estimateId = result?.lastInsertId;
-    }
-    db.execute(`DELETE FROM estimate_items WHERE estimate_id = ${estimateId}`).then(() => {
-        items.forEach(async ({ total_price, ...item }) => {
-            await create({ ...item, estimate_id: estimateId }, 'estimate_items', false);
-        });
-        message.success(`Operazione completata con successo!`);
-        onFinish();
-    }).catch((error) => {
-        message.error("Errore nella creazione del lavoro : " + error);
-    });
+    try {
+        if (estimateId != undefined) {
+            await update(estimate, estimateId, 'estimates', false);
+        } else {
+            const result = await create(estimate, 'estimates', false);
+            estimateId = result?.lastInsertId;
+        }
 
+        await db.execute(`DELETE FROM estimate_items WHERE estimate_id = ${estimateId}`);
+        await Promise.all(items.map(({ total_price, ...item }) =>
+            create({ ...item, estimate_id: estimateId }, 'estimate_items', false)
+        ));
+
+        message.success('Operazione completata con successo!');
+        onFinish();
+    } catch (error) {
+        message.error("Errore nella creazione del lavoro: " + error);
+    }
 }
 export async function getEstimateItems(estimateId: number) {
     return await db.select(`SELECT *, quantity * unit_price AS total_price FROM estimate_items WHERE estimate_id = ${estimateId}`);

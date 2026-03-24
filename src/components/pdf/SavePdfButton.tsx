@@ -45,13 +45,8 @@ export default function SaveEstimatePdf({ estimateId }: Props) {
     }
     useEffect(() => {
         setData(findData(estimateId) as any);
+        getItems(estimateId);
     }, [estimateId, state]);
-
-    useEffect(() => {
-        if (rendered) {
-            getItems(estimateId)
-        }
-    }, [rendered])
 
     async function savePdf() {
         const path = await save({

@@ -81,7 +81,12 @@ export const estimatesQuery = `SELECT
                     appointment.id as appointment_id,
                     appointment.estimate_id,
                     maker.name as maker_name,
-                    CONCAT(estimates.date,' ', car.number_plate,' ', customer.name) as estimate_info
+                    CONCAT(estimates.date,' ', car.number_plate,' ', customer.name) as estimate_info,
+                    ROUND(
+                        (estimates.labor_hours * estimates.labor_hourly_cost) +
+                        COALESCE(ei.items_total, 0) -
+                        COALESCE(estimates.discount, 0),
+                    2) as total
 
                 FROM estimates
                 LEFT JOIN cars as car ON estimates.car_id = car.id
@@ -89,6 +94,11 @@ export const estimatesQuery = `SELECT
                 LEFT JOIN workshops as workshop ON estimates.workshop_id = workshop.id
                 LEFT JOIN appointments as appointment ON appointment.estimate_id = estimates.id
                 LEFT JOIN makers as maker ON car.maker_id = maker.id
+                LEFT JOIN (
+                    SELECT estimate_id, SUM(quantity * unit_price) as items_total
+                    FROM estimate_items
+                    GROUP BY estimate_id
+                ) ei ON estimates.id = ei.estimate_id
                 ORDER BY id DESC
                 `
 
@@ -129,11 +139,50 @@ LEFT JOIN (
 ) ei ON e.id = ei.estimate_id;
 `
 export const CarBrandsByCount = `
-SELECT 
+SELECT
     m.name as brand_name,
     COUNT(c.id) as car_count
 FROM cars c
 JOIN makers m ON c.maker_id = m.id
 GROUP BY m.id, m.name
 ORDER BY car_count DESC;
+`
+
+export const monthlyRevenue = `
+SELECT
+    SUBSTR(e.date, 7, 4) || '-' || SUBSTR(e.date, 4, 2) as month,
+    ROUND(SUM(
+        (e.labor_hours * e.labor_hourly_cost) +
+        COALESCE(ei.items_total, 0) -
+        COALESCE(e.discount, 0)
+    ), 2) as total_revenue
+FROM estimates e
+LEFT JOIN (
+    SELECT estimate_id, SUM(quantity * unit_price) as items_total
+    FROM estimate_items
+    GROUP BY estimate_id
+) ei ON e.id = ei.estimate_id
+GROUP BY SUBSTR(e.date, 7, 4) || '-' || SUBSTR(e.date, 4, 2)
+ORDER BY month ASC
+`
+
+export const topCustomersByRevenue = `
+SELECT
+    c.name as customer_name,
+    ROUND(SUM(
+        (e.labor_hours * e.labor_hourly_cost) +
+        COALESCE(ei.items_total, 0) -
+        COALESCE(e.discount, 0)
+    ), 2) as total_revenue,
+    COUNT(e.id) as estimate_count
+FROM estimates e
+JOIN customers c ON e.customer_id = c.id
+LEFT JOIN (
+    SELECT estimate_id, SUM(quantity * unit_price) as items_total
+    FROM estimate_items
+    GROUP BY estimate_id
+) ei ON e.id = ei.estimate_id
+GROUP BY e.customer_id, c.name
+ORDER BY total_revenue DESC
+LIMIT 10
 `
