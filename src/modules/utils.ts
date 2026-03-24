@@ -9,3 +9,6 @@ export function parseError(error: string) {
     } return []
 }
 
+export function getLogoUrl(maker: string) {
+    return `https://www.carlogos.org/car-logos/${maker.toLowerCase().replace(/\s+/g, '-')}-logo.png`
+}

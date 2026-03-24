@@ -11,6 +11,7 @@ import { getColumnSearchProps } from "../components/TableSearchProps";
 import { deleteRow } from "../modules/database";
 import { sortBytDate } from "../modules/dates";
 import { useDatabaseStore } from "../modules/state";
+import { getLogoUrl } from "../modules/utils";
 import { Estimate } from "../types/database";
 
 function estimateSorter(a: Estimate, b: Estimate, key: keyof Estimate) {
@@ -30,6 +31,20 @@ export default function Estimates() {
             dataIndex: "date",
             key: "date",
             sorter: (a: Estimate, b: Estimate) => sortBytDate(a.date, b.date)
+        },
+        {
+            title: "Marca",
+            dataIndex: "maker_name",
+            key: "maker_name",
+            render: (maker: string) => maker ? (
+                <img
+                    src={getLogoUrl(maker)}
+                    alt={maker}
+                    title={maker}
+                    style={{ height: 28, maxWidth: 60, objectFit: 'contain' }}
+                    onError={(e) => { (e.target as HTMLImageElement).replaceWith(Object.assign(document.createElement('span'), { textContent: maker })) }}
+                />
+            ) : null
         },
         {
             title: "Cliente",
@@ -56,24 +71,33 @@ export default function Estimates() {
             key: "labor_hourly_cost",
             render: (cost: number) => `€ ${cost}`,
         },
+        // {
+        //     title: "Sconto",
+        //     dataIndex: "discount",
+        //     key: "discount",
+        //     render: (discount: number | null) => discount ? `€ ${discount}` : 'N/A',
+        //     sorter: (a: Estimate, b: Estimate) => estimateSorter(a, b, "discount"),
+        // },
+        // {
+        //     title: "IVA",
+        //     dataIndex: "has_iva",
+        //     key: "has_iva",
+        //     render: (hasIva: boolean) => hasIva ? 'Sì' : 'No',
+        // },
         {
-            title: "Sconto",
-            dataIndex: "discount",
-            key: "discount",
-            render: (discount: number | null) => discount ? `€ ${discount}` : 'N/A',
-            sorter: (a: Estimate, b: Estimate) => estimateSorter(a, b, "discount"),
-        },
-        {
-            title: "IVA",
-            dataIndex: "has_iva",
-            key: "has_iva",
-            render: (hasIva: boolean) => hasIva ? 'Sì' : 'No',
+            title: "Totale",
+            dataIndex: "total",
+            key: "total",
+            render: (total: number | undefined, es: Estimate) =>
+                `€ ${(total ?? 0).toFixed(2)}${!es.has_iva ? ' + IVA' : ""}`,
+            sorter: (a: Estimate, b: Estimate) => (a.total ?? 0) - (b.total ?? 0),
         },
         {
             title: "Azioni",
             dataIndex: "",
             key: "actions",
             render: (_: unknown, es: Estimate) =>
+
                 <Space>
                     <EditButton onClick={() => { showDrawer(); setSelectedEstimate(es) }} />
                     <SaveEstimatePdf estimateId={es.id} />
