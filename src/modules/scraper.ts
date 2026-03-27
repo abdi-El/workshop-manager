@@ -1,6 +1,6 @@
 const MAKERS_URL = "https://it.wikipedia.org/w/api.php?action=query&cmlimit=500&cmtitle=Categoria%3AAutomobili_per_marca&list=categorymembers&format=json"
 const MODELS_URL = "https://it.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle={TITLE}&cmlimit=500&format=json"
-import { fetch } from '@tauri-apps/plugin-http';
+import { invoke } from '@tauri-apps/api/core';
 import { Maker, MakerModel } from '../types/database';
 import { create, db, update } from './database';
 
@@ -15,9 +15,8 @@ interface dataType {
 }
 
 async function fetchWithProxy(url: string) {
-    const response = await fetch(url)
-    const data = await response.json()
-    return data
+    const body = await invoke<string>('fetch', { url })
+    return JSON.parse(body)
 }
 
 export async function getMakers() {
@@ -46,7 +45,7 @@ function handleError(error: any) {
 
 export async function updateOrCreateMaker(name: string, id: number) {
     if (id) {
-        update({ name }, id, "makers", false).catch(handleError)
+        await update({ name }, id, "makers", false).catch(handleError)
         return id
     } else {
         const query = await create({ name }, "makers", false).catch(handleError)
