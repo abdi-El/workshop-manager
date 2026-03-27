@@ -22,7 +22,7 @@ export async function create(values: Record<string, any>, table: string, showMes
         showMessage && message.success("Creato con successo!");
         return queryResult;
     }).catch((error) => {
-        message.error("Errore nella creazione: " + error);
+        showMessage && message.error("Errore nella creazione: " + error);
         throw error;
     })
 
@@ -40,7 +40,7 @@ export async function update(values: Record<string, any>, id: number, table: str
     `, [...Object.values(values)]).then(() => {
         showMessage && message.success("Aggiornato con successo!");
     }).catch((error) => {
-        message.error("Errore nell'aggiornamento: " + error);
+        showMessage && message.error("Errore nell'aggiornamento: " + error);
         throw error;
     })
 }

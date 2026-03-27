@@ -5,4 +5,6 @@ export interface SettingsType {
     makersPopulated?: boolean;
     pdfTheme: string;
     lastPage?: string;
+    showPdfNumber: boolean;
+    showRevenueStatistics: boolean;
 }
