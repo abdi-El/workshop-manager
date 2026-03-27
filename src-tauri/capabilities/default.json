@@ -25,12 +25,6 @@
         }
       ]
     },
-    {
-      "identifier": "http:default",
-      "allow": [{ "url": "https://it.wikipedia.org*" }]
-    },
-
-    "dialog:default",
-    "http:default"
+    "dialog:default"
   ]
 }
