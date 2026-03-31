@@ -1,10 +1,10 @@
-import { Button, Checkbox, DatePicker, Form, InputNumber, Row } from "antd";
+import { Button, Checkbox, DatePicker, Form, InputNumber, Row, Statistic } from "antd";
 import dayjs from "dayjs";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { createOrUpdateEstimate, getEstimateItems } from "../../modules/database";
 import { DATE_FORMAT } from "../../modules/dates";
 import { useDatabaseStore, useStore } from "../../modules/state";
-import { Estimate } from "../../types/database";
+import { Estimate, EstimateItem } from "../../types/database";
 import CarSelect from "../selects/CarSelect";
 import CustomerSelect from "../selects/CustomerSelect";
 import EstimateItemsForm from "./EstimateItemsForm";
@@ -15,11 +15,24 @@ interface EstimatesFormProps {
     onSubmit: (values: Omit<Estimate, "id">) => void;
 };
 
+function calculateTotal(values: any) {
+    const itemsTotal = (values.items || []).reduce((sum: number, item: EstimateItem) => {
+        const qty = item.quantity ?? 0;
+        const price = item.unit_price ?? 0;
+        return sum + qty * price;
+    }, 0);
+    const laborTotal = (values.labor_hours ?? 0) * (values.labor_hourly_cost ?? 0);
+    return itemsTotal + laborTotal - (values.discount ?? 0);
+
+}
+
 export default function EstimatesForm({ estimate, onSubmit }: EstimatesFormProps) {
     const [form] = Form.useForm();
     const { updateDatabaseData } = useDatabaseStore((state) => state)
     const { settings } = useStore((state) => state);
     const customer_id = Form.useWatch("customer_id", form)
+    const [total, setTotal] = useState(0);
+    const has_iva = Form.useWatch("has_iva", form)
 
     const handleFinish = (values: Omit<Estimate, "id">) => {
         values.date = dayjs(values.date).format(DATE_FORMAT);
@@ -36,17 +49,22 @@ export default function EstimatesForm({ estimate, onSubmit }: EstimatesFormProps
             form.setFieldValue("items", await getEstimateItems(estimate.id));
         }
     }
+    async function populateForm(estimate: Partial<Estimate>) {
+        form.setFieldsValue({
+            ...estimate,
+            date: dayjs(estimate.date, DATE_FORMAT),
+        });
+        await getItems()
+        setTotal(calculateTotal(form.getFieldsValue()))
+    }
 
     useEffect(() => {
         if (!estimate) {
             form.resetFields()
             form.setFieldsValue({ date: dayjs(), labor_hourly_cost: settings.selectedWorkshop?.base_labor_cost, has_iva: true, items: [{}] })
         } else {
-            form.setFieldsValue({
-                ...estimate,
-                date: dayjs(estimate.date, DATE_FORMAT),
-            });
-            getItems()
+            populateForm(estimate)
+
         }
     }, [estimate])
 
@@ -61,7 +79,9 @@ export default function EstimatesForm({ estimate, onSubmit }: EstimatesFormProps
     }, [customer_id])
 
     return (
-        <Form form={form} layout="vertical" onFinish={handleFinish} className="estimates-form">
+        <Form form={form} layout="vertical" onFinish={handleFinish} className="estimates-form" onFieldsChange={() => {
+            setTotal(calculateTotal(form.getFieldsValue()))
+        }}>
             <CustomerSelect />
             <Form.Item
                 label="data"
@@ -120,6 +140,15 @@ export default function EstimatesForm({ estimate, onSubmit }: EstimatesFormProps
                     <Checkbox />
                 </Form.Item>
             </Row>
+
+            <div style={{ textAlign: "right", marginBottom: 16, padding: "8px 12px", borderRadius: 6 }}>
+                <Statistic
+                    title={has_iva ? "Totale (IVA inclusa)" : "Totale + IVA"}
+                    value={total}
+                    precision={2}
+                    prefix="€"
+                />
+            </div>
 
             <Form.Item>
                 <Button type="primary" htmlType="submit" className="w-100">

@@ -1,64 +1,51 @@
-# 🔧 Mechanic Manager
+# Workshop Manager
 
-A lightweight, cross-platform **desktop app** built with **[Tauri](https://tauri.app/)** that helps automotive workshops manage and generate **repair estimates** with ease.
+A desktop app for automotive workshops to manage customers, vehicles, estimates, and appointments — built with Tauri, React, and SQLite.
 
----
+## Features
 
-## ✨ Features
+- **Estimates** — create, edit, and export repair estimates to PDF
+- **Customers & Vehicles** — manage a registry of customers and their cars, linked to makes and models imported from Wikipedia
+- **Appointments** — schedule jobs and link them to approved estimates via a calendar view
+- **Multiple workshops** — switch between workshop profiles within the same app
+- **Dark mode** — toggle between light and dark themes
+- **Offline-first** — all data is stored locally in SQLite, no server required
 
-- 🚗 **Preloaded Vehicle Database**
-  Comes with a built-in list of **vehicle makes and models**, so you're ready to go out of the box.
+## Tech Stack
 
-- 🛠️ **Create and Manage Estimates**
-  Quickly generate, view, and organize repair estimates tailored to each vehicle and client.
+| Layer | Technology |
+|---|---|
+| Desktop shell | Tauri 2 |
+| Backend | Rust + reqwest |
+| Frontend | React + TypeScript + Ant Design |
+| Database | SQLite (via tauri-plugin-sql) |
+| State | Zustand |
+| PDF export | @react-pdf/renderer |
 
-- 🗓️ **Calendar & Appointment Scheduling**
-  Once an estimate is **approved**, you can seamlessly **schedule an appointment** for the job. The estimate is **automatically linked** to the appointment, keeping everything organized.
+## Getting Started
 
-- 🏢 **Multiple Workshops Support**
-  Manage estimates across **multiple workshops** from a single app — perfect for franchises or businesses with multiple locations.
+**Prerequisites:** Node.js, Yarn, Rust
 
-- 🖤 **Dark Mode**
-  Because everything's better in the dark 😎. Easily toggle between **Light** and **Dark** themes.
+```bash
+# Install dependencies
+make build
 
-- 📄 **Export to PDF**
-  Save or share professional-looking estimates as **PDF documents** — great for printing or emailing to clients.
+# Start in development mode
+make up
+```
 
----
-
-## 📦 Tech Stack
-
-- **Tauri**
-- **Rust**
-- **TypeScript / JavaScript**
-- **SQLite**
-
----
-
-## 🚀 Getting Started
-
-1. **Clone the repo**
-
-2. **Install dependencies**
-
-   ```bash
-   make build
-   ```
-
-3. **Run the app**
-
-   ```bash
-   make up
-   ```
-
----
-
-## 🛠️ Deploy/Build
-
-To build the app for distribution:
+## Build for Distribution
 
 ```bash
 make dist
 ```
 
----
+This produces a Windows `.exe` installer. CI builds automatically on push to the `release` branch.
+
+## Resetting App Data
+
+```bash
+make reset
+```
+
+Deletes the local SQLite database and settings.
