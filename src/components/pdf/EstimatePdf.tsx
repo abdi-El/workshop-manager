@@ -10,7 +10,8 @@ export interface DataProps {
     customer: Customer,
     workshop: Workshop,
     items: EstimateItem[],
-    pdfTheme?: string
+    pdfTheme?: string,
+    showPdfNumber?: boolean
 }
 
 // Create styles
@@ -61,7 +62,7 @@ const estimateItemsColumns: Column[] = [
 
 
 // Create Document Component
-export default function EstimatePdf({ estimate, car, customer, workshop, items, pdfTheme = 'default' }: DataProps) {
+export default function EstimatePdf({ estimate, car, customer, workshop, items, pdfTheme = 'default', showPdfNumber = true }: DataProps) {
     const themeKey = (pdfTheme in themes ? pdfTheme : 'default') as keyof typeof themes
     const theme = themes[themeKey]
     const styles = StyleSheet.create(theme as any)
@@ -86,7 +87,7 @@ export default function EstimatePdf({ estimate, car, customer, workshop, items, 
             <View style={{ padding: 10, marginBottom: 20 }}>
                 <View style={styles.header}>
                     <View>
-                        <Text style={styles.headerTitle}>N°: {estimate.id}</Text>
+                        {showPdfNumber && <Text style={styles.headerTitle}>N°: {estimate.id}</Text>}
                         <Text>Data: {estimate.date}</Text>
                     </View>
                     <View>

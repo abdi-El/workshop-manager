@@ -61,7 +61,7 @@ export default function SaveEstimatePdf({ estimateId }: Props) {
         }
 
         const blob = await pdf(
-            <EstimatePdf {...data} items={estimateItems} pdfTheme={settings.pdfTheme} />
+            <EstimatePdf {...data} items={estimateItems} pdfTheme={settings.pdfTheme} showPdfNumber={settings.showPdfNumber} />
         ).toBlob();
         const arrayBuffer = await blob.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
@@ -74,7 +74,7 @@ export default function SaveEstimatePdf({ estimateId }: Props) {
         <Button onClick={() => setRendered(true)} icon={<EyeOutlined />} />
         <Modal open={rendered} onCancel={() => setRendered(false)} footer={null} title="Anteprima PDF" centered width="85%">
             {rendered && <PDFViewer style={{ width: "100%", height: "100vh" }} >
-                {data ? <EstimatePdf {...data} items={estimateItems} pdfTheme={settings.pdfTheme} /> : <MissingDataPdf />}
+                {data ? <EstimatePdf {...data} items={estimateItems} pdfTheme={settings.pdfTheme} showPdfNumber={settings.showPdfNumber} /> : <MissingDataPdf />}
             </PDFViewer>}
         </Modal>
 

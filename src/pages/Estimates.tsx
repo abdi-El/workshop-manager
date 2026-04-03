@@ -71,19 +71,6 @@ export default function Estimates() {
             key: "labor_hourly_cost",
             render: (cost: number) => `€ ${cost}`,
         },
-        // {
-        //     title: "Sconto",
-        //     dataIndex: "discount",
-        //     key: "discount",
-        //     render: (discount: number | null) => discount ? `€ ${discount}` : 'N/A',
-        //     sorter: (a: Estimate, b: Estimate) => estimateSorter(a, b, "discount"),
-        // },
-        // {
-        //     title: "IVA",
-        //     dataIndex: "has_iva",
-        //     key: "has_iva",
-        //     render: (hasIva: boolean) => hasIva ? 'Sì' : 'No',
-        // },
         {
             title: "Totale",
             dataIndex: "total",
