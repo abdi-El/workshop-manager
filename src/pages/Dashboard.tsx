@@ -11,11 +11,11 @@ export default function Dashboard() {
 
     return <>
         <EstimatesAVGS />
+        <CarsAVGS />
         {settings.showRevenueStatistics && <>
             <RevenueChart />
             <TopCustomers />
         </>}
-        <CarsAVGS />
         <CarsByYearChart />
         <InspectionReminder style={{ marginTop: 20 }} />
     </>
