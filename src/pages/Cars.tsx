@@ -44,7 +44,7 @@ export default function Cars() {
                         alt={maker_name}
                         title={maker_name}
                         style={{ height: 28, maxWidth: 60, objectFit: 'contain' }}
-                        onError={(e) => { (e.target as HTMLImageElement).replaceWith(Object.assign(document.createElement('span'), { textContent: maker })) }}
+                        onError={(e) => { (e.target as HTMLImageElement).replaceWith(Object.assign(document.createElement('span'), { textContent: maker_name })) }}
                     />
                 </Space>
             )
