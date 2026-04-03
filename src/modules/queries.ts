@@ -138,6 +138,16 @@ LEFT JOIN (
     GROUP BY estimate_id
 ) ei ON e.id = ei.estimate_id;
 `
+export const CarsByYear = `
+SELECT
+    year,
+    COUNT(*) as car_count
+FROM cars
+WHERE year IS NOT NULL
+GROUP BY year
+ORDER BY year ASC;
+`
+
 export const CarBrandsByCount = `
 SELECT
     m.name as brand_name,

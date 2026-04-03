@@ -8,6 +8,7 @@ import CarsForm from "../components/forms/CarsForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import { deleteRow } from "../modules/database";
 import { useDatabaseStore } from "../modules/state";
+import { getLogoUrl } from "../modules/utils";
 import { Car } from "../types/database";
 
 
@@ -35,8 +36,18 @@ export default function Cars() {
             title: "Marca",
             dataIndex: "maker_name",
             key: "maker_name",
-            ...getColumnSearchProps("maker_name", "marca", searchInput)
-
+            ...getColumnSearchProps("maker_name", "marca", searchInput),
+            render: (maker_name: string) => (
+                <Space>
+                    <img
+                        src={getLogoUrl(maker_name)}
+                        alt={maker_name}
+                        title={maker_name}
+                        style={{ height: 28, maxWidth: 60, objectFit: 'contain' }}
+                        onError={(e) => { (e.target as HTMLImageElement).replaceWith(Object.assign(document.createElement('span'), { textContent: maker })) }}
+                    />
+                </Space>
+            )
         },
         {
             title: "Modello",
