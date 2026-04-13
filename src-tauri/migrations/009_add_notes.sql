@@ -1,0 +1,3 @@
+ALTER TABLE customers ADD COLUMN notes TEXT;
+ALTER TABLE cars ADD COLUMN notes TEXT;
+ALTER TABLE estimates ADD COLUMN notes TEXT;

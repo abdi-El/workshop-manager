@@ -1,5 +1,5 @@
-import { PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, InputRef, Row, Space, Table } from "antd";
+import { FileTextOutlined, PlusOutlined } from "@ant-design/icons";
+import { Button, Drawer, InputRef, Row, Space, Table, Tooltip } from "antd";
 import { useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
@@ -29,8 +29,17 @@ export default function Cars() {
             title: "Targa",
             dataIndex: "number_plate",
             key: "number_plate",
-            ...getColumnSearchProps("number_plate", "targa", searchInput)
-
+            ...getColumnSearchProps("number_plate", "targa", searchInput),
+            render: (plate: string, cr: Car) => (
+                <Space>
+                    <span>{plate}</span>
+                    {cr.notes && (
+                        <Tooltip title={cr.notes}>
+                            <FileTextOutlined style={{ color: "#1677ff" }} />
+                        </Tooltip>
+                    )}
+                </Space>
+            )
         },
         {
             title: "Marca",

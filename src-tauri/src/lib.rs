@@ -60,6 +60,12 @@ pub fn run() {
             sql: include_str!("../migrations/008_add_default_items.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 9,
+            description: "add_notes_columns",
+            sql: include_str!("../migrations/009_add_notes.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

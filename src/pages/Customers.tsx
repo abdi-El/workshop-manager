@@ -1,5 +1,5 @@
-import { PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, InputRef, Row, Space, Table } from "antd";
+import { FileTextOutlined, PlusOutlined } from "@ant-design/icons";
+import { Button, Drawer, InputRef, Row, Space, Table, Tooltip } from "antd";
 import { useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
@@ -24,8 +24,17 @@ export default function Customers() {
             title: "Nome Cliente",
             dataIndex: "name",
             key: "name",
-            ...getColumnSearchProps("name", "nome", searchInput)
-
+            ...getColumnSearchProps("name", "nome", searchInput),
+            render: (name: string, cs: Customer) => (
+                <Space>
+                    <span>{name}</span>
+                    {cs.notes && (
+                        <Tooltip title={cs.notes}>
+                            <FileTextOutlined style={{ color: "#1677ff" }} />
+                        </Tooltip>
+                    )}
+                </Space>
+            )
         },
         {
             title: "Indirizzo",

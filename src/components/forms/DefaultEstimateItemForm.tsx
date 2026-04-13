@@ -41,7 +41,7 @@ export default function DefaultEstimateItemForm({ item, onSubmit }: DefaultEstim
 
     return <Form form={form} layout="inline" onFinish={handleFinish}>
         <Form.Item label="Descrizione" name="description">
-            <Input />
+            <Input spellCheck lang="it" />
         </Form.Item>
         <Form.Item label="Prezzo Unitario" name="unit_price">
             <InputNumber />
