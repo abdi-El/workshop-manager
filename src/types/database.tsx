@@ -15,6 +15,7 @@ export type Customer = {
     phone: string;
     email?: string | null;
     workshop_id: number;
+    notes?: string | null;
 };
 
 export type Maker = {
@@ -39,6 +40,7 @@ export type Car = {
     last_inspection_date: string | null;
     maker_name?: string;
     model_name?: string;
+    notes?: string | null;
 };
 
 export type Estimate = {
@@ -54,6 +56,7 @@ export type Estimate = {
     has_iva: boolean;
     appointment_id?: Appointment["id"];
     total?: number;
+    notes?: string | null;
 };
 
 export type EstimateItem = {

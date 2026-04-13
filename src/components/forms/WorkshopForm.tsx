@@ -56,7 +56,7 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) 
                 name="name"
                 rules={[{ required: true, message: "Inserire nome" }]}
             >
-                <Input />
+                <Input spellCheck lang="it" />
             </Form.Item>
 
             <Form.Item
@@ -64,7 +64,7 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) 
                 name="address"
                 rules={[{ required: true, message: "Insirire indirizzo" }]}
             >
-                <Input />
+                <Input spellCheck lang="it" />
             </Form.Item>
 
             <Form.Item
@@ -72,7 +72,7 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) 
                 name="vat_number"
                 rules={[{ required: true, message: "Insirire numero partita iva" }]}
             >
-                <Input />
+                <Input spellCheck={false} />
             </Form.Item>
 
             <Form.Item
@@ -80,7 +80,7 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) 
                 name="phone"
                 rules={[{ required: true, message: "Inserire numero di telefono" }]}
             >
-                <Input />
+                <Input spellCheck={false} />
             </Form.Item>
 
             <Form.Item
@@ -91,7 +91,7 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) 
                     { type: "email", message: "Inserire Email valida" },
                 ]}
             >
-                <Input />
+                <Input spellCheck={false} />
             </Form.Item>
 
             <Form.Item

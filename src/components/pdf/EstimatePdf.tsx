@@ -100,6 +100,12 @@ export default function EstimatePdf({ estimate, car, customer, workshop, items, 
                 </View>
                 <PdfTable data={[{ ...car, kms: estimate.car_kms }]} columns={carTableColumns} title='Dati Auto' pdfTheme={pdfTheme} logoUrl={makerLogoUrl} />
                 <PdfTable data={updatedItems} columns={estimateItemsColumns} title='Lavori' pdfTheme={pdfTheme} />
+                {estimate.notes && (
+                    <View style={{ marginTop: 15 }}>
+                        <Text style={styles.headerTitle}>Note:</Text>
+                        <Text>{estimate.notes}</Text>
+                    </View>
+                )}
                 <View style={{ marginTop: 20, textAlign: "right" }}>
                     {estimate.discount && <Text style={summaryStyles.discountText}>Sconto: € {estimate.discount}</Text>}
                     <Text style={summaryStyles.totalBox}>

@@ -105,7 +105,14 @@ export default function CarsForm({ car, onSubmit }: CarFormProps) {
                     { required: true, message: "Inserire la targa" },
                 ]}
             >
-                <Input style={{ textTransform: 'uppercase' }} />
+                <Input style={{ textTransform: 'uppercase' }} spellCheck={false} />
+            </Form.Item>
+
+            <Form.Item
+                label="Note"
+                name="notes"
+            >
+                <Input.TextArea rows={3} spellCheck lang="it" />
             </Form.Item>
 
             <Form.Item>

@@ -48,14 +48,14 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ customer = {}, onSubmit }) 
                 name="name"
                 rules={[{ required: true, message: "Inserire il nome del cliente" }]}
             >
-                <Input />
+                <Input spellCheck lang="it" />
             </Form.Item>
 
             <Form.Item
                 label="Indirizzo"
                 name="address"
             >
-                <Input />
+                <Input spellCheck lang="it" />
             </Form.Item>
 
             <Form.Item
@@ -63,7 +63,7 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ customer = {}, onSubmit }) 
                 name="phone"
                 rules={[{ required: true, message: "Inserire numero di telefono" }]}
             >
-                <Input />
+                <Input spellCheck={false} />
             </Form.Item>
 
             <Form.Item
@@ -71,7 +71,14 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ customer = {}, onSubmit }) 
                 name="email"
                 rules={[{ type: "email", message: "Inserire un'email valida" }]}
             >
-                <Input />
+                <Input spellCheck={false} />
+            </Form.Item>
+
+            <Form.Item
+                label="Note"
+                name="notes"
+            >
+                <Input.TextArea rows={3} spellCheck lang="it" />
             </Form.Item>
 
 

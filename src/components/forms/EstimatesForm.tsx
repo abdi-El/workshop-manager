@@ -1,4 +1,4 @@
-import { Button, Checkbox, DatePicker, Form, InputNumber, Row, Statistic } from "antd";
+import { Button, Checkbox, DatePicker, Form, Input, InputNumber, Row, Statistic } from "antd";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { createOrUpdateEstimate, getEstimateItems } from "../../modules/database";
@@ -140,6 +140,13 @@ export default function EstimatesForm({ estimate, onSubmit }: EstimatesFormProps
                     <Checkbox />
                 </Form.Item>
             </Row>
+
+            <Form.Item
+                label="Note"
+                name="notes"
+            >
+                <Input.TextArea rows={3} spellCheck lang="it" />
+            </Form.Item>
 
             <div style={{ textAlign: "right", marginBottom: 16, padding: "8px 12px", borderRadius: 6 }}>
                 <Statistic

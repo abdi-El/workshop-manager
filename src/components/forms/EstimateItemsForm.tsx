@@ -40,7 +40,7 @@ export default function EstimateItemsForm() {
                                     }}
 
                                 >
-                                    <Input.TextArea className='w-100' placeholder="descrizione" />
+                                    <Input.TextArea className='w-100' placeholder="descrizione" spellCheck lang="it" />
                                 </AutoComplete>
                             </Form.Item >
                         </Col>
