@@ -4,6 +4,15 @@ import { signInWithEmailAndPassword } from 'firebase/auth';
 import { auth, firebaseConfigured } from '../modules/firebase';
 import { syncAllToFirestore, type SyncProgress, type SyncResult } from '../modules/sync';
 
+function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+    return Promise.race([
+        p,
+        new Promise<T>((_, rej) =>
+            setTimeout(() => rej(new Error(`${label}: timeout dopo ${ms / 1000}s`)), ms),
+        ),
+    ]);
+}
+
 const PHASE_LABEL: Record<SyncProgress['phase'], string> = {
     workshops: 'Officine',
     customers: 'Clienti',
@@ -44,7 +53,11 @@ export default function SyncToWebPanel() {
         setLoginError(null);
         setLoggingIn(true);
         try {
-            const cred = await signInWithEmailAndPassword(auth, email.trim(), password);
+            const cred = await withTimeout(
+                signInWithEmailAndPassword(auth, email.trim(), password),
+                20000,
+                'Login',
+            );
             setUid(cred.user.uid);
             setLoggedIn(true);
         } catch (err: any) {
@@ -68,7 +81,11 @@ export default function SyncToWebPanel() {
         setRunning(true);
         setRunError(null);
         try {
-            const res = await syncAllToFirestore(uid, setProgress);
+            const res = await withTimeout(
+                syncAllToFirestore(uid, setProgress),
+                300000,
+                'Sincronizzazione',
+            );
             setResult(res);
         } catch (err: any) {
             setRunError(err?.message ?? String(err));

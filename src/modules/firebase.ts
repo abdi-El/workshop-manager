@@ -2,7 +2,7 @@
 // Config pubblica via .env.local (stesse chiavi della web app).
 
 import { initializeApp } from 'firebase/app';
-import { getAuth, inMemoryPersistence, setPersistence } from 'firebase/auth';
+import { inMemoryPersistence, initializeAuth } from 'firebase/auth';
 import { initializeFirestore } from 'firebase/firestore';
 
 const app = initializeApp({
@@ -14,19 +14,19 @@ const app = initializeApp({
     appId: import.meta.env.VITE_FIREBASE_APP_ID,
 });
 
-export const auth = getAuth(app);
-// One-shot upload: non serve persistere login fra sessioni. Di default Firebase usa
-// browserLocalPersistence (IndexedDB/localStorage) che in prod Tauri WebView può
-// hang-are indefinitamente, bloccando signInWithEmailAndPassword.
-setPersistence(auth, inMemoryPersistence).catch(() => {
-    // Se anche questa fallisce continuiamo: la chiamata in-memory non dovrebbe mai rompersi.
+// NOTA: initializeAuth (non getAuth) volutamente senza popupRedirectResolver.
+// getAuth() carica gapi.iframes da https://apis.google.com per supportare i
+// flussi OAuth popup/redirect; in Tauri (origine tauri://localhost) quel frame
+// fallisce per CORS e blocca l'inizializzazione dell'auth con "gapi.iframes" TypeError.
+// In-memory persistence perché è un upload one-shot: non serve persistere il login.
+export const auth = initializeAuth(app, {
+    persistence: inMemoryPersistence,
 });
 
-// Di default Firestore usa WebChannel/gRPC-Web; in alcune WebView
-// (soprattutto Windows WebView2 dietro proxy corporate) lo stream rimane appeso.
-// auto-detect fa fallback a long polling HTTP → più robusto, poco più lento.
+// Tauri WebView non supporta bene WebChannel/gRPC-Web: lo stream rimane
+// sospeso indefinitamente. Force-long-polling bypassa detection.
 export const firestore = initializeFirestore(app, {
-    experimentalAutoDetectLongPolling: true,
+    experimentalForceLongPolling: true,
 });
 
 // Flag sintetico: se manca anche solo una env var, il modulo non è usabile e la UI
