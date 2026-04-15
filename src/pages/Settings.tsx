@@ -4,13 +4,13 @@ import SettingSwitch from '../components/inputs/SettingSwitch';
 import MakersModelsImporter from '../components/MakersModelsImporter';
 import themes from "../components/pdf/themes.json";
 import ThemeSelector from '../components/pdf/ThemeSelector';
+import SyncToWebPanel from '../components/SyncToWebPanel';
 import { storeSettings } from '../modules/database';
 import { useStore } from '../modules/state';
 
 
 export default function Settings() {
     const { settings, updateSettings, isDebug } = useStore((state) => state)
-
 
     return (
         <Layout>
@@ -43,6 +43,9 @@ export default function Settings() {
                         <strong style={{ marginRight: 5 }}>Tema: {themes[settings.pdfTheme as keyof typeof themes].name} </strong>
                         <ThemeSelector />
                     </div>
+                </Collapse.Panel>
+                <Collapse.Panel header="Sincronizza con versione web" key="4">
+                    <SyncToWebPanel />
                 </Collapse.Panel>
             </Collapse>
             {isDebug &&
