@@ -44,7 +44,7 @@ export default function Settings() {
                         <ThemeSelector />
                     </div>
                 </Collapse.Panel>
-                <Collapse.Panel header="Sincronizza con versione web" key="4">
+                <Collapse.Panel header="Esporta dati per versione web" key="4">
                     <SyncToWebPanel />
                 </Collapse.Panel>
             </Collapse>

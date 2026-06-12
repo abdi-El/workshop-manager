@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "exported_at": "2026-06-12T14:00:43.173Z",
+  "source": "workshop-manager-desktop",
+  "workshops": [
+    {
+      "local_id": 1,
+      "name": "asd",
+      "address": "asd54asd45",
+      "vat_number": "654654",
+      "phone": "654654",
+      "email": "asd@g.com",
+      "base_labor_cost": 45
+    },
+    {
+      "local_id": 2,
+      "name": "asdd",
+      "address": "asdd 65",
+      "vat_number": "646546",
+      "phone": "3324568486",
+      "email": "asd@g.com",
+      "base_labor_cost": 3
+    }
+  ],
+  "customers": [
+    {
+      "local_id": 1,
+      "workshop_local_id": 1,
+      "name": "asffas",
+      "address": "asdd654",
+      "phone": "654654",
+      "email": "asd@g.com",
+      "notes": null
+    }
+  ],
+  "cars": [
+    {
+      "local_id": 1,
+      "workshop_local_id": 1,
+      "customer_local_id": 1,
+      "maker_name": "AUDI",
+      "model_name": " Q5",
+      "year": 2025,
+      "number_plate": "A5A5S4",
+      "last_inspection_date": "2025-12-18",
+      "notes": null
+    },
+    {
+      "local_id": 2,
+      "workshop_local_id": 1,
+      "customer_local_id": 1,
+      "maker_name": "SUZUKI",
+      "model_name": " XL-7",
+      "year": 2025,
+      "number_plate": "AS6+6A",
+      "last_inspection_date": "2025-12-09",
+      "notes": null
+    },
+    {
+      "local_id": 3,
+      "workshop_local_id": 1,
+      "customer_local_id": 1,
+      "maker_name": "FIAT",
+      "model_name": "POLSKI ",
+      "year": 2022,
+      "number_plate": "ASD654A",
+      "last_inspection_date": "2025-12-10",
+      "notes": null
+    },
+    {
+      "local_id": 4,
+      "workshop_local_id": 2,
+      "customer_local_id": 1,
+      "maker_name": "ZOTYE",
+      "model_name": " T600",
+      "year": 2020,
+      "number_plate": "98E89",
+      "last_inspection_date": null,
+      "notes": null
+    }
+  ],
+  "estimates": [],
+  "default_items": []
+}
