@@ -1,9 +1,10 @@
-import { FileTextOutlined, PlusOutlined } from "@ant-design/icons";
+import { CarOutlined, FileTextOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Drawer, InputRef, Row, Space, Table, Tooltip } from "antd";
 import { useEffect, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
 import EditButton from "../components/buttons/EditButton";
+import CustomerCars from "../components/CustomerCars";
 import CustomerForm from "../components/forms/CustomerForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import CustomersTour from "../components/tours/CustomerTour";
@@ -17,6 +18,7 @@ export default function Customers() {
     const { customers, updateDatabaseData } = useDatabaseStore((state) => state)
     const { searchTarget, setSearchTarget } = useStore((state) => state)
     const [selectedCustomer, setSelectedCustomer] = useState<Customer>();
+    const [carsCustomer, setCarsCustomer] = useState<Customer>();
     const searchInput = useRef<InputRef>(null);
 
     useEffect(() => {
@@ -74,6 +76,9 @@ export default function Customers() {
             render: (_: unknown, cs: Customer) =>
                 <Space>
                     <EditButton onClick={() => { showDrawer(); setSelectedCustomer(cs) }} />
+                    <Tooltip title="Auto del cliente">
+                        <Button icon={<CarOutlined />} onClick={() => setCarsCustomer(cs)} />
+                    </Tooltip>
                     <DeleteButton onConfirm={() => {
                         deleteRow(cs.id, "customers", () => {
                             updateDatabaseData(["customers", "cars", "estimates"]);
@@ -105,6 +110,15 @@ export default function Customers() {
             open={open}
         >
             <CustomerForm onSubmit={onClose} customer={selectedCustomer} />
+        </Drawer>
+        <Drawer
+            title={`Auto di ${carsCustomer?.name ?? ""}`}
+            closable={{ 'aria-label': 'Chiudi' }}
+            onClose={() => setCarsCustomer(undefined)}
+            open={!!carsCustomer}
+            width={480}
+        >
+            {carsCustomer && <CustomerCars customer={carsCustomer} />}
         </Drawer>
         <Table dataSource={customers} columns={columns as any} rowKey="id" />
         <CustomersTour />
