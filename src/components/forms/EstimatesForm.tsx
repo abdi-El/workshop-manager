@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { createOrUpdateEstimate, getEstimateItems } from "../../modules/database";
 import { DATE_FORMAT } from "../../modules/dates";
-import { useDatabaseStore, useStore } from "../../modules/state";
+import { useStore } from "../../modules/state";
 import { Estimate, EstimateItem } from "../../types/database";
 import CarSelect from "../selects/CarSelect";
 import CustomerSelect from "../selects/CustomerSelect";
@@ -28,7 +28,6 @@ function calculateTotal(values: any) {
 
 export default function EstimatesForm({ estimate, onSubmit }: EstimatesFormProps) {
     const [form] = Form.useForm();
-    const { updateDatabaseData } = useDatabaseStore((state) => state)
     const { settings } = useStore((state) => state);
     const customer_id = Form.useWatch("customer_id", form)
     const [total, setTotal] = useState(0);
@@ -40,7 +39,6 @@ export default function EstimatesForm({ estimate, onSubmit }: EstimatesFormProps
         const { items, ...rest } = values as any;
         createOrUpdateEstimate(rest as any, items, () => {
             form.resetFields();
-            updateDatabaseData(["estimates"]);
             onSubmit(values);
         }, estimate?.id);
     };

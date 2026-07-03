@@ -1,7 +1,6 @@
 import { Button, Form, Input, InputNumber } from "antd";
 import React, { useEffect } from "react";
 import { create, update } from "../../modules/database";
-import { useDatabaseStore } from "../../modules/state";
 import { Workshop } from "../../types/database";
 
 
@@ -13,20 +12,17 @@ type WorkshopFormProps = {
 
 const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) => {
     const [form] = Form.useForm();
-    const { updateDatabaseData } = useDatabaseStore((state) => state)
 
     const handleFinish = (values: Workshop) => {
         if (!workshop.id) {
             create(values, "workshops").then(() => {
                 form.resetFields();
-                updateDatabaseData(["workshops"]);
                 onSubmit(values);
             })
         }
         else {
             update(values, workshop.id, "workshops").then(() => {
                 form.resetFields();
-                updateDatabaseData(["workshops"]);
                 onSubmit(values);
             })
         }

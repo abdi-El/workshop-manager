@@ -1,11 +1,18 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Col, Form, Row, Select, Tooltip } from "antd";
-import { useEffect, useState } from "react";
-import { DatabaseState, useDatabaseStore } from "../../modules/state";
+import { useEffect, useMemo } from "react";
+import { useDbQuery } from "../../modules/hooks";
+import { carQuery, customersQuery, estimatesQuery, makersQuery, modelsQuery } from "../../modules/queries";
 
+const resourceQueries = {
+    customers: customersQuery,
+    makers: makersQuery,
+    models: modelsQuery,
+    cars: carQuery,
+    estimates: estimatesQuery,
+} as const;
 
-
-type Resource = Exclude<keyof DatabaseState, "databaseLoading" | "updateDatabaseData">
+type Resource = keyof typeof resourceQueries
 
 export interface DatabaseSelectProps extends React.ComponentProps<typeof Form.Item> {
     resource: Resource
@@ -15,20 +22,21 @@ export interface DatabaseSelectProps extends React.ComponentProps<typeof Form.It
     allowClear?: boolean
     filterFunc?: (el: any) => boolean
     onAddClick?: () => void
+    refreshToken?: number
 }
 
-export default function DatabasResourceSelect<T extends { id: number }>({ resource, selectLabel, name, inputLabel, allowClear, filterFunc, onAddClick, className, ...props }: DatabaseSelectProps) {
-    const databaseData = useDatabaseStore((state) => state);
-    const [data, setData] = useState<T[]>([])
+export default function DatabasResourceSelect<T extends { id: number }>({ resource, selectLabel, name, inputLabel, allowClear, filterFunc, onAddClick, refreshToken, className, ...props }: DatabaseSelectProps) {
+    const { data: rows, loading, reload } = useDbQuery<T>(resourceQueries[resource]);
 
     useEffect(() => {
-        let evaluatedData = databaseData[resource] as any as T[]
-        if (filterFunc) {
-            evaluatedData = evaluatedData.filter(filterFunc)
+        if (refreshToken) {
+            reload();
         }
-        setData(evaluatedData)
-    }, [resource, filterFunc, databaseData[resource]])
+    }, [refreshToken]);
 
+    const data = useMemo(() => {
+        return filterFunc ? rows.filter(filterFunc) : rows;
+    }, [rows, filterFunc]);
 
     return <Row className={className} justify={"start"}>
         <Col span={onAddClick ? 21 : 24} style={{ marginRight: onAddClick ? 3 : 0 }}>
@@ -39,6 +47,7 @@ export default function DatabasResourceSelect<T extends { id: number }>({ resour
                 name={name}
             >
                 <Select
+                    loading={loading}
                     options={data.map(v => ({
                         label: v[selectLabel as keyof typeof v],
                         value: v.id

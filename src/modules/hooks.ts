@@ -1,8 +1,29 @@
 import { message } from "antd";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { create } from "zustand";
-import { storeSettings } from "./database";
+import { db, storeSettings } from "./database";
 import { getModelsAndMakers } from "./scraper";
+
+export function useDbQuery<T>(query: string, params?: any[]) {
+    const [data, setData] = useState<T[]>([]);
+    const [loading, setLoading] = useState(true);
+    const paramsKey = JSON.stringify(params ?? []);
+
+    const reload = useCallback(() => {
+        setLoading(true);
+        db.select(query, params).then((rows) => {
+            setData(rows as T[]);
+        }).catch((error) => {
+            message.error("Errore nel recupero dei dati: " + error);
+        }).finally(() => setLoading(false));
+    }, [query, paramsKey]);
+
+    useEffect(() => {
+        reload();
+    }, [reload]);
+
+    return { data, loading, reload };
+}
 
 interface ScraperState {
     percentage: number,

@@ -8,21 +8,23 @@ import CarHistory from "../components/CarHistory";
 import CarsForm from "../components/forms/CarsForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import { deleteRow } from "../modules/database";
-import { useDatabaseStore, useStore } from "../modules/state";
+import { useDbQuery } from "../modules/hooks";
+import { carQuery } from "../modules/queries";
+import { useStore } from "../modules/state";
 import { getLogoUrl } from "../modules/utils";
 import { Car } from "../types/database";
 
 
 export default function Cars() {
     const [open, setOpen] = useState(false);
-    const { cars, updateDatabaseData } = useDatabaseStore((state) => state)
+    const { data: cars, loading, reload } = useDbQuery<Car>(carQuery)
     const { searchTarget, setSearchTarget } = useStore((state) => state)
     const [selectedCar, setSelectedCar] = useState<Car>();
     const [historyCar, setHistoryCar] = useState<Car>();
     const searchInput = useRef<InputRef>(null);
 
     useEffect(() => {
-        if (searchTarget?.table !== "cars") return;
+        if (searchTarget?.table !== "cars" || !cars.length) return;
         const target = cars.find((c) => c.id === searchTarget.id);
         setSearchTarget(undefined);
         if (target) {
@@ -89,7 +91,7 @@ export default function Cars() {
                     </Tooltip>
                     <DeleteButton onConfirm={() => {
                         deleteRow(cr.id, "cars", () => {
-                            updateDatabaseData(["cars", "estimates"]);
+                            reload();
                         })
                     }} />
                 </Space >,
@@ -117,7 +119,7 @@ export default function Cars() {
             onClose={onClose}
             open={open}
         >
-            <CarsForm onSubmit={onClose} car={selectedCar} />
+            <CarsForm onSubmit={() => { onClose(); reload(); }} car={selectedCar} />
         </Drawer>
         <Drawer
             title={`Storico interventi — ${historyCar?.number_plate ?? ""}`}
@@ -128,7 +130,7 @@ export default function Cars() {
         >
             {historyCar && <CarHistory car={historyCar} />}
         </Drawer>
-        <Table dataSource={cars} columns={columns as any} rowKey="id" />
+        <Table dataSource={cars} columns={columns as any} rowKey="id" loading={loading} />
     </>
 };
 

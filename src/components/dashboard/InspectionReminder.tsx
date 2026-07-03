@@ -1,7 +1,6 @@
 import { Table, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { getUpcomingInspections } from "../../modules/queries";
-import { useDatabaseStore } from "../../modules/state";
 
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
@@ -43,17 +42,14 @@ const columns = [
     },
 ];
 export default function InspectionReminder(props: Props) {
-    const { cars } = useDatabaseStore()
     const [inspections, setInspections] = useState<DataType[]>()
 
 
     useEffect(() => {
-        if (cars.length) {
-            getUpcomingInspections().then((data) => {
-                setInspections(data as DataType[])
-            })
-        }
-    }, [cars])
+        getUpcomingInspections().then((data) => {
+            setInspections(data as DataType[])
+        })
+    }, [])
     return <div {...props}>
         <Title level={4}>Prossime revisioni</Title>
         <Table dataSource={inspections} columns={columns} loading={inspections === undefined} />

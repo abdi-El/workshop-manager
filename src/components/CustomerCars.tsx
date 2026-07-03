@@ -1,7 +1,8 @@
 import { HistoryOutlined } from '@ant-design/icons';
-import { Button, Drawer, Empty, List, Space, Tooltip, Typography } from 'antd';
+import { Button, Drawer, Empty, List, Space, Spin, Tooltip, Typography } from 'antd';
 import { useState } from 'react';
-import { useDatabaseStore } from '../modules/state';
+import { useDbQuery } from '../modules/hooks';
+import { customerCarsQuery } from '../modules/queries';
 import { getLogoUrl } from '../modules/utils';
 import { Car, Customer } from '../types/database';
 import CarHistory from './CarHistory';
@@ -11,9 +12,12 @@ interface CustomerCarsProps {
 }
 
 export default function CustomerCars({ customer }: CustomerCarsProps) {
-    const { cars } = useDatabaseStore((state) => state);
+    const { data: customerCars, loading } = useDbQuery<Car>(customerCarsQuery, [customer.id]);
     const [historyCar, setHistoryCar] = useState<Car>();
-    const customerCars = cars.filter((car) => car.customer_id === customer.id);
+
+    if (loading) {
+        return <Spin style={{ display: 'block', margin: '40px auto' }} />;
+    }
 
     if (!customerCars.length) {
         return <Empty description="Nessuna auto registrata per questo cliente" />;

@@ -3,9 +3,10 @@ import { pdf, PDFViewer, } from "@react-pdf/renderer";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { Button, message, Modal } from "antd";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { getEstimateItems } from "../../modules/database";
-import { useDatabaseStore, useStore } from "../../modules/state";
+import { getEstimatePdfData } from "../../modules/queries";
+import { useStore } from "../../modules/state";
 import { EstimateItem } from "../../types/database";
 import EstimatePdf, { DataProps } from "./EstimatePdf";
 import MissingDataPdf from "./MissingDataPdf";
@@ -16,37 +17,19 @@ interface Props {
 
 export default function SaveEstimatePdf({ estimateId }: Props) {
     const [rendered, setRendered] = useState(false);
-    const state = useDatabaseStore(state => state);
     const { settings } = useStore(state => state);
     const [data, setData] = useState<DataProps | null>(null);
     const [estimateItems, setEstimateItems] = useState<EstimateItem[]>([]);
 
-    function findData(estimateId: number): Omit<DataProps, "items"> | null {
-        const estimate = state.estimates.find(e => e.id === estimateId);
-        if (!estimate) {
-            return null;
-        }
-        const car = state.cars.find(c => c.id === estimate.car_id);
-        const customer = state.customers.find(c => c.id === estimate.customer_id);
-        const workshop = state.workshops.find(w => w.id === estimate.workshop_id);
-
-        if (!car || !customer || !workshop) {
-            return null;
-        }
-        return {
-            estimate,
-            car,
-            customer,
-            workshop
-        }
+    async function loadData() {
+        const [pdfData, items] = await Promise.all([
+            getEstimatePdfData(estimateId),
+            getEstimateItems(estimateId),
+        ]);
+        setData(pdfData as any);
+        setEstimateItems(items as any);
+        return { pdfData, items };
     }
-    async function getItems(estimateId: number) {
-        setEstimateItems(await getEstimateItems(estimateId) as any);
-    }
-    useEffect(() => {
-        setData(findData(estimateId) as any);
-        getItems(estimateId);
-    }, [estimateId, state]);
 
     async function savePdf() {
         const path = await save({
@@ -55,13 +38,14 @@ export default function SaveEstimatePdf({ estimateId }: Props) {
         if (!path) {
             return;
         }
-        if (!data) {
+        const { pdfData, items } = await loadData();
+        if (!pdfData) {
             message.warning("Dati mancanti per generare il PDF");
             return;
         }
 
         const blob = await pdf(
-            <EstimatePdf {...data} items={estimateItems} pdfTheme={settings.pdfTheme} showPdfNumber={settings.showPdfNumber} />
+            <EstimatePdf {...pdfData as any} items={items as EstimateItem[]} pdfTheme={settings.pdfTheme} showPdfNumber={settings.showPdfNumber} />
         ).toBlob();
         const arrayBuffer = await blob.arrayBuffer();
         const uint8Array = new Uint8Array(arrayBuffer);
@@ -71,7 +55,7 @@ export default function SaveEstimatePdf({ estimateId }: Props) {
 
     return <>
         <Button onClick={savePdf} icon={<SaveOutlined />} />
-        <Button onClick={() => setRendered(true)} icon={<EyeOutlined />} />
+        <Button onClick={() => { loadData(); setRendered(true); }} icon={<EyeOutlined />} />
         <Modal open={rendered} onCancel={() => setRendered(false)} footer={null} title="Anteprima PDF" centered width="85%">
             {rendered && <PDFViewer style={{ width: "100%", height: "100vh" }} >
                 {data ? <EstimatePdf {...data} items={estimateItems} pdfTheme={settings.pdfTheme} showPdfNumber={settings.showPdfNumber} /> : <MissingDataPdf />}

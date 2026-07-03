@@ -8,26 +8,21 @@ import { useEffect } from "react";
 import Paginator from "./components/Paginator";
 import { initDatabase } from './modules/database';
 import { useScraper } from './modules/hooks';
-import { useDatabaseStore, useStore } from './modules/state';
+import { useStore } from './modules/state';
 
 dayjs.locale('it');
 dayjs.extend(updateLocale);
 
 export default function Page() {
-  const { settings, updateSettings, setIsDebug } = useStore((state) => state)
-  const { updateDatabaseData, makers } = useDatabaseStore((state) => state)
-  const { trigger, setPercentage } = useScraper()
+  const { settings, updateSettings, setIsDebug, setDbReady } = useStore((state) => state)
+  const { setPercentage } = useScraper()
   async function initApp() {
     const isDebug = await invoke("is_debug") as boolean
     setIsDebug(isDebug)
     await initDatabase()
+    setDbReady(true)
     updateSettings()
-    updateDatabaseData()
-    if (makers.length) {
-      trigger()
-    } else {
-      setPercentage(100)
-    }
+    setPercentage(100)
   }
 
   useEffect(() => {

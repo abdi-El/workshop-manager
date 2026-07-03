@@ -11,7 +11,6 @@ import PlannerEvent from '../components/PlannerEvent';
 import { update } from '../modules/database';
 import { fromISOFormat, toISOFormat } from '../modules/dates';
 import { getPlannerEvents } from '../modules/queries';
-import { useDatabaseStore } from '../modules/state';
 import "../styles/full-calendar-dark.css";
 import { AppointmentEventData } from '../types/database';
 
@@ -37,7 +36,6 @@ const mapAppointmentsToEvents = (appointments: AppointmentEventData[]) => {
 
 export default function Planner() {
     const [appointments, setAppointments] = useState<AppointmentEventData[]>([])
-    const { appointments: appInDatabase } = useDatabaseStore()
     const [editing, setEditing] = useState<AppointmentEventData>()
     const [selectedDate, setSelectedDate] = useState<Date>()
 
@@ -52,11 +50,11 @@ export default function Planner() {
 
     const events = useMemo(() => {
         return appointments ? mapAppointmentsToEvents(appointments) : [];
-    }, [appointments, appInDatabase]);
+    }, [appointments]);
 
     useEffect(() => {
         getData()
-    }, [appInDatabase])
+    }, [])
 
 
     const handleEventDrop = (info: any) => {
@@ -89,7 +87,7 @@ export default function Planner() {
         <>
 
             <Modal open={!!editing || !!selectedDate} onCancel={close} footer={false} zIndex={99999}>
-                <AppointmentForm style={{ marginTop: "40px" }} appointmentId={editing?.id} onSubmit={close} initialData={selectedDate && {
+                <AppointmentForm style={{ marginTop: "40px" }} appointmentId={editing?.id} onSubmit={() => { close(); getData(); }} initialData={selectedDate && {
                     date: dayjs(selectedDate),
                     from_time: dayjs(selectedDate),
                 } as any} />

@@ -1,8 +1,8 @@
 import { CarOutlined, FileTextOutlined, SearchOutlined, UserOutlined } from '@ant-design/icons';
 import { AutoComplete, Input, InputRef, Space, Typography } from 'antd';
-import { ReactNode, useEffect, useMemo, useRef, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import { globalSearch, SearchResult, SearchResultType } from '../modules/search';
-import { useDatabaseStore, useStore } from '../modules/state';
+import { useStore } from '../modules/state';
 
 const groups: Record<SearchResultType, { label: string; icon: ReactNode }> = {
     customer: { label: 'Clienti', icon: <UserOutlined /> },
@@ -12,8 +12,8 @@ const groups: Record<SearchResultType, { label: string; icon: ReactNode }> = {
 
 export default function GlobalSearch() {
     const [value, setValue] = useState('');
-    const { customers, cars, estimates } = useDatabaseStore((state) => state);
-    const { updatePage, setSearchTarget } = useStore((state) => state);
+    const [results, setResults] = useState<SearchResult[]>([]);
+    const { updatePage, setSearchTarget, dbReady } = useStore((state) => state);
     const inputRef = useRef<InputRef>(null);
 
     useEffect(() => {
@@ -27,29 +27,40 @@ export default function GlobalSearch() {
         return () => window.removeEventListener('keydown', onKeyDown);
     }, []);
 
-    const options = useMemo(() => {
-        const results = globalSearch(value, { customers, cars, estimates });
-        return (Object.keys(groups) as SearchResultType[])
-            .map((type) => {
-                const groupResults = results.filter((r) => r.type === type);
-                if (!groupResults.length) return null;
-                return {
-                    label: groups[type].label,
-                    options: groupResults.map((r) => ({
-                        value: `${r.type}-${r.id}`,
-                        result: r,
-                        label: (
-                            <Space>
-                                {groups[type].icon}
-                                <span>{r.title}</span>
-                                <Typography.Text type="secondary">{r.subtitle}</Typography.Text>
-                            </Space>
-                        ),
-                    })),
-                };
-            })
-            .filter((group) => group !== null);
-    }, [value, customers, cars, estimates]);
+    useEffect(() => {
+        if (!dbReady || !value.trim()) {
+            setResults([]);
+            return;
+        }
+        let cancelled = false;
+        globalSearch(value).then((found) => {
+            if (!cancelled) setResults(found);
+        }).catch(() => {
+            if (!cancelled) setResults([]);
+        });
+        return () => { cancelled = true };
+    }, [value, dbReady]);
+
+    const options = (Object.keys(groups) as SearchResultType[])
+        .map((type) => {
+            const groupResults = results.filter((r) => r.type === type);
+            if (!groupResults.length) return null;
+            return {
+                label: groups[type].label,
+                options: groupResults.map((r) => ({
+                    value: `${r.type}-${r.id}`,
+                    result: r,
+                    label: (
+                        <Space>
+                            {groups[type].icon}
+                            <span>{r.title}</span>
+                            <Typography.Text type="secondary">{r.subtitle}</Typography.Text>
+                        </Space>
+                    ),
+                })),
+            };
+        })
+        .filter((group) => group !== null);
 
     const onSelect = (_: string, option: { result?: SearchResult }) => {
         const result = option.result;

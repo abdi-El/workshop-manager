@@ -1,5 +1,10 @@
 import { db } from "./database";
 
+export const customersQuery = `SELECT * FROM customers ORDER BY id DESC`
+export const workshopsQuery = `SELECT * FROM workshops ORDER BY id DESC`
+export const makersQuery = `SELECT * FROM makers ORDER BY id DESC`
+export const modelsQuery = `SELECT * FROM models ORDER BY id DESC`
+
 export async function getPlannerEvents() {
     return db.select(
         `SELECT 
@@ -65,6 +70,15 @@ export async function getUpcomingInspections() {
             ) <= DATE('now', '+30 days') ORDER BY c.last_inspection_date ASC;   
         `)
 }
+
+export const customerCarsQuery = `SELECT cars.*,
+                model.name as model_name,
+                maker.name as maker_name
+        FROM cars
+        LEFT JOIN models as model ON cars.model_id = model.id
+        LEFT JOIN makers as maker ON cars.maker_id = maker.id
+        WHERE cars.customer_id = $1
+        ORDER BY cars.id DESC`
 
 export async function getCarHistory(carId: number) {
     return db.select(
@@ -183,7 +197,22 @@ export const carQuery = `SELECT cars.id as car_id,
             ORDER BY id DESC
             `
 
-export const dashboardAverages = `SELECT 
+export async function getEstimatePdfData(estimateId: number) {
+    const estimates = await db.select(estimatesQuery) as any[];
+    const estimate = estimates.find((e) => e.id === estimateId);
+    if (!estimate) return null;
+    estimate.has_iva = estimate.has_iva == "true";
+
+    const [cars, customers, workshops] = await Promise.all([
+        db.select(`${carQuery.replace("ORDER BY id DESC", "")} WHERE cars.id = $1`, [estimate.car_id]) as Promise<any[]>,
+        db.select(`SELECT * FROM customers WHERE id = $1`, [estimate.customer_id]) as Promise<any[]>,
+        db.select(`SELECT * FROM workshops WHERE id = $1`, [estimate.workshop_id]) as Promise<any[]>,
+    ]);
+    if (!cars[0] || !customers[0] || !workshops[0]) return null;
+    return { estimate, car: cars[0], customer: customers[0], workshop: workshops[0] };
+}
+
+export const dashboardAverages = `SELECT
     COUNT(*) as total_estimates,
     AVG(e.labor_hours) as avg_labor_hours,
     AVG(e.labor_hourly_cost) as avg_hourly_cost,

@@ -9,20 +9,22 @@ import CustomerForm from "../components/forms/CustomerForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import CustomersTour from "../components/tours/CustomerTour";
 import { deleteRow } from "../modules/database";
-import { useDatabaseStore, useStore } from "../modules/state";
+import { useDbQuery } from "../modules/hooks";
+import { customersQuery } from "../modules/queries";
+import { useStore } from "../modules/state";
 import { Customer } from "../types/database";
 
 
 export default function Customers() {
     const [open, setOpen] = useState(false);
-    const { customers, updateDatabaseData } = useDatabaseStore((state) => state)
+    const { data: customers, loading, reload } = useDbQuery<Customer>(customersQuery)
     const { searchTarget, setSearchTarget } = useStore((state) => state)
     const [selectedCustomer, setSelectedCustomer] = useState<Customer>();
     const [carsCustomer, setCarsCustomer] = useState<Customer>();
     const searchInput = useRef<InputRef>(null);
 
     useEffect(() => {
-        if (searchTarget?.table !== "customers") return;
+        if (searchTarget?.table !== "customers" || !customers.length) return;
         const target = customers.find((c) => c.id === searchTarget.id);
         setSearchTarget(undefined);
         if (target) {
@@ -81,7 +83,7 @@ export default function Customers() {
                     </Tooltip>
                     <DeleteButton onConfirm={() => {
                         deleteRow(cs.id, "customers", () => {
-                            updateDatabaseData(["customers", "cars", "estimates"]);
+                            reload();
                         })
                     }} />
                 </Space >,
@@ -109,7 +111,7 @@ export default function Customers() {
             onClose={onClose}
             open={open}
         >
-            <CustomerForm onSubmit={onClose} customer={selectedCustomer} />
+            <CustomerForm onSubmit={() => { onClose(); reload(); }} customer={selectedCustomer} />
         </Drawer>
         <Drawer
             title={`Auto di ${carsCustomer?.name ?? ""}`}
@@ -120,7 +122,7 @@ export default function Customers() {
         >
             {carsCustomer && <CustomerCars customer={carsCustomer} />}
         </Drawer>
-        <Table dataSource={customers} columns={columns as any} rowKey="id" />
+        <Table dataSource={customers} columns={columns as any} rowKey="id" loading={loading} />
         <CustomersTour />
     </>
 };

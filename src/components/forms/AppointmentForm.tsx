@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import { useEffect } from "react";
 import { create, db, update } from "../../modules/database";
 import { DATE_FORMAT, TIME_FORMAT } from "../../modules/dates";
-import { useDatabaseStore, useStore } from "../../modules/state";
+import { useStore } from "../../modules/state";
 import { Appointment, Estimate } from "../../types/database";
 import CarSelect from "../selects/CarSelect";
 import CustomerSelect from "../selects/CustomerSelect";
@@ -21,7 +21,6 @@ interface Props extends FormProps {
 
 export default function AppointmentForm({ estimateId, appointmentId, initialData, onSubmit, ...props }: Props) {
     const [form] = Form.useForm()
-    const { updateDatabaseData } = useDatabaseStore((state) => state)
     const { settings } = useStore(state => state)
     const selectedEstimate = Form.useWatch("estimate_id", form)
 
@@ -66,7 +65,6 @@ export default function AppointmentForm({ estimateId, appointmentId, initialData
     function onFinish(values: Appointment) {
         const formattedData = formatData(values)
         const onExecute = () => {
-            updateDatabaseData(["appointments", "estimates"])
             onSubmit && onSubmit()
         }
         const table = "appointments"

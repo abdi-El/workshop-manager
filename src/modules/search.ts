@@ -1,4 +1,4 @@
-import { Car, Customer, Estimate } from "../types/database";
+import { db } from "./database";
 
 export type SearchResultType = "customer" | "car" | "estimate";
 
@@ -12,57 +12,71 @@ export interface SearchResult {
 
 const MAX_RESULTS_PER_GROUP = 8;
 
-// Campi extra prodotti dalle query con join (carQuery / estimatesQuery)
-type CarRow = Car & { car_info?: string };
-type EstimateRow = Estimate & {
-    customer_name?: string;
-    car_number_plate?: string;
-    estimate_info?: string;
-};
+interface CustomerRow { id: number; name: string; phone: string | null; email: string | null }
+interface CarRow { id: number; number_plate: string; maker_name: string | null; model_name: string | null; year: number | null }
+interface EstimateRow { id: number; date: string; number_plate: string | null; customer_name: string | null }
 
-function matches(query: string, ...fields: (string | number | null | undefined)[]): boolean {
-    return fields.some((field) => field?.toString().toLowerCase().includes(query));
-}
+export async function globalSearch(rawQuery: string): Promise<SearchResult[]> {
+    const trimmed = rawQuery.trim().toLowerCase();
+    if (!trimmed) return [];
+    const query = `%${trimmed}%`;
 
-export function globalSearch(
-    rawQuery: string,
-    data: { customers: Customer[]; cars: Car[]; estimates: Estimate[] }
-): SearchResult[] {
-    const query = rawQuery.trim().toLowerCase();
-    if (!query) return [];
+    const [customers, cars, estimates] = await Promise.all([
+        db.select(
+            `SELECT id, name, phone, email FROM customers
+            WHERE LOWER(name) LIKE $1
+                OR LOWER(COALESCE(phone, '')) LIKE $1
+                OR LOWER(COALESCE(email, '')) LIKE $1
+                OR LOWER(COALESCE(address, '')) LIKE $1
+            ORDER BY id DESC LIMIT ${MAX_RESULTS_PER_GROUP}`,
+            [query]
+        ) as Promise<CustomerRow[]>,
+        db.select(
+            `SELECT cars.id, cars.number_plate, cars.year,
+                maker.name as maker_name, model.name as model_name
+            FROM cars
+            LEFT JOIN makers as maker ON cars.maker_id = maker.id
+            LEFT JOIN models as model ON cars.model_id = model.id
+            WHERE LOWER(cars.number_plate) LIKE $1
+                OR LOWER(COALESCE(maker.name, '')) LIKE $1
+                OR LOWER(COALESCE(model.name, '')) LIKE $1
+            ORDER BY cars.id DESC LIMIT ${MAX_RESULTS_PER_GROUP}`,
+            [query]
+        ) as Promise<CarRow[]>,
+        db.select(
+            `SELECT e.id, e.date, car.number_plate, customer.name as customer_name
+            FROM estimates e
+            LEFT JOIN cars as car ON e.car_id = car.id
+            LEFT JOIN customers as customer ON e.customer_id = customer.id
+            WHERE LOWER(COALESCE(customer.name, '')) LIKE $1
+                OR LOWER(COALESCE(car.number_plate, '')) LIKE $1
+                OR e.date LIKE $1
+            ORDER BY e.id DESC LIMIT ${MAX_RESULTS_PER_GROUP}`,
+            [query]
+        ) as Promise<EstimateRow[]>,
+    ]);
 
-    const customers: SearchResult[] = data.customers
-        .filter((c) => matches(query, c.name, c.phone, c.email, c.address))
-        .slice(0, MAX_RESULTS_PER_GROUP)
-        .map((c) => ({
+    return [
+        ...customers.map((c): SearchResult => ({
             type: "customer",
             id: c.id,
             title: c.name,
             subtitle: [c.phone, c.email].filter(Boolean).join(" · "),
             page: "customers",
-        }));
-
-    const cars: SearchResult[] = (data.cars as CarRow[])
-        .filter((c) => matches(query, c.number_plate, c.maker_name, c.model_name, c.car_info))
-        .slice(0, MAX_RESULTS_PER_GROUP)
-        .map((c) => ({
+        })),
+        ...cars.map((c): SearchResult => ({
             type: "car",
             id: c.id,
             title: c.number_plate,
             subtitle: [c.maker_name, c.model_name, c.year].filter(Boolean).join(" "),
             page: "cars",
-        }));
-
-    const estimates: SearchResult[] = (data.estimates as EstimateRow[])
-        .filter((e) => matches(query, e.customer_name, e.car_number_plate, e.date, e.estimate_info))
-        .slice(0, MAX_RESULTS_PER_GROUP)
-        .map((e) => ({
+        })),
+        ...estimates.map((e): SearchResult => ({
             type: "estimate",
             id: e.id,
-            title: [e.date, e.car_number_plate].filter(Boolean).join(" · "),
-            subtitle: (e as EstimateRow).customer_name ?? "",
+            title: [e.date, e.number_plate].filter(Boolean).join(" · "),
+            subtitle: e.customer_name ?? "",
             page: "estimates",
-        }));
-
-    return [...customers, ...cars, ...estimates];
+        })),
+    ];
 }

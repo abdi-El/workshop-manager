@@ -1,7 +1,7 @@
 import { CalendarOutlined, CarOutlined, DashboardOutlined, FileTextOutlined, LoadingOutlined, SettingOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
 import { Layout, Menu, Row, Spin, theme, Typography } from "antd";
 import { useScraper } from '../modules/hooks';
-import { useDatabaseStore, useStore } from "../modules/state";
+import { useStore } from "../modules/state";
 import GlobalSearch from './GlobalSearch';
 import Cars from '../pages/Cars';
 import Customers from '../pages/Customers';
@@ -14,8 +14,7 @@ import Workshops from '../pages/Workshops';
 const { Title } = Typography;
 
 export default function Paginator() {
-    const { page, loading, updatePage } = useStore()
-    const { databaseLoading } = useDatabaseStore()
+    const { page, loading, updatePage, dbReady } = useStore()
     const { percentage, loading: scraping } = useScraper()
     const { token } = theme.useToken()
     const items = {
@@ -74,10 +73,10 @@ export default function Paginator() {
             </div>
         </Layout.Header>
 
-        <Spin spinning={loading || databaseLoading} indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} >
+        <Spin spinning={loading || !dbReady} indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} >
             <div style={{ padding: '0px 10px', marginTop: 74 }}>
                 <Title level={2}>{items[page as keyof typeof items]?.label}</Title>
-                {items[page as keyof typeof items]?.page}
+                {dbReady && items[page as keyof typeof items]?.page}
             </div>
         </Spin>
         {scraping && <div className='scraper'>

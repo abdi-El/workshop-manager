@@ -1,6 +1,6 @@
 import { CalendarOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Drawer, InputRef, Modal, Popover, Row, Space, Table } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
 import EditButton from "../components/buttons/EditButton";
@@ -10,7 +10,9 @@ import SaveEstimatePdf from "../components/pdf/SavePdfButton";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import { deleteRow } from "../modules/database";
 import { sortBytDate } from "../modules/dates";
-import { useDatabaseStore, useStore } from "../modules/state";
+import { useDbQuery } from "../modules/hooks";
+import { estimatesQuery } from "../modules/queries";
+import { useStore } from "../modules/state";
 import { getLogoUrl } from "../modules/utils";
 import { Estimate } from "../types/database";
 
@@ -21,13 +23,16 @@ function estimateSorter(a: Estimate, b: Estimate, key: keyof Estimate) {
 
 export default function Estimates() {
     const [open, setOpen] = useState(false);
-    const { estimates, updateDatabaseData } = useDatabaseStore((state) => state)
+    const { data: estimateRows, loading, reload } = useDbQuery<Estimate>(estimatesQuery)
+    const estimates = useMemo(() => {
+        return estimateRows.map((r) => ({ ...r, has_iva: (r.has_iva as any) == "true" }))
+    }, [estimateRows])
     const { searchTarget, setSearchTarget } = useStore((state) => state)
     const [selectedEstimate, setSelectedEstimate] = useState<Estimate>();
     const searchInput = useRef<InputRef>(null);
 
     useEffect(() => {
-        if (searchTarget?.table !== "estimates") return;
+        if (searchTarget?.table !== "estimates" || !estimates.length) return;
         const target = estimates.find((e) => e.id === searchTarget.id);
         setSearchTarget(undefined);
         if (target) {
@@ -101,13 +106,13 @@ export default function Estimates() {
                     <SaveEstimatePdf estimateId={es.id} />
                     <Popover
                         title={!es.appointment_id ? "Crea appuntamento" : `Appuntamento già creato`}
-                        content={!es.appointment_id && <AppointmentForm estimateId={es.id} />}
+                        content={!es.appointment_id && <AppointmentForm estimateId={es.id} onSubmit={reload} />}
                     >
                         <Button icon={<CalendarOutlined />} type={!!es.appointment_id ? "primary" : "dashed"} />
                     </Popover>
                     <DeleteButton onConfirm={() => {
                         deleteRow(es.id, "estimates", () => {
-                            updateDatabaseData(["estimates", "appointments"]);
+                            reload();
                         })
                     }} />
                 </Space >,
@@ -139,9 +144,9 @@ export default function Estimates() {
             open={open}
             width={"75%"}
         >
-            <EstimatesForm onSubmit={onClose} estimate={selectedEstimate} />
+            <EstimatesForm onSubmit={() => { onClose(); reload(); }} estimate={selectedEstimate} />
         </Drawer>
-        <Table dataSource={estimates} columns={columns as any} rowKey="id" />
+        <Table dataSource={estimates} columns={columns as any} rowKey="id" loading={loading} />
     </>
 };
 

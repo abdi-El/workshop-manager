@@ -3,7 +3,7 @@ import dayjs from "dayjs";
 import { useEffect } from "react";
 import { create, update } from "../../modules/database";
 import { OLDEST_CAR_YEAR, transformDate, transofrmYear } from "../../modules/dates";
-import { useDatabaseStore, useStore } from "../../modules/state";
+import { useStore } from "../../modules/state";
 import { parseError } from "../../modules/utils";
 import { Car } from "../../types/database";
 import CustomerSelect from "../selects/CustomerSelect";
@@ -17,7 +17,6 @@ type CarFormProps = {
 
 export default function CarsForm({ car, onSubmit }: CarFormProps) {
     const [form] = Form.useForm();
-    const { updateDatabaseData } = useDatabaseStore((state) => state)
 
     const selectedMaker = Form.useWatch("maker_id", form)
 
@@ -38,13 +37,11 @@ export default function CarsForm({ car, onSubmit }: CarFormProps) {
         if (!car?.id) {
             create(data, "cars").then(() => {
                 form.resetFields();
-                updateDatabaseData(["cars"]);
                 onSubmit(values);
             }).catch(onError);
         } else {
             update(data, car.id, "cars").then(() => {
                 form.resetFields();
-                updateDatabaseData(["cars"]);
                 onSubmit(values);
             }).catch(onError);
         }

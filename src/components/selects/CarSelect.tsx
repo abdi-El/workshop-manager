@@ -7,6 +7,7 @@ import DatabasResourceSelect from "./DatabaseResourceSelect";
 export default function CarSelect(props: React.ComponentProps<typeof Form.Item>) {
     const form = Form.useFormInstance()
     const [open, setIsOpen] = useState(false)
+    const [refreshToken, setRefreshToken] = useState(0)
     const customerId = Form.useWatch("customer_id", form)
     const [updatedProps, setUpdatedProps] = useState({
         ...props,
@@ -25,9 +26,12 @@ export default function CarSelect(props: React.ComponentProps<typeof Form.Item>)
 
     return <>
         <Modal onCancel={close} open={open} footer={false}>
-            <CarsForm onSubmit={() => setIsOpen(false)} />
+            <CarsForm onSubmit={() => {
+                setIsOpen(false)
+                setRefreshToken(token => token + 1)
+            }} />
         </Modal>
-        <DatabasResourceSelect {...updatedProps} resource="cars" selectLabel="car_info" name="car_id" inputLabel="Auto" onAddClick={() => {
+        <DatabasResourceSelect {...updatedProps} resource="cars" selectLabel="car_info" name="car_id" inputLabel="Auto" refreshToken={refreshToken} onAddClick={() => {
             setIsOpen(true)
         }} />
     </>

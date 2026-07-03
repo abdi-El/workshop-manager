@@ -1,23 +1,7 @@
 import { message } from 'antd';
 import { create } from 'zustand';
 import { SettingsType } from '../types/common';
-import { Appointment, Car, Customer, Estimate, Maker, MakerModel, Workshop } from '../types/database';
-import { db, storeSettings } from './database';
-import { carQuery, estimatesQuery } from './queries';
-
-const tables: (keyof DatabaseState)[] = ["workshops", "customers", "makers", "models", "cars", "estimates", "appointments"];
-
-export interface DatabaseState {
-    workshops: Workshop[]
-    customers: Customer[]
-    makers: Maker[]
-    models: MakerModel[]
-    cars: Car[]
-    estimates: Estimate[]
-    appointments: Appointment[]
-    databaseLoading: boolean
-    updateDatabaseData: (key?: (keyof DatabaseState)[]) => void
-}
+import { storeSettings } from './database';
 
 export interface SearchTarget {
     table: "customers" | "cars" | "estimates"
@@ -35,38 +19,9 @@ interface AppState {
     updateSettings: (values?: Partial<SettingsType>) => void
     searchTarget?: SearchTarget
     setSearchTarget: (target?: SearchTarget) => void
+    dbReady: boolean
+    setDbReady: (dbReady: boolean) => void
 }
-
-const customQueries: Record<string, string> = {
-    cars: carQuery,
-    estimates: estimatesQuery,
-}
-
-
-export const useDatabaseStore = create<DatabaseState>()((set) => ({
-    workshops: [],
-    customers: [],
-    makers: [],
-    models: [],
-    cars: [],
-    estimates: [],
-    appointments: [],
-    databaseLoading: false,
-    updateDatabaseData: (keys = tables) => {
-        keys.forEach(key => {
-            set({ databaseLoading: true })
-            db.select(customQueries[key] || `SELECT * FROM ${key} ORDER BY id DESC`).then((rows) => {
-                if (key === 'estimates') {
-                    set({ estimates: (rows as Estimate[]).map((r: Estimate) => ({ ...r, has_iva: (r.has_iva as any) == "true" })) })
-                } else {
-                    set({ [key]: rows })
-                }
-            }).catch((error) => {
-                message.error("Errore nel recupero dei dati: " + error);
-            }).finally(() => set({ databaseLoading: false }))
-        })
-    }
-}))
 
 export const useStore = create<AppState>()((set) => ({
     isDebug: false,
@@ -87,6 +42,8 @@ export const useStore = create<AppState>()((set) => ({
     setLoading: (loading: boolean) => set({ loading }),
     searchTarget: undefined,
     setSearchTarget: (searchTarget) => set({ searchTarget }),
+    dbReady: false,
+    setDbReady: (dbReady) => set({ dbReady }),
     settings: { theme: 'light', pdfTheme: 'default', showPdfNumber: true, showRevenueStatistics: true },
     updateSettings: (values) => {
         set({ loading: true })
@@ -112,5 +69,3 @@ export const useStore = create<AppState>()((set) => ({
     },
 
 }))
-
-

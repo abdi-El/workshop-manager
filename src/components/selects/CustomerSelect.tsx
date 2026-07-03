@@ -5,6 +5,7 @@ import DatabasResourceSelect from "./DatabaseResourceSelect";
 
 export default function CustomerSelect() {
     const [open, setOpen] = useState(false)
+    const [refreshToken, setRefreshToken] = useState(0)
 
     function close() {
         setOpen(false)
@@ -12,9 +13,12 @@ export default function CustomerSelect() {
 
     return <>
         <Modal open={open} onCancel={close} footer={false}>
-            <CustomerForm onSubmit={close} />
+            <CustomerForm onSubmit={() => {
+                close()
+                setRefreshToken(token => token + 1)
+            }} />
         </Modal>
-        <DatabasResourceSelect resource="customers" selectLabel="name" name="customer_id" inputLabel="Cliente" onAddClick={() => {
+        <DatabasResourceSelect resource="customers" selectLabel="name" name="customer_id" inputLabel="Cliente" refreshToken={refreshToken} onAddClick={() => {
             setOpen(true)
         }} />
     </>

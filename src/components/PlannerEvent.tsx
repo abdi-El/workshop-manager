@@ -1,6 +1,5 @@
 import { Descriptions, Popover, Row, Tag } from "antd";
 import { deleteRow } from "../modules/database";
-import { useDatabaseStore } from "../modules/state";
 import { AppointmentEventData } from "../types/database";
 import DeleteButton from "./buttons/DeleteButton";
 import EditButton from "./buttons/EditButton";
@@ -14,7 +13,6 @@ interface Props {
 
 
 export default function PlannerEvent({ appointment, onDelete, onEdit }: Props) {
-    const { updateDatabaseData } = useDatabaseStore(state => state)
     return <Popover
         title={
             <Row justify={"space-between"}>
@@ -26,7 +24,6 @@ export default function PlannerEvent({ appointment, onDelete, onEdit }: Props) {
                     <DeleteButton onConfirm={() => {
                         deleteRow(appointment.id, "appointments", () => {
                             onDelete()
-                            updateDatabaseData(["estimates", "appointments"])
                         })
                     }} />
                 </div>
