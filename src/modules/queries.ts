@@ -101,6 +101,36 @@ export async function getCarHistory(carId: number) {
     )
 }
 
+export async function searchEstimateItemSuggestions(query: string) {
+    return db.select(
+        `SELECT description, unit_price, is_default FROM (
+            SELECT
+                description,
+                unit_price,
+                MAX(CASE WHEN priority = 0 THEN 1 ELSE 0 END) OVER (PARTITION BY LOWER(TRIM(description))) as is_default,
+                ROW_NUMBER() OVER (PARTITION BY LOWER(TRIM(description)) ORDER BY priority DESC, id DESC) as rn
+            FROM (
+                SELECT id, description, unit_price, 0 as priority FROM default_estimate_items
+                UNION ALL
+                SELECT id, description, unit_price, 1 as priority FROM estimate_items
+            )
+            WHERE LOWER(description) LIKE '%' || LOWER($1) || '%'
+        ) WHERE rn = 1
+        ORDER BY description ASC
+        LIMIT 20`,
+        [query]
+    )
+}
+
+export async function searchDefaultEstimateItems(query: string) {
+    return db.select(
+        `SELECT * FROM default_estimate_items
+        WHERE LOWER(description) LIKE '%' || LOWER($1) || '%'
+        ORDER BY description ASC`,
+        [query]
+    )
+}
+
 export const estimatesQuery = `SELECT
                     estimates.id as estimate_id,
                     estimates.car_id,

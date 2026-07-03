@@ -1,14 +1,18 @@
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import { AutoComplete, Button, Col, Form, Input, InputNumber, Row } from 'antd';
+import { AutoComplete, Button, Col, Form, Input, InputNumber, Row, Tag } from 'antd';
 import { useState } from 'react';
-import { useDatabaseStore } from '../../modules/state';
-import { EstimateDefaultItem } from '../../types/database';
+import { searchEstimateItemSuggestions } from '../../modules/queries';
+
+interface ItemSuggestion {
+    description: string;
+    unit_price: number;
+    is_default: number;
+}
 
 export default function EstimateItemsForm() {
     const form = Form.useFormInstance();
     const items = Form.useWatch('items', form);
-    const { default_estimate_items } = useDatabaseStore();
-    const [mappedItems, setMappedItems] = useState<Record<string, EstimateDefaultItem>>({});
+    const [mappedItems, setMappedItems] = useState<Record<string, ItemSuggestion>>({});
 
     return <Form.List name="items">
         {(fields, { add, remove }) => {
@@ -23,7 +27,17 @@ export default function EstimateItemsForm() {
                             >
                                 <AutoComplete
                                     className='w-100'
-                                    options={Object.keys(mappedItems).map(desc => ({ value: desc }))}
+                                    options={Object.values(mappedItems).map(item => ({
+                                        value: item.description,
+                                        label: (
+                                            <Row justify="space-between" align="middle" wrap={false}>
+                                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                                    {item.description} — € {item.unit_price}
+                                                </span>
+                                                {item.is_default ? <Tag color="blue" style={{ marginLeft: 8 }}>Default</Tag> : null}
+                                            </Row>
+                                        ),
+                                    }))}
                                     onSelect={(val) => {
                                         const selectedItem = mappedItems[val];
                                         if (selectedItem) {
@@ -31,12 +45,19 @@ export default function EstimateItemsForm() {
                                         }
                                     }}
                                     onSearch={(val) => {
-                                        setMappedItems(default_estimate_items.reduce((acc, item) => {
-                                            if (item.description.toLowerCase().includes(val.toLowerCase())) {
+                                        const query = val.trim();
+                                        if (!query) {
+                                            setMappedItems({});
+                                            return;
+                                        }
+                                        searchEstimateItemSuggestions(query).then((rows) => {
+                                            setMappedItems((rows as ItemSuggestion[]).reduce((acc, item) => {
                                                 acc[item.description] = item;
-                                            }
-                                            return acc;
-                                        }, {} as Record<string, EstimateDefaultItem>))
+                                                return acc;
+                                            }, {} as Record<string, ItemSuggestion>))
+                                        }).catch(() => {
+                                            setMappedItems({});
+                                        })
                                     }}
 
                                 >
@@ -79,5 +100,3 @@ export default function EstimateItemsForm() {
     </Form.List >
 
 }
-
-

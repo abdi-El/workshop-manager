@@ -1,21 +1,34 @@
-import { Button, Col, Input, List, Modal, Row } from "antd";
-import { useState } from "react";
+import { Button, Col, Input, List, message, Modal, Row } from "antd";
+import { useEffect, useState } from "react";
 import { deleteRow } from "../modules/database";
-import { useDatabaseStore } from "../modules/state";
+import { searchDefaultEstimateItems } from "../modules/queries";
 import { EstimateDefaultItem } from "../types/database";
 import DeleteButton from "./buttons/DeleteButton";
 import DefaultEstimateItemForm from "./forms/DefaultEstimateItemForm";
 
 export default function DefaultEstimateItems() {
     const [open, setOpen] = useState(false);
-    const { default_estimate_items, updateDatabaseData } = useDatabaseStore((state) => state)
+    const [items, setItems] = useState<EstimateDefaultItem[]>([]);
     const [selectedItem, setSelectedItem] = useState<EstimateDefaultItem>();
     const [searchTerm, setSearchTerm] = useState("");
+
+    const loadItems = (query: string) => {
+        searchDefaultEstimateItems(query).then((rows) => {
+            setItems(rows as EstimateDefaultItem[]);
+        }).catch((error) => {
+            message.error("Errore nel recupero delle voci: " + error);
+        });
+    };
+
+    useEffect(() => {
+        loadItems(searchTerm);
+    }, [searchTerm]);
 
     return <>
         <Modal title="Voci di default" open={open} onCancel={() => setOpen(false)} footer={null} width={"80%"}>
             <DefaultEstimateItemForm onSubmit={() => {
                 setOpen(false);
+                loadItems(searchTerm);
             }} item={selectedItem} />
         </Modal>
         <List header={
@@ -35,7 +48,7 @@ export default function DefaultEstimateItems() {
             </Row>
         }>
             {
-                default_estimate_items.length ? default_estimate_items.filter(i => i.description.toLowerCase().includes(searchTerm)).map(item => (
+                items.length ? items.map(item => (
                     <List.Item key={item.id}>
                         <List.Item.Meta
                             title={item.description}
@@ -47,7 +60,7 @@ export default function DefaultEstimateItems() {
                         }} type="dashed">Modifica</Button>
                         <DeleteButton onConfirm={() => {
                             deleteRow(item.id, "default_estimate_items", () => {
-                                updateDatabaseData(["default_estimate_items"])
+                                loadItems(searchTerm)
                             })
                         }} />
                     </List.Item>
