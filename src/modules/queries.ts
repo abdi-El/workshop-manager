@@ -66,6 +66,41 @@ export async function getUpcomingInspections() {
         `)
 }
 
+export async function getCarHistory(carId: number) {
+    return db.select(
+        `SELECT
+            e.id,
+            e.date,
+            e.labor_hours,
+            e.labor_hourly_cost,
+            e.discount,
+            e.car_kms,
+            e.notes,
+            ROUND(
+                (e.labor_hours * e.labor_hourly_cost) +
+                COALESCE(ei.items_total, 0) -
+                COALESCE(e.discount, 0),
+            2) as total,
+            ei.items_descriptions
+        FROM estimates e
+        LEFT JOIN (
+            SELECT
+                estimate_id,
+                SUM(quantity * unit_price) as items_total,
+                GROUP_CONCAT(quantity || '× ' || description, ' · ') as items_descriptions
+            FROM estimate_items
+            GROUP BY estimate_id
+        ) ei ON e.id = ei.estimate_id
+        WHERE e.car_id = $1
+        ORDER BY DATE(
+            SUBSTR(e.date, 7, 4) || '-' ||
+            SUBSTR(e.date, 4, 2) || '-' ||
+            SUBSTR(e.date, 1, 2)
+        ) DESC`,
+        [carId]
+    )
+}
+
 export const estimatesQuery = `SELECT
                     estimates.id as estimate_id,
                     estimates.car_id,

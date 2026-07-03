@@ -1,13 +1,14 @@
-import { FileTextOutlined, PlusOutlined } from "@ant-design/icons";
+import { FileTextOutlined, HistoryOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Drawer, InputRef, Row, Space, Table, Tooltip } from "antd";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
 import EditButton from "../components/buttons/EditButton";
+import CarHistory from "../components/CarHistory";
 import CarsForm from "../components/forms/CarsForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import { deleteRow } from "../modules/database";
-import { useDatabaseStore } from "../modules/state";
+import { useDatabaseStore, useStore } from "../modules/state";
 import { getLogoUrl } from "../modules/utils";
 import { Car } from "../types/database";
 
@@ -15,8 +16,20 @@ import { Car } from "../types/database";
 export default function Cars() {
     const [open, setOpen] = useState(false);
     const { cars, updateDatabaseData } = useDatabaseStore((state) => state)
+    const { searchTarget, setSearchTarget } = useStore((state) => state)
     const [selectedCar, setSelectedCar] = useState<Car>();
+    const [historyCar, setHistoryCar] = useState<Car>();
     const searchInput = useRef<InputRef>(null);
+
+    useEffect(() => {
+        if (searchTarget?.table !== "cars") return;
+        const target = cars.find((c) => c.id === searchTarget.id);
+        setSearchTarget(undefined);
+        if (target) {
+            setSelectedCar(target);
+            setOpen(true);
+        }
+    }, [searchTarget, cars]);
 
 
     const columns = [
@@ -71,6 +84,9 @@ export default function Cars() {
             render: (_: unknown, cr: Car) =>
                 <Space>
                     <EditButton onClick={() => { showDrawer(); setSelectedCar(cr) }} />
+                    <Tooltip title="Storico interventi">
+                        <Button icon={<HistoryOutlined />} onClick={() => setHistoryCar(cr)} />
+                    </Tooltip>
                     <DeleteButton onConfirm={() => {
                         deleteRow(cr.id, "cars", () => {
                             updateDatabaseData(["cars", "estimates"]);
@@ -102,6 +118,15 @@ export default function Cars() {
             open={open}
         >
             <CarsForm onSubmit={onClose} car={selectedCar} />
+        </Drawer>
+        <Drawer
+            title={`Storico interventi — ${historyCar?.number_plate ?? ""}`}
+            closable={{ 'aria-label': 'Chiudi' }}
+            onClose={() => setHistoryCar(undefined)}
+            open={!!historyCar}
+            width={480}
+        >
+            {historyCar && <CarHistory car={historyCar} />}
         </Drawer>
         <Table dataSource={cars} columns={columns as any} rowKey="id" />
     </>

@@ -1,7 +1,8 @@
 import { CalendarOutlined, CarOutlined, DashboardOutlined, FileTextOutlined, LoadingOutlined, SettingOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
-import { Layout, Menu, Row, Spin, Typography } from "antd";
+import { Layout, Menu, Row, Spin, theme, Typography } from "antd";
 import { useScraper } from '../modules/hooks';
 import { useDatabaseStore, useStore } from "../modules/state";
+import GlobalSearch from './GlobalSearch';
 import Cars from '../pages/Cars';
 import Customers from '../pages/Customers';
 import Dashboard from '../pages/Dashboard';
@@ -16,6 +17,7 @@ export default function Paginator() {
     const { page, loading, updatePage } = useStore()
     const { databaseLoading } = useDatabaseStore()
     const { percentage, loading: scraping } = useScraper()
+    const { token } = theme.useToken()
     const items = {
         "dashboard": {
             label: 'Dashboard',
@@ -63,10 +65,13 @@ export default function Paginator() {
 
     return <Layout style={{ width: '100%', minHeight: '100vh' }}>
 
-        <Layout.Header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: 0 }}>
-            <Menu onClick={(e) => {
+        <Layout.Header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: 0, display: 'flex', alignItems: 'center', background: token.colorBgContainer }}>
+            <Menu style={{ flex: 1, minWidth: 0 }} onClick={(e) => {
                 updatePage(e.key)
             }} selectedKeys={[page]} mode="horizontal" items={Object.values(items)} />
+            <div style={{ padding: '0 16px' }}>
+                <GlobalSearch />
+            </div>
         </Layout.Header>
 
         <Spin spinning={loading || databaseLoading} indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} >

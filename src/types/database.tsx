@@ -101,6 +101,18 @@ export interface AppointmentEventData {
     estimate_status: boolean
 }
 
+export interface CarHistoryEntry {
+    id: number;
+    date: string;
+    labor_hours: number;
+    labor_hourly_cost: number;
+    discount: number | null;
+    car_kms: number | null;
+    notes: string | null;
+    total: number | null;
+    items_descriptions: string | null;
+}
+
 export interface EstiamatesAverages {
     avg_discount: number
     avg_hourly_cost: number

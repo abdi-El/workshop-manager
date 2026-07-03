@@ -20,6 +20,11 @@ export interface DatabaseState {
     updateDatabaseData: (key?: (keyof DatabaseState)[]) => void
 }
 
+export interface SearchTarget {
+    table: "customers" | "cars" | "estimates"
+    id: number
+}
+
 interface AppState {
     isDebug: boolean
     setIsDebug: (isDebug: boolean) => void
@@ -29,6 +34,8 @@ interface AppState {
     setLoading: (loading: boolean) => void
     settings: SettingsType
     updateSettings: (values?: Partial<SettingsType>) => void
+    searchTarget?: SearchTarget
+    setSearchTarget: (target?: SearchTarget) => void
 }
 
 const customQueries: Record<string, string> = {
@@ -80,6 +87,8 @@ export const useStore = create<AppState>()((set) => ({
         return { page: actualPage, settings: newSettings };
     }),
     setLoading: (loading: boolean) => set({ loading }),
+    searchTarget: undefined,
+    setSearchTarget: (searchTarget) => set({ searchTarget }),
     settings: { theme: 'light', pdfTheme: 'default', showPdfNumber: true, showRevenueStatistics: true },
     updateSettings: (values) => {
         set({ loading: true })

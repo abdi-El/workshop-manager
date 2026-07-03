@@ -1,6 +1,6 @@
 import { FileTextOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Drawer, InputRef, Row, Space, Table, Tooltip } from "antd";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
 import EditButton from "../components/buttons/EditButton";
@@ -8,15 +8,26 @@ import CustomerForm from "../components/forms/CustomerForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import CustomersTour from "../components/tours/CustomerTour";
 import { deleteRow } from "../modules/database";
-import { useDatabaseStore } from "../modules/state";
+import { useDatabaseStore, useStore } from "../modules/state";
 import { Customer } from "../types/database";
 
 
 export default function Customers() {
     const [open, setOpen] = useState(false);
     const { customers, updateDatabaseData } = useDatabaseStore((state) => state)
+    const { searchTarget, setSearchTarget } = useStore((state) => state)
     const [selectedCustomer, setSelectedCustomer] = useState<Customer>();
     const searchInput = useRef<InputRef>(null);
+
+    useEffect(() => {
+        if (searchTarget?.table !== "customers") return;
+        const target = customers.find((c) => c.id === searchTarget.id);
+        setSearchTarget(undefined);
+        if (target) {
+            setSelectedCustomer(target);
+            setOpen(true);
+        }
+    }, [searchTarget, customers]);
 
 
     const columns = [

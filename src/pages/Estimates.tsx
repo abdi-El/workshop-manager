@@ -1,6 +1,6 @@
 import { CalendarOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Drawer, InputRef, Modal, Popover, Row, Space, Table } from "antd";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
 import EditButton from "../components/buttons/EditButton";
@@ -10,7 +10,7 @@ import SaveEstimatePdf from "../components/pdf/SavePdfButton";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import { deleteRow } from "../modules/database";
 import { sortBytDate } from "../modules/dates";
-import { useDatabaseStore } from "../modules/state";
+import { useDatabaseStore, useStore } from "../modules/state";
 import { getLogoUrl } from "../modules/utils";
 import { Estimate } from "../types/database";
 
@@ -22,8 +22,19 @@ function estimateSorter(a: Estimate, b: Estimate, key: keyof Estimate) {
 export default function Estimates() {
     const [open, setOpen] = useState(false);
     const { estimates, updateDatabaseData } = useDatabaseStore((state) => state)
+    const { searchTarget, setSearchTarget } = useStore((state) => state)
     const [selectedEstimate, setSelectedEstimate] = useState<Estimate>();
     const searchInput = useRef<InputRef>(null);
+
+    useEffect(() => {
+        if (searchTarget?.table !== "estimates") return;
+        const target = estimates.find((e) => e.id === searchTarget.id);
+        setSearchTarget(undefined);
+        if (target) {
+            setSelectedEstimate(target);
+            setOpen(true);
+        }
+    }, [searchTarget, estimates]);
 
     const columns = [
         {
