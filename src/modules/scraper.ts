@@ -14,9 +14,26 @@ interface dataType {
     }
 }
 
+const FETCH_DELAY_MS = 350
+const MAX_RETRIES = 5
+
+function sleep(ms: number) {
+    return new Promise(resolve => setTimeout(resolve, ms))
+}
+
 async function fetchWithProxy(url: string) {
-    const body = await invoke<string>('fetch', { url })
-    return JSON.parse(body)
+    let lastError: unknown
+    for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+        try {
+            const body = await invoke<string>('fetch', { url })
+            // il rate limit di Wikipedia risponde con testo/HTML: JSON.parse fallisce e si riprova
+            return JSON.parse(body)
+        } catch (error) {
+            lastError = error
+            await sleep(2000 * 2 ** attempt)
+        }
+    }
+    throw lastError
 }
 
 export async function getMakers() {
@@ -79,7 +96,13 @@ export async function getModelsAndMakers(onProgress?: (progress: number) => void
     for (const maker of fetchedMakers) {
         const makerName = maker.title.replace("Categoria:Automobili ", "").toUpperCase()
         const makerId = await updateOrCreateMaker(makerName, formattedMakers[makerName])
+        await sleep(FETCH_DELAY_MS)
         const fetchedModels = await getModels(maker.title);
+        if (!fetchedModels.length) {
+            totalProgress += makersStep;
+            onProgress?.(Math.round(totalProgress * 1e2) / 1e2);
+            continue;
+        }
         const modelsStep = makersStep / fetchedModels.length;
 
         for (const model of fetchedModels) {

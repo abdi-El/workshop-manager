@@ -11,9 +11,7 @@ pub async fn fetch(url: String) -> Result<String, String> {
         .get(url)
         .header(
             USER_AGENT,
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) \
-            AppleWebKit/537.36 (KHTML, like Gecko) \
-            Chrome/114.0.0.0 Safari/537.36",
+            "WorkshopManager/2.7 (https://github.com/abdi-El/workshop-manager)",
         )
         .send()
         .await

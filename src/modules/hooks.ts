@@ -46,6 +46,9 @@ export const useScraper = create<ScraperState>()((set) => {
                         set({ loading: false })
                     }
                     set({ percentage })
+                }).catch((error) => {
+                    message.error("Errore durante l'importazione di marche e modelli: " + error)
+                    set({ loading: false, percentage: 100 })
                 })
             }
             return {}
