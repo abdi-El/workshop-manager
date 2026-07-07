@@ -1,12 +1,13 @@
 import { CalendarOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, InputRef, Modal, Popover, Row, Skeleton, Space, Table } from "antd";
+import { Button, Drawer, InputRef, Popover, Row, Skeleton, Space, Table } from "antd";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
 import EditButton from "../components/buttons/EditButton";
 import AppointmentForm from "../components/forms/AppointmentForm";
 import EstimatesForm from "../components/forms/EstimatesForm";
-import SaveEstimatePdf from "../components/pdf/SavePdfButton";
+import { lazy } from "react";
+const SaveEstimatePdf = lazy(() => import("../components/pdf/SavePdfButton"));
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import { deleteRow } from "../modules/database";
 import { sortBytDate } from "../modules/dates";
@@ -133,10 +134,6 @@ export default function Estimates() {
                 Crea Lavoro
             </Button>
         </Row>
-        <Modal>
-
-        </Modal>
-
         <Drawer
             title={`${selectedEstimate ? "Aggiorna" : "Crea Nuovo"} Lavoro`}
             closable={{ 'aria-label': 'Chiudi' }}
