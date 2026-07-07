@@ -1,6 +1,6 @@
 import { CalendarOutlined, CarOutlined, DashboardOutlined, FileTextOutlined, LoadingOutlined, SettingOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
 import { Layout, Menu, Row, Spin, theme, Typography } from "antd";
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useEffect } from 'react';
 import { useScraper } from '../modules/hooks';
 import { useStore } from "../modules/state";
 import ErrorBoundary from './ErrorBoundary';
@@ -64,6 +64,19 @@ export default function Paginator() {
             page: <Settings />
         },
     }
+
+    const pageKeys = Object.keys(items);
+    useEffect(() => {
+        function onKeyDown(e: KeyboardEvent) {
+            if (e.altKey && e.key >= '1' && e.key <= '7') {
+                e.preventDefault();
+                const idx = parseInt(e.key) - 1;
+                if (pageKeys[idx]) updatePage(pageKeys[idx]);
+            }
+        }
+        window.addEventListener('keydown', onKeyDown);
+        return () => window.removeEventListener('keydown', onKeyDown);
+    }, []);
 
     return <Layout style={{ width: '100%', minHeight: '100vh' }}>
 

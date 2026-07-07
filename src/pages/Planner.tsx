@@ -1,3 +1,4 @@
+import dayGridPlugin from '@fullcalendar/daygrid';
 import { EventImpl } from '@fullcalendar/core/internal';
 import itLocale from '@fullcalendar/core/locales/it';
 import interactionPlugin from '@fullcalendar/interaction';
@@ -21,17 +22,17 @@ interface EventProps extends EventImpl {
 }
 
 const mapAppointmentsToEvents = (appointments: AppointmentEventData[]) => {
-    return appointments.map((appt) => {
-        return {
-            id: appt.id.toString(),
-            title: `Appt #${appt.id}`,
-            start: toISOFormat(appt.date, appt.from_time),
-            end: toISOFormat(appt.date, appt.to_time),
-            extendedProps: {
-                appointment: appt,
-            }
+    return appointments.map((appt) => ({
+        id: appt.id.toString(),
+        title: appt.customer_name || `Appt #${appt.id}`,
+        start: toISOFormat(appt.date, appt.from_time),
+        end: toISOFormat(appt.date, appt.to_time),
+        backgroundColor: appt.estimate_status ? '#52c41a' : '#faad14',
+        borderColor: appt.estimate_status ? '#389e0d' : '#d48806',
+        extendedProps: {
+            appointment: appt,
         }
-    });
+    }));
 };
 
 export default function Planner() {
@@ -95,12 +96,22 @@ export default function Planner() {
 
             <div id='calendar'>
                 <FullCalendar
-                    plugins={[timeGridPlugin, interactionPlugin]}
+                    plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
                     initialView='timeGridWeek'
                     headerToolbar={{
-                        left: 'prev,next',
+                        left: 'prev,next today',
                         center: 'title',
-                        right: 'timeGridWeek,timeGridDay'
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    }}
+                    height="calc(100vh - 200px)"
+                    nowIndicator={true}
+                    scrollTime="08:00:00"
+                    slotMinTime="06:00:00"
+                    slotMaxTime="21:00:00"
+                    businessHours={{
+                        daysOfWeek: [1, 2, 3, 4, 5, 6],
+                        startTime: '08:00',
+                        endTime: '18:00',
                     }}
                     eventDrop={handleEventDrop}
                     eventResize={handleEventDrop}
@@ -110,8 +121,20 @@ export default function Planner() {
                     eventContent={(eventInfo) => {
                         const { event } = eventInfo;
                         const { extendedProps } = event as EventProps;
-                        const { appointment } = extendedProps
-                        return <PlannerEvent appointment={appointment} onDelete={getData} onEdit={(appointment) => { setEditing(appointment) }} />
+                        const { appointment } = extendedProps;
+                        if (eventInfo.view.type === 'dayGridMonth') {
+                            return <PlannerEvent appointment={appointment} onDelete={getData} onEdit={(appointment) => { setEditing(appointment) }}>
+                                <div style={{ fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 2px' }}>
+                                    <strong>{appointment.from_time}</strong> {appointment.customer_name} · {appointment.number_plate}
+                                </div>
+                            </PlannerEvent>;
+                        }
+                        return <PlannerEvent appointment={appointment} onDelete={getData} onEdit={(appointment) => { setEditing(appointment) }}>
+                            <div style={{ padding: '2px 4px', fontSize: 12, lineHeight: 1.3 }}>
+                                <div style={{ fontWeight: 600 }}>{appointment.customer_name}</div>
+                                <div>{appointment.number_plate} · {appointment.car_info}</div>
+                            </div>
+                        </PlannerEvent>;
                     }}
                     dateClick={(date) => {
                         setSelectedDate(date.date)

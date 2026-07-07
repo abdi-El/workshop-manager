@@ -1,4 +1,5 @@
 import { Descriptions, Popover, Row, Tag } from "antd";
+import { ReactNode } from "react";
 import { deleteRow } from "../modules/database";
 import { AppointmentEventData } from "../types/database";
 import DeleteButton from "./buttons/DeleteButton";
@@ -9,10 +10,11 @@ interface Props {
     appointment: AppointmentEventData
     onDelete: () => void
     onEdit: (app: AppointmentEventData) => void
+    children?: ReactNode
 }
 
 
-export default function PlannerEvent({ appointment, onDelete, onEdit }: Props) {
+export default function PlannerEvent({ appointment, onDelete, onEdit, children }: Props) {
     return <Popover
         title={
             <Row justify={"space-between"}>
@@ -48,6 +50,6 @@ export default function PlannerEvent({ appointment, onDelete, onEdit }: Props) {
         </Descriptions>}
         trigger={"click"}
     >
-        <div className="h-100">{appointment.car_info}</div>
+        <div className="h-100">{children ?? appointment.car_info}</div>
     </Popover>
 }

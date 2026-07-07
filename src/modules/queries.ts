@@ -145,7 +145,7 @@ export async function searchDefaultEstimateItems(query: string) {
     )
 }
 
-export const estimatesQuery = `SELECT
+const estimatesBaseQuery = `SELECT
                     estimates.id as estimate_id,
                     estimates.car_id,
                     estimates.customer_id,
@@ -177,34 +177,36 @@ export const estimatesQuery = `SELECT
                     SELECT estimate_id, SUM(quantity * unit_price) as items_total
                     FROM estimate_items
                     GROUP BY estimate_id
-                ) ei ON estimates.id = ei.estimate_id
-                ORDER BY id DESC
-                `
+                ) ei ON estimates.id = ei.estimate_id`
+
+export const estimatesQuery = `${estimatesBaseQuery} ORDER BY id DESC`
 
 
-export const carQuery = `SELECT cars.id as car_id,
+const carBaseQuery = `SELECT cars.id as car_id,
                 cars.model_id,
                 cars.maker_id,
-                cars.*, 
+                cars.*,
                 model.id as model_id,
                 model.name as model_name,
-                maker.id as maker_id,  
-                maker.name as maker_name, 
+                maker.id as maker_id,
+                maker.name as maker_name,
                 CONCAT(maker.name, ' ', model.name,' ' , number_plate ,' (', year, ')') as car_info
-                FROM cars 
-            LEFT JOIN models as model ON cars.model_id = model.id 
-            LEFT JOIN makers as maker ON cars.maker_id = maker.id
-            ORDER BY id DESC
-            `
+                FROM cars
+            LEFT JOIN models as model ON cars.model_id = model.id
+            LEFT JOIN makers as maker ON cars.maker_id = maker.id`
+
+export const carQuery = `${carBaseQuery} ORDER BY id DESC`
 
 export async function getEstimatePdfData(estimateId: number) {
-    const estimates = await db.select(estimatesQuery) as any[];
-    const estimate = estimates.find((e) => e.id === estimateId);
-    if (!estimate) return null;
+    const rows = await db.select(
+        `${estimatesBaseQuery} WHERE estimates.id = $1`, [estimateId]
+    ) as any[];
+    if (!rows[0]) return null;
+    const estimate = rows[0];
     estimate.has_iva = estimate.has_iva == "true";
 
     const [cars, customers, workshops] = await Promise.all([
-        db.select(`${carQuery.replace("ORDER BY id DESC", "")} WHERE cars.id = $1`, [estimate.car_id]) as Promise<any[]>,
+        db.select(`${carBaseQuery} WHERE cars.id = $1`, [estimate.car_id]) as Promise<any[]>,
         db.select(`SELECT * FROM customers WHERE id = $1`, [estimate.customer_id]) as Promise<any[]>,
         db.select(`SELECT * FROM workshops WHERE id = $1`, [estimate.workshop_id]) as Promise<any[]>,
     ]);
