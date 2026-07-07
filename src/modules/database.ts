@@ -58,19 +58,33 @@ export { db, storeSettings };
 
 
 
+export async function withTransaction<T>(fn: () => Promise<T>): Promise<T> {
+    await db.execute("BEGIN TRANSACTION");
+    try {
+        const result = await fn();
+        await db.execute("COMMIT");
+        return result;
+    } catch (error) {
+        await db.execute("ROLLBACK");
+        throw error;
+    }
+}
+
 export async function createOrUpdateEstimate(estimate: Estimate, items: EstimateItem[], onFinish: () => void, estimateId?: number) {
     try {
-        if (estimateId != undefined) {
-            await update(estimate, estimateId, 'estimates', false);
-        } else {
-            const result = await create(estimate, 'estimates', false);
-            estimateId = result?.lastInsertId;
-        }
+        await withTransaction(async () => {
+            if (estimateId != undefined) {
+                await update(estimate, estimateId, 'estimates', false);
+            } else {
+                const result = await create(estimate, 'estimates', false);
+                estimateId = result?.lastInsertId;
+            }
 
-        await db.execute(`DELETE FROM estimate_items WHERE estimate_id = ${estimateId}`);
-        await Promise.all(items.map(({ total_price, ...item }) =>
-            create({ ...item, estimate_id: estimateId }, 'estimate_items', false)
-        ));
+            await db.execute(`DELETE FROM estimate_items WHERE estimate_id = $1`, [estimateId]);
+            for (const { total_price, ...item } of items) {
+                await create({ ...item, estimate_id: estimateId }, 'estimate_items', false);
+            }
+        });
 
         message.success('Operazione completata con successo!');
         onFinish();

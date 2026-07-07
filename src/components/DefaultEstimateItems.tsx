@@ -1,6 +1,7 @@
 import { Button, Col, Input, List, message, Modal, Row } from "antd";
 import { useEffect, useState } from "react";
 import { deleteRow } from "../modules/database";
+import { useDebounce } from "../modules/hooks";
 import { searchDefaultEstimateItems } from "../modules/queries";
 import { EstimateDefaultItem } from "../types/database";
 import DeleteButton from "./buttons/DeleteButton";
@@ -11,6 +12,7 @@ export default function DefaultEstimateItems() {
     const [items, setItems] = useState<EstimateDefaultItem[]>([]);
     const [selectedItem, setSelectedItem] = useState<EstimateDefaultItem>();
     const [searchTerm, setSearchTerm] = useState("");
+    const debouncedSearch = useDebounce(searchTerm, 250);
 
     const loadItems = (query: string) => {
         searchDefaultEstimateItems(query).then((rows) => {
@@ -21,8 +23,8 @@ export default function DefaultEstimateItems() {
     };
 
     useEffect(() => {
-        loadItems(searchTerm);
-    }, [searchTerm]);
+        loadItems(debouncedSearch);
+    }, [debouncedSearch]);
 
     return <>
         <Modal title="Voci di default" open={open} onCancel={() => setOpen(false)} footer={null} width={"80%"}>

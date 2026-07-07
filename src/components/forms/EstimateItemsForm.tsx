@@ -1,6 +1,7 @@
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { AutoComplete, Button, Col, Form, Input, InputNumber, Row, Tag } from 'antd';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useDebounce } from '../../modules/hooks';
 import { searchEstimateItemSuggestions } from '../../modules/queries';
 
 interface ItemSuggestion {
@@ -13,6 +14,21 @@ export default function EstimateItemsForm() {
     const form = Form.useFormInstance();
     const items = Form.useWatch('items', form);
     const [mappedItems, setMappedItems] = useState<Record<string, ItemSuggestion>>({});
+    const [searchQuery, setSearchQuery] = useState('');
+    const debouncedQuery = useDebounce(searchQuery, 250);
+
+    useEffect(() => {
+        if (!debouncedQuery) {
+            setMappedItems({});
+            return;
+        }
+        searchEstimateItemSuggestions(debouncedQuery).then((rows) => {
+            setMappedItems((rows as ItemSuggestion[]).reduce((acc, item) => {
+                acc[item.description] = item;
+                return acc;
+            }, {} as Record<string, ItemSuggestion>));
+        }).catch(() => setMappedItems({}));
+    }, [debouncedQuery]);
 
     return <Form.List name="items">
         {(fields, { add, remove }) => {
@@ -44,21 +60,7 @@ export default function EstimateItemsForm() {
                                             form.setFieldValue(['items', name, 'unit_price'], selectedItem.unit_price);
                                         }
                                     }}
-                                    onSearch={(val) => {
-                                        const query = val.trim();
-                                        if (!query) {
-                                            setMappedItems({});
-                                            return;
-                                        }
-                                        searchEstimateItemSuggestions(query).then((rows) => {
-                                            setMappedItems((rows as ItemSuggestion[]).reduce((acc, item) => {
-                                                acc[item.description] = item;
-                                                return acc;
-                                            }, {} as Record<string, ItemSuggestion>))
-                                        }).catch(() => {
-                                            setMappedItems({});
-                                        })
-                                    }}
+                                    onSearch={(val) => setSearchQuery(val.trim())}
 
                                 >
                                     <Input.TextArea className='w-100' placeholder="descrizione" spellCheck lang="it" />

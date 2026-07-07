@@ -1,15 +1,18 @@
 import { CalendarOutlined, CarOutlined, DashboardOutlined, FileTextOutlined, LoadingOutlined, SettingOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
 import { Layout, Menu, Row, Spin, theme, Typography } from "antd";
+import { lazy, Suspense } from 'react';
 import { useScraper } from '../modules/hooks';
 import { useStore } from "../modules/state";
+import ErrorBoundary from './ErrorBoundary';
 import GlobalSearch from './GlobalSearch';
-import Cars from '../pages/Cars';
-import Customers from '../pages/Customers';
-import Dashboard from '../pages/Dashboard';
-import Estimates from '../pages/Estimates';
-import Planner from '../pages/Planner';
-import Settings from '../pages/Settings';
-import Workshops from '../pages/Workshops';
+
+const Cars = lazy(() => import('../pages/Cars'));
+const Customers = lazy(() => import('../pages/Customers'));
+const Dashboard = lazy(() => import('../pages/Dashboard'));
+const Estimates = lazy(() => import('../pages/Estimates'));
+const Planner = lazy(() => import('../pages/Planner'));
+const Settings = lazy(() => import('../pages/Settings'));
+const Workshops = lazy(() => import('../pages/Workshops'));
 
 const { Title } = Typography;
 
@@ -76,7 +79,11 @@ export default function Paginator() {
         <Spin spinning={loading || !dbReady} indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} >
             <div style={{ padding: '0px 10px', marginTop: 74 }}>
                 <Title level={2}>{items[page as keyof typeof items]?.label}</Title>
-                {dbReady && items[page as keyof typeof items]?.page}
+                <ErrorBoundary>
+                    <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 200px)' }}><Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} /></div>}>
+                        {dbReady && items[page as keyof typeof items]?.page}
+                    </Suspense>
+                </ErrorBoundary>
             </div>
         </Spin>
         {scraping && <div className='scraper'>

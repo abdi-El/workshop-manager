@@ -122,7 +122,7 @@ export default function Customers() {
         >
             {carsCustomer && <CustomerCars customer={carsCustomer} />}
         </Drawer>
-        <Table dataSource={customers} columns={columns as any} rowKey="id" loading={loading} />
+        <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={customers} columns={columns as any} rowKey="id" loading={loading} />
         <CustomersTour />
     </>
 };

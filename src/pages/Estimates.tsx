@@ -146,7 +146,7 @@ export default function Estimates() {
         >
             <EstimatesForm onSubmit={() => { onClose(); reload(); }} estimate={selectedEstimate} />
         </Drawer>
-        <Table dataSource={estimates} columns={columns as any} rowKey="id" loading={loading} />
+        <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={estimates} columns={columns as any} rowKey="id" loading={loading} />
     </>
 };
 

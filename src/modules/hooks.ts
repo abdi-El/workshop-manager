@@ -4,6 +4,15 @@ import { create } from "zustand";
 import { db, storeSettings } from "./database";
 import { getModelsAndMakers } from "./scraper";
 
+export function useDebounce<T>(value: T, delay: number): T {
+    const [debounced, setDebounced] = useState(value);
+    useEffect(() => {
+        const timer = setTimeout(() => setDebounced(value), delay);
+        return () => clearTimeout(timer);
+    }, [value, delay]);
+    return debounced;
+}
+
 export function useDbQuery<T>(query: string, params?: any[]) {
     const [data, setData] = useState<T[]>([]);
     const [loading, setLoading] = useState(true);

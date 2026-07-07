@@ -1,6 +1,7 @@
 import { CarOutlined, FileTextOutlined, SearchOutlined, UserOutlined } from '@ant-design/icons';
 import { AutoComplete, Input, InputRef, Space, Typography } from 'antd';
 import { ReactNode, useEffect, useRef, useState } from 'react';
+import { useDebounce } from '../modules/hooks';
 import { globalSearch, SearchResult, SearchResultType } from '../modules/search';
 import { useStore } from '../modules/state';
 
@@ -27,19 +28,21 @@ export default function GlobalSearch() {
         return () => window.removeEventListener('keydown', onKeyDown);
     }, []);
 
+    const debouncedValue = useDebounce(value, 250);
+
     useEffect(() => {
-        if (!dbReady || !value.trim()) {
+        if (!dbReady || !debouncedValue.trim()) {
             setResults([]);
             return;
         }
         let cancelled = false;
-        globalSearch(value).then((found) => {
+        globalSearch(debouncedValue).then((found) => {
             if (!cancelled) setResults(found);
         }).catch(() => {
             if (!cancelled) setResults([]);
         });
         return () => { cancelled = true };
-    }, [value, dbReady]);
+    }, [debouncedValue, dbReady]);
 
     const options = (Object.keys(groups) as SearchResultType[])
         .map((type) => {

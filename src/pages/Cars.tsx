@@ -130,7 +130,7 @@ export default function Cars() {
         >
             {historyCar && <CarHistory car={historyCar} />}
         </Drawer>
-        <Table dataSource={cars} columns={columns as any} rowKey="id" loading={loading} />
+        <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={cars} columns={columns as any} rowKey="id" loading={loading} />
     </>
 };
 
