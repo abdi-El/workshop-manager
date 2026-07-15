@@ -235,7 +235,7 @@ async fn fallback_index() -> impl IntoResponse {
     Html(include_str!("../../dist/index.html"))
 }
 
-pub async fn start(db_path: String) {
+pub async fn start(db_path: String, dist_path: String) {
     let conn = Connection::open(&db_path).expect("Failed to open database");
     conn.execute_batch("PRAGMA journal_mode=WAL;")
         .expect("Failed to set WAL mode");
@@ -249,15 +249,11 @@ pub async fn start(db_path: String) {
         .with_state(db)
         .layer(CorsLayer::permissive());
 
-    let app = if cfg!(debug_assertions) {
-        api
-    } else {
-        let serve_dir = tower_http::services::ServeDir::new("dist")
-            .fallback(tower::util::service_fn(|_req: axum::http::Request<axum::body::Body>| async {
-                Ok::<_, std::convert::Infallible>(fallback_index().await.into_response())
-            }));
-        api.fallback_service(serve_dir)
-    };
+    let serve_dir = tower_http::services::ServeDir::new(&dist_path)
+        .fallback(tower::util::service_fn(|_req: axum::http::Request<axum::body::Body>| async {
+            Ok::<_, std::convert::Infallible>(fallback_index().await.into_response())
+        }));
+    let app = api.fallback_service(serve_dir);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3333")
         .await
