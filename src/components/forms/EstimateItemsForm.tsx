@@ -1,9 +1,22 @@
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import { Button, Col, Form, Input, InputNumber, Row } from 'antd';
+import { AutoComplete, Button, Col, Form, InputNumber, Row } from 'antd';
+import { useEffect, useState } from 'react';
+import { useDebounce } from '../../modules/hooks';
+import { searchDefaultEstimateItems } from '../../modules/queries';
 
 export default function EstimateItemsForm() {
     const form = Form.useFormInstance();
     const items = Form.useWatch('items', form);
+    const [suggestions, setSuggestions] = useState<{ value: string }[]>([]);
+    const [search, setSearch] = useState('');
+    const debouncedSearch = useDebounce(search, 300);
+
+    useEffect(() => {
+        if (debouncedSearch.length < 2) { setSuggestions([]); return; }
+        searchDefaultEstimateItems(debouncedSearch).then((rows) => {
+            setSuggestions((rows as { description: string }[]).map(r => ({ value: r.description })));
+        });
+    }, [debouncedSearch]);
 
     return <Form.List name="items">
         {(fields, { add, remove }) => {
@@ -16,7 +29,13 @@ export default function EstimateItemsForm() {
                                 name={[name, 'description']}
                                 rules={[{ required: true, message: 'Inserire descrizione' }]}
                             >
-                                <Input.TextArea className='w-100' placeholder="descrizione" spellCheck lang="it" />
+                                <AutoComplete
+                                    className='w-100'
+                                    placeholder="descrizione"
+                                    options={suggestions}
+                                    onSearch={setSearch}
+                                    backfill
+                                />
                             </Form.Item >
                         </Col>
                         <Col span={3}>

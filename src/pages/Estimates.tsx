@@ -47,12 +47,14 @@ export default function Estimates() {
             title: "Data",
             dataIndex: "date",
             key: "date",
+            width: 110,
             sorter: (a: Estimate, b: Estimate) => sortBytDate(a.date, b.date)
         },
         {
             title: "Marca",
             dataIndex: "maker_name",
             key: "maker_name",
+            width: 80,
             render: (maker: string) => maker ? (
                 <img
                     src={getLogoUrl(maker)}
@@ -73,25 +75,28 @@ export default function Estimates() {
             title: "Targa",
             dataIndex: "car_number_plate",
             key: "car_number_plate",
+            width: 120,
             ...getColumnSearchProps("car_number_plate", "targa", searchInput)
         },
         {
-            title: "Ore Lavoro",
+            title: "Ore",
             dataIndex: "labor_hours",
             key: "labor_hours",
+            width: 70,
             sorter: (a: Estimate, b: Estimate) => estimateSorter(a, b, "labor_hours"),
-
         },
         {
-            title: "Costo Orario",
+            title: "€/Ora",
             dataIndex: "labor_hourly_cost",
             key: "labor_hourly_cost",
+            width: 80,
             render: (cost: number) => `€ ${cost}`,
         },
         {
             title: "Totale",
             dataIndex: "total",
             key: "total",
+            width: 120,
             render: (total: number | undefined, es: Estimate) =>
                 `€ ${(total ?? 0).toFixed(2)}${!es.has_iva ? ' + IVA' : ""}`,
             sorter: (a: Estimate, b: Estimate) => (a.total ?? 0) - (b.total ?? 0),
@@ -100,16 +105,16 @@ export default function Estimates() {
             title: "Azioni",
             dataIndex: "",
             key: "actions",
+            width: 180,
             render: (_: unknown, es: Estimate) =>
-
-                <Space>
+                <Space size={4}>
                     <EditButton onClick={() => { showDrawer(); setSelectedEstimate(es) }} />
                     <SaveEstimatePdf estimateId={es.id} />
                     <Popover
                         title={!es.appointment_id ? "Crea appuntamento" : `Appuntamento già creato`}
                         content={!es.appointment_id && <AppointmentForm estimateId={es.id} onSubmit={reload} />}
                     >
-                        <Button icon={<CalendarOutlined />} type={!!es.appointment_id ? "primary" : "dashed"} />
+                        <Button icon={<CalendarOutlined />} type={!!es.appointment_id ? "primary" : "dashed"} size="small" />
                     </Popover>
                     <DeleteButton onConfirm={() => {
                         deleteRow(es.id, "estimates", () => {
