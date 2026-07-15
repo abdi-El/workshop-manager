@@ -11,7 +11,12 @@ const groups: Record<SearchResultType, { label: string; icon: ReactNode }> = {
     estimate: { label: 'Lavori', icon: <FileTextOutlined /> },
 };
 
-export default function GlobalSearch() {
+interface GlobalSearchProps {
+    autoFocus?: boolean;
+    onSelect?: () => void;
+}
+
+export default function GlobalSearch({ autoFocus, onSelect: onSelectCallback }: GlobalSearchProps = {}) {
     const [value, setValue] = useState('');
     const [results, setResults] = useState<SearchResult[]>([]);
     const { updatePage, setSearchTarget, dbReady } = useStore((state) => state);
@@ -65,10 +70,15 @@ export default function GlobalSearch() {
         })
         .filter((group) => group !== null);
 
+    useEffect(() => {
+        if (autoFocus) inputRef.current?.focus();
+    }, [autoFocus]);
+
     const onSelect = (_: string, option: { result?: SearchResult }) => {
         const result = option.result;
         setValue('');
         inputRef.current?.blur();
+        onSelectCallback?.();
         if (!result) return;
         setSearchTarget({ table: result.page, id: result.id });
         updatePage(result.page);
@@ -80,8 +90,8 @@ export default function GlobalSearch() {
         onChange={setValue}
         onSelect={onSelect as any}
         filterOption={false}
-        style={{ width: 300 }}
-        popupMatchSelectWidth={420}
+        style={{ width: "100%" }}
+        popupMatchSelectWidth={false}
     >
         <Input
             ref={inputRef}
