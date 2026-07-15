@@ -1,34 +1,9 @@
 import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
-import { AutoComplete, Button, Col, Form, Input, InputNumber, Row, Tag } from 'antd';
-import { useEffect, useState } from 'react';
-import { useDebounce } from '../../modules/hooks';
-import { searchEstimateItemSuggestions } from '../../modules/queries';
-
-interface ItemSuggestion {
-    description: string;
-    unit_price: number;
-    is_default: number;
-}
+import { Button, Col, Form, Input, InputNumber, Row } from 'antd';
 
 export default function EstimateItemsForm() {
     const form = Form.useFormInstance();
     const items = Form.useWatch('items', form);
-    const [mappedItems, setMappedItems] = useState<Record<string, ItemSuggestion>>({});
-    const [searchQuery, setSearchQuery] = useState('');
-    const debouncedQuery = useDebounce(searchQuery, 250);
-
-    useEffect(() => {
-        if (!debouncedQuery) {
-            setMappedItems({});
-            return;
-        }
-        searchEstimateItemSuggestions(debouncedQuery).then((rows) => {
-            setMappedItems((rows as ItemSuggestion[]).reduce((acc, item) => {
-                acc[item.description] = item;
-                return acc;
-            }, {} as Record<string, ItemSuggestion>));
-        }).catch(() => setMappedItems({}));
-    }, [debouncedQuery]);
 
     return <Form.List name="items">
         {(fields, { add, remove }) => {
@@ -41,30 +16,7 @@ export default function EstimateItemsForm() {
                                 name={[name, 'description']}
                                 rules={[{ required: true, message: 'Inserire descrizione' }]}
                             >
-                                <AutoComplete
-                                    className='w-100'
-                                    options={Object.values(mappedItems).map(item => ({
-                                        value: item.description,
-                                        label: (
-                                            <Row justify="space-between" align="middle" wrap={false}>
-                                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                                    {item.description} — € {item.unit_price}
-                                                </span>
-                                                {item.is_default ? <Tag color="blue" style={{ marginLeft: 8 }}>Default</Tag> : null}
-                                            </Row>
-                                        ),
-                                    }))}
-                                    onSelect={(val) => {
-                                        const selectedItem = mappedItems[val];
-                                        if (selectedItem) {
-                                            form.setFieldValue(['items', name, 'unit_price'], selectedItem.unit_price);
-                                        }
-                                    }}
-                                    onSearch={(val) => setSearchQuery(val.trim())}
-
-                                >
-                                    <Input.TextArea className='w-100' placeholder="descrizione" spellCheck lang="it" />
-                                </AutoComplete>
+                                <Input.TextArea className='w-100' placeholder="descrizione" spellCheck lang="it" />
                             </Form.Item >
                         </Col>
                         <Col span={3}>

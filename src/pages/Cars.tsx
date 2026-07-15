@@ -1,5 +1,5 @@
 import { FileTextOutlined, HistoryOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, InputRef, Row, Skeleton, Space, Table, Tooltip } from "antd";
+import { Button, Drawer, InputRef, Row, Space, Table, Tooltip } from "antd";
 import { useEffect, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
@@ -130,10 +130,7 @@ export default function Cars() {
         >
             {historyCar && <CarHistory car={historyCar} />}
         </Drawer>
-        {loading && !cars.length
-            ? <Skeleton active paragraph={{ rows: 8 }} />
-            : <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={cars} columns={columns as any} rowKey="id" loading={loading} />
-        }
+        <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={cars} columns={columns as any} rowKey="id" loading={loading} />
     </>
 };
 

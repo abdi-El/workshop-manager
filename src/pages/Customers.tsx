@@ -1,5 +1,5 @@
 import { CarOutlined, FileTextOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, InputRef, Row, Skeleton, Space, Table, Tooltip } from "antd";
+import { Button, Drawer, InputRef, Row, Space, Table, Tooltip } from "antd";
 import { useEffect, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
@@ -122,10 +122,7 @@ export default function Customers() {
         >
             {carsCustomer && <CustomerCars customer={carsCustomer} />}
         </Drawer>
-        {loading && !customers.length
-            ? <Skeleton active paragraph={{ rows: 8 }} />
-            : <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={customers} columns={columns as any} rowKey="id" loading={loading} />
-        }
+        <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={customers} columns={columns as any} rowKey="id" loading={loading} />
         <CustomersTour />
     </>
 };

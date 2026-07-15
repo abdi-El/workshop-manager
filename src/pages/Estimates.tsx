@@ -1,5 +1,5 @@
 import { CalendarOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, InputRef, Popover, Row, Skeleton, Space, Table } from "antd";
+import { Button, Drawer, InputRef, Popover, Row, Space, Table } from "antd";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
@@ -143,10 +143,7 @@ export default function Estimates() {
         >
             <EstimatesForm onSubmit={() => { onClose(); reload(); }} estimate={selectedEstimate} />
         </Drawer>
-        {loading && !estimates.length
-            ? <Skeleton active paragraph={{ rows: 8 }} />
-            : <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={estimates} columns={columns as any} rowKey="id" loading={loading} />
-        }
+        <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={estimates} columns={columns as any} rowKey="id" loading={loading} />
     </>
 };
 
