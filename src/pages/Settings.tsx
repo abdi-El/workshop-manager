@@ -4,7 +4,7 @@ import SettingSwitch from '../components/inputs/SettingSwitch';
 import MakersModelsImporter from '../components/MakersModelsImporter';
 import themes from "../components/pdf/themes.json";
 import ThemeSelector from '../components/pdf/ThemeSelector';
-import { storeSettings } from '../modules/database';
+import { storeSettings } from '../modules/store';
 import { useStore } from '../modules/state';
 
 

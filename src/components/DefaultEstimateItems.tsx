@@ -1,8 +1,7 @@
 import { Button, Col, Input, List, message, Modal, Row } from "antd";
 import { useEffect, useState } from "react";
-import { deleteRow } from "../modules/database";
+import { getDb } from "../modules/db/instance";
 import { useDebounce } from "../modules/hooks";
-import { searchDefaultEstimateItems } from "../modules/queries";
 import { EstimateDefaultItem } from "../types/database";
 import DeleteButton from "./buttons/DeleteButton";
 import DefaultEstimateItemForm from "./forms/DefaultEstimateItemForm";
@@ -15,8 +14,8 @@ export default function DefaultEstimateItems() {
     const debouncedSearch = useDebounce(searchTerm, 250);
 
     const loadItems = (query: string) => {
-        searchDefaultEstimateItems(query).then((rows) => {
-            setItems(rows as EstimateDefaultItem[]);
+        getDb().searchDefaultEstimateItems(query).then((rows) => {
+            setItems(rows);
         }).catch((error) => {
             message.error("Errore nel recupero delle voci: " + error);
         });
@@ -61,9 +60,10 @@ export default function DefaultEstimateItems() {
                             setOpen(true)
                         }} type="dashed">Modifica</Button>
                         <DeleteButton onConfirm={() => {
-                            deleteRow(item.id, "default_estimate_items", () => {
-                                loadItems(searchTerm)
-                            })
+                            getDb().deleteRow(item.id, "default_estimate_items").then(() => {
+                                message.success("Eliminato con successo!");
+                                loadItems(searchTerm);
+                            }).catch((e) => message.error("Errore nell'eliminazione: " + e))
                         }} />
                     </List.Item>
                 ))

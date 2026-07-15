@@ -1,7 +1,7 @@
 import { message } from "antd";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { create } from "zustand";
-import { db, storeSettings } from "./database";
+import { storeSettings } from "./store";
 import { getModelsAndMakers } from "./scraper";
 
 export function useDebounce<T>(value: T, delay: number): T {
@@ -13,19 +13,20 @@ export function useDebounce<T>(value: T, delay: number): T {
     return debounced;
 }
 
-export function useDbQuery<T>(query: string, params?: any[]) {
+export function useQuery<T>(queryFn: () => Promise<T[]>) {
     const [data, setData] = useState<T[]>([]);
     const [loading, setLoading] = useState(true);
-    const paramsKey = JSON.stringify(params ?? []);
+    const fnRef = useRef(queryFn);
+    fnRef.current = queryFn;
 
     const reload = useCallback(() => {
         setLoading(true);
-        db.select(query, params).then((rows) => {
-            setData(rows as T[]);
+        fnRef.current().then((rows) => {
+            setData(rows);
         }).catch((error) => {
             message.error("Errore nel recupero dei dati: " + error);
         }).finally(() => setLoading(false));
-    }, [query, paramsKey]);
+    }, []);
 
     useEffect(() => {
         reload();

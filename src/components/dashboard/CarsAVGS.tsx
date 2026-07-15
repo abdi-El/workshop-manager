@@ -1,8 +1,7 @@
 import { Card, Row, Space, Statistic } from "antd";
 
 import { useEffect, useState } from "react";
-import { db } from '../../modules/database';
-import { CarBrandsByCount } from '../../modules/queries';
+import { getDb } from '../../modules/db/instance';
 
 interface DataType {
     brand_name: string,
@@ -14,15 +13,13 @@ export default function CarsAVGS() {
     const [loading, setLoading] = useState(false)
     const [carsAverages, setCarsAverages] = useState<DataType[]>()
     useEffect(() => {
-        if (db) {
-            setLoading(true)
-            db.select(CarBrandsByCount).then((res) => {
-                setCarsAverages(res as DataType[])
-            }).finally(() => {
-                setLoading(false)
-            })
-        }
-    }, [db])
+        setLoading(true)
+        getDb().getCarBrandsByCount().then((res) => {
+            setCarsAverages(res as DataType[])
+        }).finally(() => {
+            setLoading(false)
+        })
+    }, [])
 
     return <Row>
         <Card loading={loading} style={{ marginTop: 16, width: "100%" }} title="Auto riparate per numero">

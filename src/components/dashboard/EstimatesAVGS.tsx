@@ -2,8 +2,7 @@ import { FieldTimeOutlined } from '@ant-design/icons';
 import { Card, Col, Row, Statistic } from "antd";
 
 import { useEffect, useState } from "react";
-import { db } from '../../modules/database';
-import { dashboardAverages } from '../../modules/queries';
+import { getDb } from '../../modules/db/instance';
 import { EstiamatesAverages } from '../../types/database';
 
 
@@ -11,15 +10,13 @@ export default function EstimatesAVGS() {
     const [loading, setLoading] = useState(false)
     const [estimatesAverages, setEstimatesAverages] = useState<EstiamatesAverages>()
     useEffect(() => {
-        if (db) {
-            setLoading(true)
-            db.select(dashboardAverages).then((res: any) => {
-                setEstimatesAverages(res[0] as EstiamatesAverages)
-            }).finally(() => {
-                setLoading(false)
-            })
-        }
-    }, [db])
+        setLoading(true)
+        getDb().getDashboardAverages().then((res) => {
+            setEstimatesAverages(res[0])
+        }).finally(() => {
+            setLoading(false)
+        })
+    }, [])
     return <Row gutter={[16, 16]}>
         <Col span={8}>
             <Card variant="borderless">

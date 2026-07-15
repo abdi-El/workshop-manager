@@ -2,9 +2,9 @@ import { MinusCircleOutlined, PlusOutlined } from '@ant-design/icons';
 import { AutoComplete, Button, Col, Form, InputNumber, Row } from 'antd';
 import { useEffect, useState } from 'react';
 import { useDebounce } from '../../modules/hooks';
-import { searchDefaultEstimateItems } from '../../modules/queries';
+import { getDb } from '../../modules/db/instance';
 
-interface DefaultItem { description: string; quantity: number | null; unit_price: number }
+interface DefaultItem { description: string; quantity?: number | null; unit_price: number }
 
 export default function EstimateItemsForm() {
     const form = Form.useFormInstance();
@@ -15,7 +15,7 @@ export default function EstimateItemsForm() {
 
     useEffect(() => {
         if (debouncedSearch.length < 2) { setSuggestions([]); return; }
-        searchDefaultEstimateItems(debouncedSearch).then((rows) => {
+        getDb().searchDefaultEstimateItems(debouncedSearch).then((rows) => {
             setSuggestions(rows as DefaultItem[]);
         });
     }, [debouncedSearch]);

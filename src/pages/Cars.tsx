@@ -1,5 +1,5 @@
 import { FileTextOutlined, HistoryOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, InputRef, Row, Space, Table, Tooltip } from "antd";
+import { Button, Drawer, InputRef, message, Row, Space, Table, Tooltip } from "antd";
 import { useEffect, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
@@ -7,9 +7,8 @@ import EditButton from "../components/buttons/EditButton";
 import CarHistory from "../components/CarHistory";
 import CarsForm from "../components/forms/CarsForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
-import { deleteRow } from "../modules/database";
-import { useDbQuery } from "../modules/hooks";
-import { carQuery } from "../modules/queries";
+import { getDb } from "../modules/db/instance";
+import { useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
 import { getLogoUrl } from "../modules/utils";
 import { Car } from "../types/database";
@@ -17,7 +16,7 @@ import { Car } from "../types/database";
 
 export default function Cars() {
     const [open, setOpen] = useState(false);
-    const { data: cars, loading, reload } = useDbQuery<Car>(carQuery)
+    const { data: cars, loading, reload } = useQuery<Car>(() => getDb().getCars())
     const { searchTarget, setSearchTarget } = useStore((state) => state)
     const [selectedCar, setSelectedCar] = useState<Car>();
     const [historyCar, setHistoryCar] = useState<Car>();
@@ -90,9 +89,10 @@ export default function Cars() {
                         <Button icon={<HistoryOutlined />} onClick={() => setHistoryCar(cr)} />
                     </Tooltip>
                     <DeleteButton onConfirm={() => {
-                        deleteRow(cr.id, "cars", () => {
+                        getDb().deleteRow(cr.id, "cars").then(() => {
+                            message.success("Eliminato con successo!");
                             reload();
-                        })
+                        }).catch((e) => message.error("Errore nell'eliminazione: " + e))
                     }} />
                 </Space >,
         },

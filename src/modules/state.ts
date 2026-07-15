@@ -1,7 +1,7 @@
 import { message } from 'antd';
 import { create } from 'zustand';
 import { SettingsType } from '../types/common';
-import { storeSettings } from './database';
+import { storeSettings } from './store';
 
 export interface SearchTarget {
     table: "customers" | "cars" | "estimates"

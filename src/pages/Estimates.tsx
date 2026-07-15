@@ -1,5 +1,5 @@
 import { CalendarOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, InputRef, Popover, Row, Space, Table } from "antd";
+import { Button, Drawer, InputRef, message, Popover, Row, Space, Table } from "antd";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
@@ -9,10 +9,9 @@ import EstimatesForm from "../components/forms/EstimatesForm";
 import { lazy } from "react";
 const SaveEstimatePdf = lazy(() => import("../components/pdf/SavePdfButton"));
 import { getColumnSearchProps } from "../components/TableSearchProps";
-import { deleteRow } from "../modules/database";
+import { getDb } from "../modules/db/instance";
 import { sortBytDate } from "../modules/dates";
-import { useDbQuery } from "../modules/hooks";
-import { estimatesQuery } from "../modules/queries";
+import { useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
 import { getLogoUrl } from "../modules/utils";
 import { Estimate } from "../types/database";
@@ -24,7 +23,7 @@ function estimateSorter(a: Estimate, b: Estimate, key: keyof Estimate) {
 
 export default function Estimates() {
     const [open, setOpen] = useState(false);
-    const { data: estimateRows, loading, reload } = useDbQuery<Estimate>(estimatesQuery)
+    const { data: estimateRows, loading, reload } = useQuery<Estimate>(() => getDb().getEstimates())
     const estimates = useMemo(() => {
         return estimateRows.map((r) => ({ ...r, has_iva: (r.has_iva as any) == "true" }))
     }, [estimateRows])
@@ -117,9 +116,10 @@ export default function Estimates() {
                         <Button icon={<CalendarOutlined />} type={!!es.appointment_id ? "primary" : "dashed"} size="small" />
                     </Popover>
                     <DeleteButton onConfirm={() => {
-                        deleteRow(es.id, "estimates", () => {
+                        getDb().deleteRow(es.id, "estimates").then(() => {
+                            message.success("Eliminato con successo!");
                             reload();
-                        })
+                        }).catch((e) => message.error("Errore nell'eliminazione: " + e))
                     }} />
                 </Space >,
         },

@@ -6,9 +6,10 @@ import 'dayjs/locale/it';
 import updateLocale from 'dayjs/plugin/updateLocale';
 import { useEffect } from "react";
 import Paginator from "./components/Paginator";
-import { initDatabase } from './modules/database';
+import { initDatabaseService } from './modules/db/instance';
 import { useScraper } from './modules/hooks';
 import { useStore } from './modules/state';
+import { initStore } from './modules/store';
 
 dayjs.locale('it');
 dayjs.extend(updateLocale);
@@ -19,7 +20,8 @@ export default function Page() {
   async function initApp() {
     const isDebug = await invoke("is_debug") as boolean
     setIsDebug(isDebug)
-    await initDatabase()
+    await initDatabaseService()
+    await initStore()
     setDbReady(true)
     updateSettings()
     setPercentage(100)

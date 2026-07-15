@@ -1,8 +1,9 @@
 import { Button, Progress, Row } from "antd"
-import { useDbQuery, useScraper } from "../modules/hooks"
+import { getDb } from "../modules/db/instance"
+import { useQuery, useScraper } from "../modules/hooks"
 
 export default function MakersModelsImporter() {
-    const { data: makers } = useDbQuery<{ count: number }>(`SELECT COUNT(*) as count FROM makers`)
+    const { data: makers } = useQuery<{ count: number }>(() => getDb().getMakersCount())
     const hasMakers = (makers[0]?.count ?? 0) > 0
     const { percentage, loading, trigger } = useScraper(state => state)
 

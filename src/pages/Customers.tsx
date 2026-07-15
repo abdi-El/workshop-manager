@@ -1,5 +1,5 @@
 import { CarOutlined, FileTextOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, InputRef, Row, Space, Table, Tooltip } from "antd";
+import { Button, Drawer, InputRef, message, Row, Space, Table, Tooltip } from "antd";
 import { useEffect, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
@@ -8,16 +8,15 @@ import CustomerCars from "../components/CustomerCars";
 import CustomerForm from "../components/forms/CustomerForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import CustomersTour from "../components/tours/CustomerTour";
-import { deleteRow } from "../modules/database";
-import { useDbQuery } from "../modules/hooks";
-import { customersQuery } from "../modules/queries";
+import { getDb } from "../modules/db/instance";
+import { useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
 import { Customer } from "../types/database";
 
 
 export default function Customers() {
     const [open, setOpen] = useState(false);
-    const { data: customers, loading, reload } = useDbQuery<Customer>(customersQuery)
+    const { data: customers, loading, reload } = useQuery<Customer>(() => getDb().getCustomers())
     const { searchTarget, setSearchTarget } = useStore((state) => state)
     const [selectedCustomer, setSelectedCustomer] = useState<Customer>();
     const [carsCustomer, setCarsCustomer] = useState<Customer>();
@@ -82,9 +81,10 @@ export default function Customers() {
                         <Button icon={<CarOutlined />} onClick={() => setCarsCustomer(cs)} />
                     </Tooltip>
                     <DeleteButton onConfirm={() => {
-                        deleteRow(cs.id, "customers", () => {
+                        getDb().deleteRow(cs.id, "customers").then(() => {
+                            message.success("Eliminato con successo!");
                             reload();
-                        })
+                        }).catch((e) => message.error("Errore nell'eliminazione: " + e))
                     }} />
                 </Space >,
         },

@@ -1,6 +1,6 @@
-import { Descriptions, Popover, Row, Tag } from "antd";
+import { Descriptions, message, Popover, Row, Tag } from "antd";
 import { ReactNode } from "react";
-import { deleteRow } from "../modules/database";
+import { getDb } from "../modules/db/instance";
 import { AppointmentEventData } from "../types/database";
 import DeleteButton from "./buttons/DeleteButton";
 import EditButton from "./buttons/EditButton";
@@ -24,9 +24,10 @@ export default function PlannerEvent({ appointment, onDelete, onEdit, children }
                 <div>
                     <EditButton style={{ marginRight: "2px" }} onClick={() => onEdit(appointment)} />
                     <DeleteButton onConfirm={() => {
-                        deleteRow(appointment.id, "appointments", () => {
-                            onDelete()
-                        })
+                        getDb().deleteRow(appointment.id, "appointments").then(() => {
+                            message.success("Eliminato con successo!");
+                            onDelete();
+                        }).catch((e) => message.error("Errore nell'eliminazione: " + e))
                     }} />
                 </div>
             </Row>
