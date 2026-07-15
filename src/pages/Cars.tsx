@@ -8,13 +8,14 @@ import CarHistory from "../components/CarHistory";
 import CarsForm from "../components/forms/CarsForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import { getDb } from "../modules/db/instance";
-import { useQuery } from "../modules/hooks";
+import { useDrawerWidth, useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
 import { getLogoUrl } from "../modules/utils";
 import { Car } from "../types/database";
 
 
 export default function Cars() {
+    const drawerWidth = useDrawerWidth();
     const [open, setOpen] = useState(false);
     const { data: cars, loading, reload } = useQuery<Car>(() => getDb().getCars())
     const { searchTarget, setSearchTarget } = useStore((state) => state)
@@ -118,6 +119,7 @@ export default function Cars() {
             closable={{ 'aria-label': 'Chiudi' }}
             onClose={onClose}
             open={open}
+            width={drawerWidth}
         >
             <CarsForm onSubmit={() => { onClose(); reload(); }} car={selectedCar} />
         </Drawer>
@@ -126,7 +128,7 @@ export default function Cars() {
             closable={{ 'aria-label': 'Chiudi' }}
             onClose={() => setHistoryCar(undefined)}
             open={!!historyCar}
-            width={480}
+            width={drawerWidth}
         >
             {historyCar && <CarHistory car={historyCar} />}
         </Drawer>

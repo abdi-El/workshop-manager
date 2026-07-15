@@ -1,8 +1,13 @@
-import { message } from "antd";
+import { Grid, message } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { create } from "zustand";
 import { storeSettings } from "./store";
 import { getModelsAndMakers } from "./scraper";
+
+export function useDrawerWidth(desktop: number | string = 600) {
+    const screens = Grid.useBreakpoint();
+    return screens.md ? desktop : "100%";
+}
 
 export function useDebounce<T>(value: T, delay: number): T {
     const [debounced, setDebounced] = useState(value);

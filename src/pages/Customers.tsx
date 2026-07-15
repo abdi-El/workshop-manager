@@ -9,12 +9,13 @@ import CustomerForm from "../components/forms/CustomerForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import CustomersTour from "../components/tours/CustomerTour";
 import { getDb } from "../modules/db/instance";
-import { useQuery } from "../modules/hooks";
+import { useDrawerWidth, useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
 import { Customer } from "../types/database";
 
 
 export default function Customers() {
+    const drawerWidth = useDrawerWidth();
     const [open, setOpen] = useState(false);
     const { data: customers, loading, reload } = useQuery<Customer>(() => getDb().getCustomers())
     const { searchTarget, setSearchTarget } = useStore((state) => state)
@@ -110,6 +111,7 @@ export default function Customers() {
             closable={{ 'aria-label': 'Chiudi' }}
             onClose={onClose}
             open={open}
+            width={drawerWidth}
         >
             <CustomerForm onSubmit={() => { onClose(); reload(); }} customer={selectedCustomer} />
         </Drawer>
@@ -118,7 +120,7 @@ export default function Customers() {
             closable={{ 'aria-label': 'Chiudi' }}
             onClose={() => setCarsCustomer(undefined)}
             open={!!carsCustomer}
-            width={480}
+            width={drawerWidth}
         >
             {carsCustomer && <CustomerCars customer={carsCustomer} />}
         </Drawer>

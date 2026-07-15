@@ -11,7 +11,7 @@ const SaveEstimatePdf = lazy(() => import("../components/pdf/SavePdfButton"));
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import { getDb } from "../modules/db/instance";
 import { sortBytDate } from "../modules/dates";
-import { useQuery } from "../modules/hooks";
+import { useDrawerWidth, useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
 import { getLogoUrl } from "../modules/utils";
 import { Estimate } from "../types/database";
@@ -22,6 +22,7 @@ function estimateSorter(a: Estimate, b: Estimate, key: keyof Estimate) {
 
 
 export default function Estimates() {
+    const drawerWidth = useDrawerWidth("75%");
     const [open, setOpen] = useState(false);
     const { data: estimateRows, loading, reload } = useQuery<Estimate>(() => getDb().getEstimates())
     const estimates = useMemo(() => {
@@ -144,7 +145,7 @@ export default function Estimates() {
             closable={{ 'aria-label': 'Chiudi' }}
             onClose={onClose}
             open={open}
-            width={"75%"}
+            width={drawerWidth}
         >
             <EstimatesForm onSubmit={() => { onClose(); reload(); }} estimate={selectedEstimate} />
         </Drawer>

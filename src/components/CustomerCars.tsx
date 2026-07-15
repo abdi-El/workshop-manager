@@ -2,7 +2,7 @@ import { HistoryOutlined } from '@ant-design/icons';
 import { Button, Drawer, Empty, List, Space, Spin, Tooltip, Typography } from 'antd';
 import { useState } from 'react';
 import { getDb } from '../modules/db/instance';
-import { useQuery } from '../modules/hooks';
+import { useDrawerWidth, useQuery } from '../modules/hooks';
 import { getLogoUrl } from '../modules/utils';
 import { Car, Customer } from '../types/database';
 import CarHistory from './CarHistory';
@@ -12,6 +12,7 @@ interface CustomerCarsProps {
 }
 
 export default function CustomerCars({ customer }: CustomerCarsProps) {
+    const drawerWidth = useDrawerWidth();
     const { data: customerCars, loading } = useQuery<Car>(() => getDb().getCustomerCars(customer.id));
     const [historyCar, setHistoryCar] = useState<Car>();
 
@@ -60,7 +61,7 @@ export default function CustomerCars({ customer }: CustomerCarsProps) {
             closable={{ 'aria-label': 'Chiudi' }}
             onClose={() => setHistoryCar(undefined)}
             open={!!historyCar}
-            width={480}
+            width={drawerWidth}
         >
             {historyCar && <CarHistory car={historyCar} />}
         </Drawer>
