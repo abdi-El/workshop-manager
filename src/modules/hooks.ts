@@ -69,6 +69,7 @@ export const useScraper = create<ScraperState>()((set) => {
 
 
 async function updateTourState(name: string, value: boolean) {
+    if (!storeSettings) return;
     storeSettings.get("tours").then(values => {
         let newValues = {
             ...(values || {}), [name]: value
@@ -81,6 +82,7 @@ async function updateTourState(name: string, value: boolean) {
 export function useTour(name: string): [boolean, ((value: boolean) => Promise<void>)] {
     const [isOpen, setIsOpen] = useState(false)
     useEffect(() => {
+        if (!storeSettings) return;
         storeSettings.get("tours").then((values) => {
             const storeValue = (values as Record<string, boolean>)?.[name]
             if (storeValue == undefined) {

@@ -1,5 +1,7 @@
+use tauri::Manager;
 use tauri_plugin_sql::{Migration, MigrationKind};
 mod commands;
+mod server;
 
 
 #[tauri::command]
@@ -80,6 +82,13 @@ pub fn run() {
         )
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![commands::fetch, is_debug])
+        .setup(|app| {
+            let app_data_dir = app.path().app_config_dir()?;
+            let db_path = app_data_dir.join("estimates.db");
+            let db_path_str = db_path.to_string_lossy().to_string();
+            tauri::async_runtime::spawn(server::start(db_path_str));
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

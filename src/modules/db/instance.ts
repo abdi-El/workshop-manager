@@ -1,9 +1,10 @@
+import { isTauri } from "../utils";
 import { DatabaseService } from "./DatabaseService";
 
 let dbInstance: DatabaseService;
 
 export async function initDatabaseService(): Promise<DatabaseService> {
-    if ("__TAURI_INTERNALS__" in window) {
+    if (isTauri()) {
         const { LocalDatabase } = await import("./LocalDatabase");
         const local = new LocalDatabase();
         await local.init();

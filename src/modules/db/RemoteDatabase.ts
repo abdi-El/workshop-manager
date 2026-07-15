@@ -31,7 +31,7 @@ export class RemoteDatabase extends DatabaseService {
     }
 
     async createOrUpdateEstimate(estimate: Estimate, items: EstimateItem[], estimateId?: number): Promise<void> {
-        const res = await fetch(`${this.baseUrl}/estimates/save`, {
+        const res = await fetch(`${this.baseUrl}/estimates`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ estimate, items, estimateId }),
