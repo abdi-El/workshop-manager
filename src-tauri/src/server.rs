@@ -243,6 +243,12 @@ pub async fn start(db_path: String, dist_path: String) {
 
     let api = Router::new()
         .route("/api/debug", get(|| async { Json(cfg!(debug_assertions)) }))
+        .route("/api/lan-url", get(|| async {
+            let ip = local_ip_address::local_ip()
+                .map(|ip| format!("http://{}:3333", ip))
+                .unwrap_or_else(|_| "http://localhost:3333".to_string());
+            Json(json!({ "url": ip }))
+        }))
         .route("/api/query", post(handle_query))
         .route("/api/execute", post(handle_execute))
         .route("/api/estimates", post(handle_estimates))
