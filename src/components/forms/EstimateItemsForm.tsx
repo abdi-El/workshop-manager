@@ -4,17 +4,19 @@ import { useEffect, useState } from 'react';
 import { useDebounce } from '../../modules/hooks';
 import { searchDefaultEstimateItems } from '../../modules/queries';
 
+interface DefaultItem { description: string; quantity: number | null; unit_price: number }
+
 export default function EstimateItemsForm() {
     const form = Form.useFormInstance();
     const items = Form.useWatch('items', form);
-    const [suggestions, setSuggestions] = useState<{ value: string }[]>([]);
+    const [suggestions, setSuggestions] = useState<DefaultItem[]>([]);
     const [search, setSearch] = useState('');
-    const debouncedSearch = useDebounce(search, 300);
+    const debouncedSearch = useDebounce(search, 100);
 
     useEffect(() => {
         if (debouncedSearch.length < 2) { setSuggestions([]); return; }
         searchDefaultEstimateItems(debouncedSearch).then((rows) => {
-            setSuggestions((rows as { description: string }[]).map(r => ({ value: r.description })));
+            setSuggestions(rows as DefaultItem[]);
         });
     }, [debouncedSearch]);
 
@@ -32,9 +34,15 @@ export default function EstimateItemsForm() {
                                 <AutoComplete
                                     className='w-100'
                                     placeholder="descrizione"
-                                    options={suggestions}
+                                    options={suggestions.map(s => ({ value: s.description, label: s.description }))}
                                     onSearch={setSearch}
-                                    backfill
+                                    onSelect={(value) => {
+                                        const match = suggestions.find(s => s.description === value);
+                                        if (!match) return;
+                                        const current = form.getFieldValue('items');
+                                        current[name] = { description: value, quantity: match.quantity ?? 1, unit_price: match.unit_price };
+                                        form.setFieldsValue({ items: [...current] });
+                                    }}
                                 />
                             </Form.Item >
                         </Col>
