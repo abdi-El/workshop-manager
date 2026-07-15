@@ -1,4 +1,4 @@
-import { Card, Row, Space, Statistic } from "antd";
+import { Card, Col, Row, Statistic } from "antd";
 
 import { useEffect, useState } from "react";
 import { getDb } from '../../modules/db/instance';
@@ -23,17 +23,18 @@ export default function CarsAVGS() {
 
     return <Row>
         <Card loading={loading} style={{ marginTop: 16, width: "100%" }} title="Auto riparate per numero">
-            <Space size="large">
+            <Row gutter={[16, 16]}>
                 {carsAverages?.slice(0, 10).map((item) => (
-                    <Statistic
-                        loading={loading}
-                        key={item.brand_name}
-                        title={item.brand_name}
-                        value={item.car_count}
-                        valueStyle={{ fontSize: 18 }}
-                    />
+                    <Col xs={12} md={6} lg={4} key={item.brand_name}>
+                        <Statistic
+                            loading={loading}
+                            title={item.brand_name}
+                            value={item.car_count}
+                            valueStyle={{ fontSize: 18 }}
+                        />
+                    </Col>
                 ))}
-            </Space>
+            </Row>
         </Card>
     </Row>
 }

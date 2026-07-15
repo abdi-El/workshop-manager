@@ -52,7 +52,7 @@ export default function InspectionReminder(props: Props) {
     }, [])
     return <div {...props}>
         <Title level={4}>Prossime revisioni</Title>
-        <Table virtual scroll={{ y: 300 }} dataSource={inspections} columns={columns} loading={inspections === undefined} />
+        <Table virtual scroll={{ x: 600, y: 300 }} dataSource={inspections} columns={columns} loading={inspections === undefined} />
     </div>
 
 }

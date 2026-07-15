@@ -18,7 +18,7 @@ export default function EstimatesAVGS() {
         })
     }, [])
     return <Row gutter={[16, 16]}>
-        <Col span={8}>
+        <Col xs={12} md={8}>
             <Card variant="borderless">
                 <Statistic
                     loading={loading}
@@ -27,7 +27,7 @@ export default function EstimatesAVGS() {
                 />
             </Card>
         </Col>
-        <Col span={8}>
+        <Col xs={12} md={8}>
             <Card variant="borderless">
                 <Statistic
                     loading={loading}
@@ -38,7 +38,7 @@ export default function EstimatesAVGS() {
                 />
             </Card>
         </Col>
-        <Col span={8}>
+        <Col xs={12} md={8}>
             <Card variant="borderless">
                 <Statistic
                     loading={loading}
@@ -49,7 +49,7 @@ export default function EstimatesAVGS() {
                 />
             </Card>
         </Col>
-        <Col span={8}>
+        <Col xs={12} md={8}>
             <Card variant="borderless">
                 <Statistic
                     loading={loading}
@@ -60,7 +60,7 @@ export default function EstimatesAVGS() {
                 />
             </Card>
         </Col>
-        <Col span={8}>
+        <Col xs={12} md={8}>
             <Card variant="borderless">
                 <Statistic
                     loading={loading}
@@ -71,7 +71,7 @@ export default function EstimatesAVGS() {
                 />
             </Card>
         </Col>
-        <Col span={8}>
+        <Col xs={12} md={8}>
             <Card variant="borderless">
                 <Statistic
                     loading={loading}
