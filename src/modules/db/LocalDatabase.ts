@@ -6,6 +6,7 @@ export class LocalDatabase extends DatabaseService {
 
     async init() {
         this.db = await Database.load("sqlite:estimates.db");
+        await this.db.execute("PRAGMA busy_timeout = 5000");
     }
 
     protected async select<T = any>(query: string, params?: any[]): Promise<T[]> {
