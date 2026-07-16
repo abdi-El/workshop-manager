@@ -2,8 +2,7 @@ import { Card } from "antd";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { db } from "../../modules/database";
-import { monthlyRevenue } from "../../modules/queries";
+import { api } from "../../modules/api";
 
 interface MonthlyData {
     month: string;
@@ -15,13 +14,11 @@ export default function RevenueChart() {
     const [data, setData] = useState<MonthlyData[]>([]);
 
     useEffect(() => {
-        if (db) {
-            setLoading(true);
-            db.select(monthlyRevenue).then((res) => {
-                setData(res as MonthlyData[]);
-            }).finally(() => setLoading(false));
-        }
-    }, [db]);
+        setLoading(true);
+        api.getMonthlyRevenue().then((res) => {
+            setData(res);
+        }).finally(() => setLoading(false));
+    }, []);
 
     const formatted = data.map(d => ({
         ...d,

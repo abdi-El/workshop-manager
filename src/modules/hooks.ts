@@ -1,8 +1,17 @@
-import { message } from "antd";
-import { useCallback, useEffect, useState } from "react";
+import { Grid, message } from "antd";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { create } from "zustand";
-import { db, storeSettings } from "./database";
+import { storeSettings } from "./store";
 import { getModelsAndMakers } from "./scraper";
+
+export function useIsMobile() {
+    const screens = Grid.useBreakpoint();
+    return !screens.md;
+}
+
+export function useDrawerWidth(desktop: number | string = 600) {
+    return useIsMobile() ? "100%" : desktop;
+}
 
 export function useDebounce<T>(value: T, delay: number): T {
     const [debounced, setDebounced] = useState(value);
@@ -13,19 +22,20 @@ export function useDebounce<T>(value: T, delay: number): T {
     return debounced;
 }
 
-export function useDbQuery<T>(query: string, params?: any[]) {
+export function useQuery<T>(queryFn: () => Promise<T[]>) {
     const [data, setData] = useState<T[]>([]);
     const [loading, setLoading] = useState(true);
-    const paramsKey = JSON.stringify(params ?? []);
+    const fnRef = useRef(queryFn);
+    fnRef.current = queryFn;
 
     const reload = useCallback(() => {
         setLoading(true);
-        db.select(query, params).then((rows) => {
-            setData(rows as T[]);
+        fnRef.current().then((rows) => {
+            setData(rows);
         }).catch((error) => {
             message.error("Errore nel recupero dei dati: " + error);
         }).finally(() => setLoading(false));
-    }, [query, paramsKey]);
+    }, []);
 
     useEffect(() => {
         reload();
@@ -68,6 +78,7 @@ export const useScraper = create<ScraperState>()((set) => {
 
 
 async function updateTourState(name: string, value: boolean) {
+    if (!storeSettings) return;
     storeSettings.get("tours").then(values => {
         let newValues = {
             ...(values || {}), [name]: value
@@ -80,6 +91,7 @@ async function updateTourState(name: string, value: boolean) {
 export function useTour(name: string): [boolean, ((value: boolean) => Promise<void>)] {
     const [isOpen, setIsOpen] = useState(false)
     useEffect(() => {
+        if (!storeSettings) return;
         storeSettings.get("tours").then((values) => {
             const storeValue = (values as Record<string, boolean>)?.[name]
             if (storeValue == undefined) {

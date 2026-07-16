@@ -2,7 +2,7 @@ const MAKERS_URL = "https://it.wikipedia.org/w/api.php?action=query&cmlimit=500&
 const MODELS_URL = "https://it.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle={TITLE}&cmlimit=500&format=json"
 import { invoke } from '@tauri-apps/api/core';
 import { Maker, MakerModel } from '../types/database';
-import { create, db, update } from './database';
+import { api } from './api';
 
 interface dataType {
     query: {
@@ -62,19 +62,19 @@ function handleError(error: any) {
 
 export async function updateOrCreateMaker(name: string, id: number) {
     if (id) {
-        await update({ name }, id, "makers", false).catch(handleError)
+        await api.updateMaker(id, { name }).catch(handleError)
         return id
     } else {
-        const query = await create({ name }, "makers", false).catch(handleError)
+        const query = await api.createMaker({ name }).catch(handleError)
         return query?.lastInsertId || 0
     }
 }
 
 export async function updateOrCreateModels(name: string, makerId: number, id: number) {
     if (id) {
-        await update({ name, maker_id: makerId }, id, "models", false).catch(handleError)
+        await api.updateModel(id, { name, maker_id: makerId }).catch(handleError)
     } else {
-        await create({ name, maker_id: makerId }, "models", false).catch(handleError)
+        await api.createModel({ name, maker_id: makerId }).catch(handleError)
     }
 }
 
@@ -83,12 +83,12 @@ export async function getModelsAndMakers(onProgress?: (progress: number) => void
     const makersStep = 100 / fetchedMakers.length;
     let totalProgress = 0;
 
-    let dbMakers = await db.select(`SELECT * FROM makers`) as Maker[]
+    let dbMakers = await api.getMakers() as Maker[]
     let formattedMakers = dbMakers.reduce((prev, current) => {
         return { ...prev, [current.name]: current.id }
     }, {}) as Record<string, number>
 
-    let dbModels = await db.select(`SELECT * FROM models`) as MakerModel[]
+    let dbModels = await api.getModels() as MakerModel[]
     let formattedModels = dbModels.reduce((prev, current) => {
         return { ...prev, [`${current.name}-${current.maker_id}`]: current.id }
     }, {}) as Record<string, number>

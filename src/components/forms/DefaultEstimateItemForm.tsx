@@ -1,6 +1,6 @@
-import { Button, Form, Input, InputNumber } from "antd";
+import { Button, Form, Input, InputNumber, message } from "antd";
 import { useEffect } from "react";
-import { create, update, } from "../../modules/database";
+import { api } from "../../modules/api";
 import { parseError } from "../../modules/utils";
 import { EstimateDefaultItem } from "../../types/database";
 
@@ -23,12 +23,14 @@ export default function DefaultEstimateItemForm({ item, onSubmit }: DefaultEstim
             form.setFields(parseError(error));
         }
         if (!item) {
-            create(values, "default_estimate_items").then(() => {
+            api.createDefaultEstimateItem(values).then(() => {
+                message.success("Creato con successo!");
                 form.resetFields();
                 onSubmit(values);
             }).catch(onError);
         } else {
-            update(values, item.id, "default_estimate_items").then(() => {
+            api.updateDefaultEstimateItem(item.id, values).then(() => {
+                message.success("Aggiornato con successo!");
                 form.resetFields();
                 onSubmit(values);
             }).catch(onError);

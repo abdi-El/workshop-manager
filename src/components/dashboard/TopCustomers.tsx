@@ -1,8 +1,7 @@
 import { Card } from "antd";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { db } from "../../modules/database";
-import { topCustomersByRevenue } from "../../modules/queries";
+import { api } from "../../modules/api";
 
 interface CustomerRevenue {
     customer_name: string;
@@ -15,13 +14,11 @@ export default function TopCustomers() {
     const [data, setData] = useState<CustomerRevenue[]>([]);
 
     useEffect(() => {
-        if (db) {
-            setLoading(true);
-            db.select(topCustomersByRevenue).then((res) => {
-                setData(res as CustomerRevenue[]);
-            }).finally(() => setLoading(false));
-        }
-    }, [db]);
+        setLoading(true);
+        api.getTopCustomersByRevenue().then((res) => {
+            setData(res);
+        }).finally(() => setLoading(false));
+    }, []);
 
     return (
         <Card loading={loading} style={{ marginTop: 16 }} title="Top clienti per fatturato">

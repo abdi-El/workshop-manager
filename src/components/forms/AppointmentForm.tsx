@@ -1,7 +1,7 @@
-import { Button, DatePicker, Form, FormProps, TimePicker } from "antd";
+import { Button, DatePicker, Form, FormProps, message, TimePicker } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
-import { create, db, update } from "../../modules/database";
+import { api } from "../../modules/api";
 import { DATE_FORMAT, TIME_FORMAT } from "../../modules/dates";
 import { useStore } from "../../modules/state";
 import { Appointment, Estimate } from "../../types/database";
@@ -32,9 +32,8 @@ export default function AppointmentForm({ estimateId, appointmentId, initialData
             form.setFieldsValue(initialData)
         }
         if (appointmentId) {
-            db.select(`SELECT * FROM appointments WHERE id = ${appointmentId}`).then((res: any) => {
-                if ((res as Appointment[]).length) {
-                    const data = res[0]
+            api.getAppointment(appointmentId).then((data) => {
+                if (data) {
                     form.setFieldsValue({
                         ...data,
                         date: dayjs(data.date, DATE_FORMAT),
@@ -67,11 +66,16 @@ export default function AppointmentForm({ estimateId, appointmentId, initialData
         const onExecute = () => {
             onSubmit && onSubmit()
         }
-        const table = "appointments"
         if (appointmentId) {
-            update(formattedData, appointmentId, table).then(onExecute)
+            api.updateAppointment(appointmentId, formattedData).then(() => {
+                message.success("Aggiornato con successo!");
+                onExecute();
+            })
         } else {
-            create(formattedData, table).then(onExecute)
+            api.createAppointment(formattedData).then(() => {
+                message.success("Creato con successo!");
+                onExecute();
+            })
         }
     }
 

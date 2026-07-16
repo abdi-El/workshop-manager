@@ -1,6 +1,6 @@
-import { Button, Form, Input, InputNumber } from "antd";
+import { Button, Form, Input, InputNumber, message } from "antd";
 import React, { useEffect } from "react";
-import { create, update } from "../../modules/database";
+import { api } from "../../modules/api";
 import { Workshop } from "../../types/database";
 
 
@@ -15,13 +15,15 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) 
 
     const handleFinish = (values: Workshop) => {
         if (!workshop.id) {
-            create(values, "workshops").then(() => {
+            api.createWorkshop(values).then(() => {
+                message.success("Creato con successo!");
                 form.resetFields();
                 onSubmit(values);
             })
         }
         else {
-            update(values, workshop.id, "workshops").then(() => {
+            api.updateWorkshop(workshop.id, values).then(() => {
+                message.success("Aggiornato con successo!");
                 form.resetFields();
                 onSubmit(values);
             })

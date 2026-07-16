@@ -1,5 +1,5 @@
 import { CalendarOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, InputRef, Popover, Row, Space, Table } from "antd";
+import { Button, Card, Drawer, InputRef, List, message, Popover, Row, Space, Spin, Table, Typography } from "antd";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
@@ -9,10 +9,9 @@ import EstimatesForm from "../components/forms/EstimatesForm";
 import { lazy } from "react";
 const SaveEstimatePdf = lazy(() => import("../components/pdf/SavePdfButton"));
 import { getColumnSearchProps } from "../components/TableSearchProps";
-import { deleteRow } from "../modules/database";
+import { api } from "../modules/api";
 import { sortBytDate } from "../modules/dates";
-import { useDbQuery } from "../modules/hooks";
-import { estimatesQuery } from "../modules/queries";
+import { useDrawerWidth, useIsMobile, useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
 import { getLogoUrl } from "../modules/utils";
 import { Estimate } from "../types/database";
@@ -23,8 +22,10 @@ function estimateSorter(a: Estimate, b: Estimate, key: keyof Estimate) {
 
 
 export default function Estimates() {
+    const drawerWidth = useDrawerWidth("75%");
+    const isMobile = useIsMobile();
     const [open, setOpen] = useState(false);
-    const { data: estimateRows, loading, reload } = useDbQuery<Estimate>(estimatesQuery)
+    const { data: estimateRows, loading, reload } = useQuery<Estimate>(() => api.getEstimates())
     const estimates = useMemo(() => {
         return estimateRows.map((r) => ({ ...r, has_iva: (r.has_iva as any) == "true" }))
     }, [estimateRows])
@@ -117,9 +118,10 @@ export default function Estimates() {
                         <Button icon={<CalendarOutlined />} type={!!es.appointment_id ? "primary" : "dashed"} size="small" />
                     </Popover>
                     <DeleteButton onConfirm={() => {
-                        deleteRow(es.id, "estimates", () => {
+                        api.deleteEstimate(es.id).then(() => {
+                            message.success("Eliminato con successo!");
                             reload();
-                        })
+                        }).catch((e) => message.error("Errore nell'eliminazione: " + e))
                     }} />
                 </Space >,
         },
@@ -144,11 +146,64 @@ export default function Estimates() {
             closable={{ 'aria-label': 'Chiudi' }}
             onClose={onClose}
             open={open}
-            width={"75%"}
+            width={drawerWidth}
         >
             <EstimatesForm onSubmit={() => { onClose(); reload(); }} estimate={selectedEstimate} />
         </Drawer>
-        <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={estimates} columns={columns as any} rowKey="id" loading={loading} />
+        {isMobile ? (
+            loading ? <Spin style={{ display: 'block', margin: '40px auto' }} /> :
+            <List
+                dataSource={estimates}
+                rowKey="id"
+                renderItem={(es) => (
+                    <Card
+                        size="small"
+                        style={{ marginBottom: 8 }}
+                        title={
+                            <Space>
+                                {es.maker_name && <img
+                                    src={getLogoUrl(es.maker_name)}
+                                    alt={es.maker_name}
+                                    style={{ height: 20, maxWidth: 40, objectFit: 'contain' }}
+                                    onError={(e) => { (e.target as HTMLImageElement).replaceWith(Object.assign(document.createElement('span'), { textContent: es.maker_name })) }}
+                                />}
+                                <span>{es.customer_name}</span>
+                            </Space>
+                        }
+                        extra={
+                            <Typography.Text strong>
+                                € {(es.total ?? 0).toFixed(2)}{!es.has_iva ? ' + IVA' : ''}
+                            </Typography.Text>
+                        }
+                    >
+                        <Row justify="space-between" align="middle">
+                            <Space direction="vertical" size={0}>
+                                <Typography.Text type="secondary">{es.date}</Typography.Text>
+                                <span>{es.car_number_plate}</span>
+                            </Space>
+                            <Space size={4}>
+                                <EditButton onClick={() => { showDrawer(); setSelectedEstimate(es) }} />
+                                <SaveEstimatePdf estimateId={es.id} />
+                                <Popover
+                                    title={!es.appointment_id ? "Crea appuntamento" : "Appuntamento già creato"}
+                                    content={!es.appointment_id && <AppointmentForm estimateId={es.id} onSubmit={reload} />}
+                                >
+                                    <Button icon={<CalendarOutlined />} type={!!es.appointment_id ? "primary" : "dashed"} size="small" />
+                                </Popover>
+                                <DeleteButton onConfirm={() => {
+                                    api.deleteEstimate(es.id).then(() => {
+                                        message.success("Eliminato con successo!");
+                                        reload();
+                                    }).catch((e) => message.error("Errore nell'eliminazione: " + e))
+                                }} />
+                            </Space>
+                        </Row>
+                    </Card>
+                )}
+            />
+        ) : (
+            <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={estimates} columns={columns as any} rowKey="id" loading={loading} />
+        )}
     </>
 };
 

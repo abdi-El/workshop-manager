@@ -1,8 +1,8 @@
-import { Button, Col, Input, List, message, Modal, Row } from "antd";
+import { PlusOutlined } from "@ant-design/icons";
+import { Button, Flex, Input, List, message, Modal } from "antd";
 import { useEffect, useState } from "react";
-import { deleteRow } from "../modules/database";
+import { api } from "../modules/api";
 import { useDebounce } from "../modules/hooks";
-import { searchDefaultEstimateItems } from "../modules/queries";
 import { EstimateDefaultItem } from "../types/database";
 import DeleteButton from "./buttons/DeleteButton";
 import DefaultEstimateItemForm from "./forms/DefaultEstimateItemForm";
@@ -15,8 +15,8 @@ export default function DefaultEstimateItems() {
     const debouncedSearch = useDebounce(searchTerm, 250);
 
     const loadItems = (query: string) => {
-        searchDefaultEstimateItems(query).then((rows) => {
-            setItems(rows as EstimateDefaultItem[]);
+        api.searchDefaultEstimateItems(query).then((rows) => {
+            setItems(rows);
         }).catch((error) => {
             message.error("Errore nel recupero delle voci: " + error);
         });
@@ -27,44 +27,47 @@ export default function DefaultEstimateItems() {
     }, [debouncedSearch]);
 
     return <>
-        <Modal title="Voci di default" open={open} onCancel={() => setOpen(false)} footer={null} width={"80%"}>
+        <Modal title="Voci di default" open={open} onCancel={() => setOpen(false)} footer={null} width={"80%"} styles={{ body: { maxWidth: "100%" } }}>
             <DefaultEstimateItemForm onSubmit={() => {
                 setOpen(false);
                 loadItems(searchTerm);
             }} item={selectedItem} />
         </Modal>
         <List header={
-            <Row justify={"space-between"}>
-                <Col span={19}>
-                    <Input placeholder="Cerca per nome" value={searchTerm} onInput={(e) => {
-                        setSearchTerm((e.target as HTMLInputElement).value)
-                    }} />
-                </Col>
-                <Col span={5} style={{ textAlign: "right" }}>
-                    <Button onClick={() => {
-                        setSelectedItem(undefined);
-                        setOpen(true)
-                    }} type="primary">Aggiungi voce</Button>
-                </Col>
-
-            </Row>
+            <Flex gap={8} wrap>
+                <Input
+                    placeholder="Cerca per nome"
+                    style={{ flex: 1, minWidth: 160 }}
+                    value={searchTerm}
+                    onInput={(e) => setSearchTerm((e.target as HTMLInputElement).value)}
+                />
+                <Button type="primary" icon={<PlusOutlined />} onClick={() => {
+                    setSelectedItem(undefined);
+                    setOpen(true);
+                }}>Aggiungi voce</Button>
+            </Flex>
         }>
             {
                 items.length ? items.map(item => (
-                    <List.Item key={item.id}>
+                    <List.Item
+                        key={item.id}
+                        actions={[
+                            <Button key="edit" size="small" type="dashed" onClick={() => {
+                                setSelectedItem(item);
+                                setOpen(true);
+                            }}>Modifica</Button>,
+                            <DeleteButton key="del" onConfirm={() => {
+                                api.deleteDefaultEstimateItem(item.id).then(() => {
+                                    message.success("Eliminato con successo!");
+                                    loadItems(searchTerm);
+                                }).catch((e) => message.error("Errore nell'eliminazione: " + e))
+                            }} />,
+                        ]}
+                    >
                         <List.Item.Meta
                             title={item.description}
                             description={`Prezzo Unitario: €${item.unit_price.toFixed(2)}`}
                         />
-                        <Button onClick={() => {
-                            setSelectedItem(item)
-                            setOpen(true)
-                        }} type="dashed">Modifica</Button>
-                        <DeleteButton onConfirm={() => {
-                            deleteRow(item.id, "default_estimate_items", () => {
-                                loadItems(searchTerm)
-                            })
-                        }} />
                     </List.Item>
                 ))
                     : null}

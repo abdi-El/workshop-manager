@@ -1,7 +1,7 @@
-import { CalendarOutlined, CarOutlined, DashboardOutlined, FileTextOutlined, LoadingOutlined, SettingOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
-import { Layout, Menu, Row, Spin, theme, Typography } from "antd";
-import { lazy, Suspense, useEffect } from 'react';
-import { useScraper } from '../modules/hooks';
+import { CalendarOutlined, CarOutlined, DashboardOutlined, FileTextOutlined, LoadingOutlined, MenuOutlined, SearchOutlined, SettingOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
+import { Button, Drawer, Layout, Menu, Row, Spin, theme, Typography } from "antd";
+import { lazy, Suspense, useEffect, useState } from 'react';
+import { useIsMobile, useScraper } from '../modules/hooks';
 import { useStore } from "../modules/state";
 import ErrorBoundary from './ErrorBoundary';
 import GlobalSearch from './GlobalSearch';
@@ -20,6 +20,10 @@ export default function Paginator() {
     const { page, loading, updatePage, dbReady } = useStore()
     const { percentage, loading: scraping } = useScraper()
     const { token } = theme.useToken()
+    const isMobile = useIsMobile()
+    const [drawerOpen, setDrawerOpen] = useState(false)
+    const [searchOpen, setSearchOpen] = useState(false)
+
     const items = {
         "dashboard": {
             label: 'Dashboard',
@@ -78,16 +82,52 @@ export default function Paginator() {
         return () => window.removeEventListener('keydown', onKeyDown);
     }, []);
 
+    const onMenuClick = (key: string) => {
+        updatePage(key);
+        setDrawerOpen(false);
+    };
+
     return <Layout style={{ width: '100%', minHeight: '100vh' }}>
 
-        <Layout.Header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: 0, display: 'flex', alignItems: 'center', background: token.colorBgContainer }}>
-            <Menu style={{ flex: 1, minWidth: 0 }} onClick={(e) => {
-                updatePage(e.key)
-            }} selectedKeys={[page]} mode="horizontal" items={Object.values(items)} />
-            <div style={{ padding: '0 16px' }}>
-                <GlobalSearch />
-            </div>
+        <Layout.Header style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100, padding: '0 12px', display: 'flex', alignItems: 'center', background: token.colorBgContainer }}>
+            {isMobile ? <>
+                <Button type="text" icon={<MenuOutlined />} onClick={() => setDrawerOpen(true)} />
+                <Title level={4} style={{ margin: '0 auto 0 8px', flex: 1 }}>
+                    {items[page as keyof typeof items]?.label}
+                </Title>
+            </> : <>
+                <Menu style={{ flex: 1, minWidth: 0 }} onClick={(e) => onMenuClick(e.key)} selectedKeys={[page]} mode="horizontal" items={Object.values(items)} />
+            </>}
+            <Button type="text" icon={<SearchOutlined />} onClick={() => setSearchOpen(!searchOpen)} />
         </Layout.Header>
+
+        <Drawer
+            placement="top"
+            open={searchOpen}
+            onClose={() => setSearchOpen(false)}
+            height="auto"
+            styles={{ body: { padding: '12px 16px' } }}
+            closable={false}
+            mask={true}
+        >
+            <GlobalSearch autoFocus onSelect={() => setSearchOpen(false)} />
+        </Drawer>
+
+        <Drawer
+            placement="left"
+            open={drawerOpen}
+            onClose={() => setDrawerOpen(false)}
+            width={250}
+            styles={{ body: { padding: 0 } }}
+        >
+            <Menu
+                mode="vertical"
+                selectedKeys={[page]}
+                onClick={(e) => onMenuClick(e.key)}
+                items={Object.values(items)}
+                style={{ border: 'none' }}
+            />
+        </Drawer>
 
         <Spin spinning={loading || !dbReady} indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} >
             <div style={{ padding: '0px 10px', marginTop: 74 }}>

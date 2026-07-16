@@ -57,6 +57,10 @@ export type Estimate = {
     appointment_id?: Appointment["id"];
     total?: number;
     notes?: string | null;
+    customer_name?: string;
+    car_number_plate?: string;
+    maker_name?: string;
+    workshop_name?: string;
 };
 
 export type EstimateItem = {

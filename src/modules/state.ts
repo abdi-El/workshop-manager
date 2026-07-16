@@ -1,7 +1,7 @@
 import { message } from 'antd';
 import { create } from 'zustand';
 import { SettingsType } from '../types/common';
-import { storeSettings } from './database';
+import { storeSettings } from './store';
 
 export interface SearchTarget {
     table: "customers" | "cars" | "estimates"
@@ -36,7 +36,7 @@ export const useStore = create<AppState>()((set) => ({
             message.warning("Compila dati dell'officina prima di procedere.");
         }
         const newSettings = { ...current.settings, lastPage: actualPage };
-        storeSettings.set('settings', newSettings);
+        storeSettings?.set('settings', newSettings);
         return { page: actualPage, settings: newSettings };
     }),
     setLoading: (loading: boolean) => set({ loading }),
@@ -50,11 +50,15 @@ export const useStore = create<AppState>()((set) => ({
         if (values) {
             set((old) => {
                 const newValues = { ...old.settings, ...values }
-                storeSettings.set('settings', newValues).then(_ => {
-                }).finally(() => set({ loading: false }))
+                storeSettings?.set('settings', newValues).finally(() => set({ loading: false }));
+                if (!storeSettings) set({ loading: false });
                 return { settings: newValues }
             })
         } else {
+            if (!storeSettings) {
+                set({ page: "workshop", loading: false });
+                return;
+            }
             storeSettings.get('settings').then(stored => {
                 const settings = stored as SettingsType;
                 set({ settings });

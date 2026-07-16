@@ -4,9 +4,9 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { Button, message, Modal } from "antd";
 import { useState } from "react";
-import { getEstimateItems } from "../../modules/database";
-import { getEstimatePdfData } from "../../modules/queries";
+import { api } from "../../modules/api";
 import { useStore } from "../../modules/state";
+import { isTauri } from "../../modules/utils";
 import { EstimateItem } from "../../types/database";
 import EstimatePdf, { DataProps } from "./EstimatePdf";
 import MissingDataPdf from "./MissingDataPdf";
@@ -23,21 +23,23 @@ export default function SaveEstimatePdf({ estimateId }: Props) {
 
     async function loadData() {
         const [pdfData, items] = await Promise.all([
-            getEstimatePdfData(estimateId),
-            getEstimateItems(estimateId),
+            api.getEstimatePdfData(estimateId),
+            api.getEstimateItems(estimateId),
         ]);
         setData(pdfData as any);
-        setEstimateItems(items as any);
+        setEstimateItems(items);
         return { pdfData, items };
     }
 
     async function savePdf() {
-        const path = await save({
-            filters: [{ name: "PDF", extensions: ["pdf"] }],
-        });
-        if (!path) {
+        // Su desktop chiediamo subito il percorso; su mobile lo scarica dal browser.
+        const path = isTauri()
+            ? await save({ filters: [{ name: "PDF", extensions: ["pdf"] }] })
+            : null;
+        if (isTauri() && !path) {
             return;
         }
+
         const { pdfData, items } = await loadData();
         if (!pdfData) {
             message.warning("Dati mancanti per generare il PDF");
@@ -47,10 +49,15 @@ export default function SaveEstimatePdf({ estimateId }: Props) {
         const blob = await pdf(
             <EstimatePdf {...pdfData as any} items={items as EstimateItem[]} pdfTheme={settings.pdfTheme} showPdfNumber={settings.showPdfNumber} />
         ).toBlob();
-        const arrayBuffer = await blob.arrayBuffer();
-        const uint8Array = new Uint8Array(arrayBuffer);
-        await writeFile(path, uint8Array);
 
+        if (isTauri()) {
+            const arrayBuffer = await blob.arrayBuffer();
+            await writeFile(path!, new Uint8Array(arrayBuffer));
+        } else {
+            const url = URL.createObjectURL(blob);
+            window.open(url, "_blank");
+            setTimeout(() => URL.revokeObjectURL(url), 60_000);
+        }
     }
 
     return <>

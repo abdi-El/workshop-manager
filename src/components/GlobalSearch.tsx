@@ -1,7 +1,7 @@
-import { CarOutlined, FileTextOutlined, SearchOutlined, UserOutlined } from '@ant-design/icons';
-import { AutoComplete, Input, InputRef, Space, Typography } from 'antd';
+import { CarOutlined, FileTextOutlined, PhoneOutlined, SearchOutlined, UserOutlined } from '@ant-design/icons';
+import { AutoComplete, Button, Input, InputRef, Typography } from 'antd';
 import { ReactNode, useEffect, useRef, useState } from 'react';
-import { useDebounce } from '../modules/hooks';
+import { useDebounce, useIsMobile } from '../modules/hooks';
 import { globalSearch, SearchResult, SearchResultType } from '../modules/search';
 import { useStore } from '../modules/state';
 
@@ -11,11 +11,17 @@ const groups: Record<SearchResultType, { label: string; icon: ReactNode }> = {
     estimate: { label: 'Lavori', icon: <FileTextOutlined /> },
 };
 
-export default function GlobalSearch() {
+interface GlobalSearchProps {
+    autoFocus?: boolean;
+    onSelect?: () => void;
+}
+
+export default function GlobalSearch({ autoFocus, onSelect: onSelectCallback }: GlobalSearchProps = {}) {
     const [value, setValue] = useState('');
     const [results, setResults] = useState<SearchResult[]>([]);
     const { updatePage, setSearchTarget, dbReady } = useStore((state) => state);
     const inputRef = useRef<InputRef>(null);
+    const isMobile = useIsMobile();
 
     useEffect(() => {
         function onKeyDown(e: KeyboardEvent) {
@@ -54,21 +60,39 @@ export default function GlobalSearch() {
                     value: `${r.type}-${r.id}`,
                     result: r,
                     label: (
-                        <Space>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, maxWidth: '100%' }}>
                             {groups[type].icon}
-                            <span>{r.title}</span>
-                            <Typography.Text type="secondary">{r.subtitle}</Typography.Text>
-                        </Space>
+                            <span style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>{r.title}</span>
+                            <Typography.Text type="secondary" ellipsis style={{ flex: 1, minWidth: 0 }}>
+                                {r.subtitle}
+                            </Typography.Text>
+                            {isMobile && r.type === 'customer' && r.phone && (
+                                <Button
+                                    type="primary"
+                                    size="small"
+                                    icon={<PhoneOutlined />}
+                                    href={`tel:${r.phone}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    style={{ flexShrink: 0 }}
+                                />
+                            )}
+                        </div>
                     ),
                 })),
             };
         })
         .filter((group) => group !== null);
 
+    useEffect(() => {
+        if (autoFocus) inputRef.current?.focus();
+    }, [autoFocus]);
+
     const onSelect = (_: string, option: { result?: SearchResult }) => {
         const result = option.result;
         setValue('');
         inputRef.current?.blur();
+        onSelectCallback?.();
         if (!result) return;
         setSearchTarget({ table: result.page, id: result.id });
         updatePage(result.page);
@@ -80,8 +104,8 @@ export default function GlobalSearch() {
         onChange={setValue}
         onSelect={onSelect as any}
         filterOption={false}
-        style={{ width: 300 }}
-        popupMatchSelectWidth={420}
+        style={{ width: "100%" }}
+        popupMatchSelectWidth={true}
     >
         <Input
             ref={inputRef}

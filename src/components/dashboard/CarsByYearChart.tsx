@@ -1,8 +1,7 @@
 import { Card, Row } from "antd";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { db } from "../../modules/database";
-import { CarsByYear } from "../../modules/queries";
+import { api } from "../../modules/api";
 
 interface DataType {
     year: string;
@@ -14,15 +13,13 @@ export default function CarsByYearChart() {
     const [data, setData] = useState<DataType[]>([])
 
     useEffect(() => {
-        if (db) {
-            setLoading(true)
-            db.select(CarsByYear).then((res) => {
-                setData(res as DataType[])
-            }).finally(() => {
-                setLoading(false)
-            })
-        }
-    }, [db])
+        setLoading(true)
+        api.getCarsByYear().then((res) => {
+            setData(res as DataType[])
+        }).finally(() => {
+            setLoading(false)
+        })
+    }, [])
 
     return <Row>
         <Card loading={loading} style={{ marginTop: 16, width: "100%" }} title="Auto per anno di immatricolazione">

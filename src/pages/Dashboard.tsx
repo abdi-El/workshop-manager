@@ -1,3 +1,4 @@
+import { Col, Row } from "antd";
 import CarsAVGS from "../components/dashboard/CarsAVGS";
 import CarsByYearChart from "../components/dashboard/CarsByYearChart";
 import EstimatesAVGS from "../components/dashboard/EstimatesAVGS";
@@ -12,10 +13,12 @@ export default function Dashboard() {
     return <>
         <EstimatesAVGS />
         <CarsAVGS />
-        {settings.showRevenueStatistics && <>
-            <RevenueChart />
-            <TopCustomers />
-        </>}
+        {settings.showRevenueStatistics &&
+            <Row gutter={[16, 0]}>
+                <Col xs={24} lg={12}><RevenueChart /></Col>
+                <Col xs={24} lg={12}><TopCustomers /></Col>
+            </Row>
+        }
         <CarsByYearChart />
         <InspectionReminder style={{ marginTop: 20 }} />
     </>

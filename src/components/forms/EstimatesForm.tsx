@@ -1,7 +1,7 @@
-import { Button, Checkbox, DatePicker, Form, Input, InputNumber, Row, Statistic } from "antd";
+import { Button, Checkbox, DatePicker, Form, Input, InputNumber, message, Row, Statistic } from "antd";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
-import { createOrUpdateEstimate, getEstimateItems } from "../../modules/database";
+import { api } from "../../modules/api";
 import { DATE_FORMAT } from "../../modules/dates";
 import { useStore } from "../../modules/state";
 import { Estimate, EstimateItem } from "../../types/database";
@@ -37,14 +37,17 @@ export default function EstimatesForm({ estimate, onSubmit }: EstimatesFormProps
         values.date = dayjs(values.date).format(DATE_FORMAT);
         values.workshop_id = settings?.selectedWorkshop?.id as number;
         const { items, ...rest } = values as any;
-        createOrUpdateEstimate(rest as any, items, () => {
+        api.saveEstimate(rest as any, items, estimate?.id).then(() => {
+            message.success("Operazione completata con successo!");
             form.resetFields();
             onSubmit(values);
-        }, estimate?.id);
+        }).catch((error) => {
+            message.error("Errore nella creazione del lavoro: " + error);
+        });
     };
     async function getItems() {
         if (estimate?.id) {
-            form.setFieldValue("items", await getEstimateItems(estimate.id));
+            form.setFieldValue("items", await api.getEstimateItems(estimate.id));
         }
     }
     async function populateForm(estimate: Partial<Estimate>) {

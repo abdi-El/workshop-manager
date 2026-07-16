@@ -9,9 +9,9 @@ import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from 'react';
 import AppointmentForm from '../components/forms/AppointmentForm';
 import PlannerEvent from '../components/PlannerEvent';
-import { update } from '../modules/database';
+import { api } from '../modules/api';
 import { fromISOFormat, toISOFormat } from '../modules/dates';
-import { getPlannerEvents } from '../modules/queries';
+import { useIsMobile } from '../modules/hooks';
 import "../styles/full-calendar-dark.css";
 import { AppointmentEventData } from '../types/database';
 
@@ -36,12 +36,13 @@ const mapAppointmentsToEvents = (appointments: AppointmentEventData[]) => {
 };
 
 export default function Planner() {
+    const isMobile = useIsMobile();
     const [appointments, setAppointments] = useState<AppointmentEventData[]>([])
     const [editing, setEditing] = useState<AppointmentEventData>()
     const [selectedDate, setSelectedDate] = useState<Date>()
 
     function getData() {
-        getPlannerEvents().then((res) => setAppointments(res as any))
+        api.getPlannerEvents().then((res) => setAppointments(res))
     }
 
     function close() {
@@ -71,7 +72,7 @@ export default function Planner() {
             to_time: newEnd.time
         }
 
-        update(newDates, appointment.id, "appointments", false).then(() => {
+        api.updateAppointment(appointment.id, newDates).then(() => {
             setAppointments(prev =>
                 prev.map(appt =>
                     appt.id === appointment.id ? {
@@ -96,9 +97,14 @@ export default function Planner() {
 
             <div id='calendar'>
                 <FullCalendar
+                    key={isMobile ? 'mobile' : 'desktop'}
                     plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                    initialView='timeGridWeek'
-                    headerToolbar={{
+                    initialView={isMobile ? 'timeGridDay' : 'timeGridWeek'}
+                    headerToolbar={isMobile ? {
+                        left: 'prev,next',
+                        center: 'title',
+                        right: 'timeGridDay,dayGridMonth'
+                    } : {
                         left: 'prev,next today',
                         center: 'title',
                         right: 'dayGridMonth,timeGridWeek,timeGridDay'

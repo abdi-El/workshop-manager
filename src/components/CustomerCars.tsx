@@ -1,8 +1,8 @@
 import { HistoryOutlined } from '@ant-design/icons';
 import { Button, Drawer, Empty, List, Space, Spin, Tooltip, Typography } from 'antd';
 import { useState } from 'react';
-import { useDbQuery } from '../modules/hooks';
-import { customerCarsQuery } from '../modules/queries';
+import { api } from '../modules/api';
+import { useDrawerWidth, useQuery } from '../modules/hooks';
 import { getLogoUrl } from '../modules/utils';
 import { Car, Customer } from '../types/database';
 import CarHistory from './CarHistory';
@@ -12,7 +12,8 @@ interface CustomerCarsProps {
 }
 
 export default function CustomerCars({ customer }: CustomerCarsProps) {
-    const { data: customerCars, loading } = useDbQuery<Car>(customerCarsQuery, [customer.id]);
+    const drawerWidth = useDrawerWidth();
+    const { data: customerCars, loading } = useQuery<Car>(() => api.getCustomerCars(customer.id));
     const [historyCar, setHistoryCar] = useState<Car>();
 
     if (loading) {
@@ -60,7 +61,7 @@ export default function CustomerCars({ customer }: CustomerCarsProps) {
             closable={{ 'aria-label': 'Chiudi' }}
             onClose={() => setHistoryCar(undefined)}
             open={!!historyCar}
-            width={480}
+            width={drawerWidth}
         >
             {historyCar && <CarHistory car={historyCar} />}
         </Drawer>
