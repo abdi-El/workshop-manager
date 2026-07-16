@@ -11,6 +11,7 @@ import AppointmentForm from '../components/forms/AppointmentForm';
 import PlannerEvent from '../components/PlannerEvent';
 import { api } from '../modules/api';
 import { fromISOFormat, toISOFormat } from '../modules/dates';
+import { useIsMobile } from '../modules/hooks';
 import "../styles/full-calendar-dark.css";
 import { AppointmentEventData } from '../types/database';
 
@@ -35,6 +36,7 @@ const mapAppointmentsToEvents = (appointments: AppointmentEventData[]) => {
 };
 
 export default function Planner() {
+    const isMobile = useIsMobile();
     const [appointments, setAppointments] = useState<AppointmentEventData[]>([])
     const [editing, setEditing] = useState<AppointmentEventData>()
     const [selectedDate, setSelectedDate] = useState<Date>()
@@ -95,9 +97,14 @@ export default function Planner() {
 
             <div id='calendar'>
                 <FullCalendar
+                    key={isMobile ? 'mobile' : 'desktop'}
                     plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                    initialView='timeGridWeek'
-                    headerToolbar={{
+                    initialView={isMobile ? 'timeGridDay' : 'timeGridWeek'}
+                    headerToolbar={isMobile ? {
+                        left: 'prev,next',
+                        center: 'title',
+                        right: 'timeGridDay,dayGridMonth'
+                    } : {
                         left: 'prev,next today',
                         center: 'title',
                         right: 'dayGridMonth,timeGridWeek,timeGridDay'

@@ -13,7 +13,7 @@ import { useStore } from '../modules/state';
 import { storeSettings } from '../modules/store';
 import { isTauri } from '../modules/utils';
 
-const { Text, Title } = Typography;
+const { Text } = Typography;
 
 /** A labelled setting row: title + optional description on the left, control on the right.
  *  Wraps and stacks on narrow screens. */
@@ -48,8 +48,6 @@ export default function Settings() {
 
     return (
         <div style={{ maxWidth: 820, width: '100%', margin: '0 auto' }}>
-            <Title level={3} style={{ marginTop: 0 }}>Impostazioni</Title>
-
             <Space direction="vertical" size={16} style={{ width: '100%' }}>
                 <Card size="small" title={<SectionTitle icon={<BgColorsOutlined />}>Aspetto</SectionTitle>}>
                     <SettingRow

@@ -1,4 +1,5 @@
-import { Table, Typography } from "antd";
+import { CalendarOutlined } from "@ant-design/icons";
+import { Collapse, Descriptions, Empty, Spin, Typography } from "antd";
 import { useEffect, useState } from "react";
 import { api } from "../../modules/api";
 
@@ -17,42 +18,51 @@ interface DataType {
     model_name: string
 }
 
-const { Title } = Typography;
+const { Title, Text } = Typography;
 
-const columns = [
-    {
-        title: 'Auto',
-        key: 'name',
-        render: (_: any, record: DataType) => (`${record.maker_name} ${record.model_name} (${record.year})`)
-    },
-    {
-        title: 'Cliente',
-        dataIndex: 'customer_name',
-        key: 'customer_name',
-    },
-    {
-        title: 'Telefono',
-        dataIndex: 'customer_phone',
-        key: 'customer_phone',
-    },
-    {
-        title: 'Data Ultima Revisione',
-        dataIndex: 'last_inspection_date',
-        key: 'last_inspection_date',
-    },
-];
 export default function InspectionReminder(props: Props) {
     const [inspections, setInspections] = useState<DataType[]>()
-
 
     useEffect(() => {
         api.getUpcomingInspections().then((data) => {
             setInspections(data as DataType[])
         })
     }, [])
+
+    const items = (inspections ?? []).map((record) => ({
+        key: record.car_id,
+        label: (
+            <span>
+                <strong>{record.maker_name} {record.model_name}</strong>
+                <Text type="secondary"> ({record.year})</Text>
+            </span>
+        ),
+        extra: record.last_inspection_date && (
+            <Text type="secondary" style={{ fontSize: 12 }}>
+                <CalendarOutlined /> {record.last_inspection_date}
+            </Text>
+        ),
+        children: (
+            <Descriptions column={1} size="small">
+                <Descriptions.Item label="Cliente">{record.customer_name}</Descriptions.Item>
+                <Descriptions.Item label="Telefono">
+                    {record.customer_phone
+                        ? <a href={`tel:${record.customer_phone}`}>{record.customer_phone}</a>
+                        : "—"}
+                </Descriptions.Item>
+                <Descriptions.Item label="Ultima revisione">
+                    {record.last_inspection_date ?? "—"}
+                </Descriptions.Item>
+            </Descriptions>
+        ),
+    }));
+
     return <div {...props}>
         <Title level={4}>Prossime revisioni</Title>
-        <Table virtual scroll={{ x: 600, y: 300 }} dataSource={inspections} columns={columns} loading={inspections === undefined} />
+        {inspections === undefined
+            ? <Spin style={{ display: 'block', margin: '40px auto' }} />
+            : items.length
+                ? <Collapse items={items} />
+                : <Empty description="Nessuna revisione in scadenza" />}
     </div>
-
 }
