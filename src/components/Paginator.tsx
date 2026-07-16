@@ -1,7 +1,7 @@
 import { CalendarOutlined, CarOutlined, DashboardOutlined, FileTextOutlined, LoadingOutlined, MenuOutlined, SearchOutlined, SettingOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
-import { Button, Drawer, Grid, Layout, Menu, Row, Spin, theme, Typography } from "antd";
+import { Button, Drawer, Layout, Menu, Row, Spin, theme, Typography } from "antd";
 import { lazy, Suspense, useEffect, useState } from 'react';
-import { useScraper } from '../modules/hooks';
+import { useIsMobile, useScraper } from '../modules/hooks';
 import { useStore } from "../modules/state";
 import ErrorBoundary from './ErrorBoundary';
 import GlobalSearch from './GlobalSearch';
@@ -20,8 +20,7 @@ export default function Paginator() {
     const { page, loading, updatePage, dbReady } = useStore()
     const { percentage, loading: scraping } = useScraper()
     const { token } = theme.useToken()
-    const screens = Grid.useBreakpoint()
-    const isMobile = !screens.md
+    const isMobile = useIsMobile()
     const [drawerOpen, setDrawerOpen] = useState(false)
     const [searchOpen, setSearchOpen] = useState(false)
 

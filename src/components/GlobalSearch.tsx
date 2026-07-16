@@ -1,5 +1,5 @@
 import { CarOutlined, FileTextOutlined, SearchOutlined, UserOutlined } from '@ant-design/icons';
-import { AutoComplete, Input, InputRef, Space, Typography } from 'antd';
+import { AutoComplete, Input, InputRef, Typography } from 'antd';
 import { ReactNode, useEffect, useRef, useState } from 'react';
 import { useDebounce } from '../modules/hooks';
 import { globalSearch, SearchResult, SearchResultType } from '../modules/search';
@@ -59,11 +59,13 @@ export default function GlobalSearch({ autoFocus, onSelect: onSelectCallback }: 
                     value: `${r.type}-${r.id}`,
                     result: r,
                     label: (
-                        <Space>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0, maxWidth: '100%' }}>
                             {groups[type].icon}
-                            <span>{r.title}</span>
-                            <Typography.Text type="secondary">{r.subtitle}</Typography.Text>
-                        </Space>
+                            <span style={{ whiteSpace: 'nowrap', flexShrink: 0 }}>{r.title}</span>
+                            <Typography.Text type="secondary" ellipsis style={{ flex: 1, minWidth: 0 }}>
+                                {r.subtitle}
+                            </Typography.Text>
+                        </div>
                     ),
                 })),
             };
@@ -91,7 +93,7 @@ export default function GlobalSearch({ autoFocus, onSelect: onSelectCallback }: 
         onSelect={onSelect as any}
         filterOption={false}
         style={{ width: "100%" }}
-        popupMatchSelectWidth={false}
+        popupMatchSelectWidth={true}
     >
         <Input
             ref={inputRef}

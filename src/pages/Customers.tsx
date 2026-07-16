@@ -1,5 +1,5 @@
 import { CarOutlined, FileTextOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, InputRef, message, Row, Space, Table, Tooltip } from "antd";
+import { Button, Card, Drawer, InputRef, List, message, Row, Space, Spin, Table, Tooltip, Typography } from "antd";
 import { useEffect, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
@@ -8,16 +8,17 @@ import CustomerCars from "../components/CustomerCars";
 import CustomerForm from "../components/forms/CustomerForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import CustomersTour from "../components/tours/CustomerTour";
-import { getDb } from "../modules/db/instance";
-import { useDrawerWidth, useQuery } from "../modules/hooks";
+import { api } from "../modules/api";
+import { useDrawerWidth, useIsMobile, useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
 import { Customer } from "../types/database";
 
 
 export default function Customers() {
     const drawerWidth = useDrawerWidth();
+    const isMobile = useIsMobile();
     const [open, setOpen] = useState(false);
-    const { data: customers, loading, reload } = useQuery<Customer>(() => getDb().getCustomers())
+    const { data: customers, loading, reload } = useQuery<Customer>(() => api.getCustomers())
     const { searchTarget, setSearchTarget } = useStore((state) => state)
     const [selectedCustomer, setSelectedCustomer] = useState<Customer>();
     const [carsCustomer, setCarsCustomer] = useState<Customer>();
@@ -82,7 +83,7 @@ export default function Customers() {
                         <Button icon={<CarOutlined />} onClick={() => setCarsCustomer(cs)} />
                     </Tooltip>
                     <DeleteButton onConfirm={() => {
-                        getDb().deleteRow(cs.id, "customers").then(() => {
+                        api.deleteCustomer(cs.id).then(() => {
                             message.success("Eliminato con successo!");
                             reload();
                         }).catch((e) => message.error("Errore nell'eliminazione: " + e))
@@ -124,7 +125,51 @@ export default function Customers() {
         >
             {carsCustomer && <CustomerCars customer={carsCustomer} />}
         </Drawer>
-        <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={customers} columns={columns as any} rowKey="id" loading={loading} />
+        {isMobile ? (
+            loading ? <Spin style={{ display: 'block', margin: '40px auto' }} /> :
+            <List
+                dataSource={customers}
+                rowKey="id"
+                renderItem={(cs) => (
+                    <Card
+                        size="small"
+                        style={{ marginBottom: 8 }}
+                        title={
+                            <Space>
+                                <span>{cs.name}</span>
+                                {cs.notes && (
+                                    <Tooltip title={cs.notes}>
+                                        <FileTextOutlined style={{ color: "#1677ff" }} />
+                                    </Tooltip>
+                                )}
+                            </Space>
+                        }
+                    >
+                        <Space direction="vertical" size={2} style={{ width: '100%' }}>
+                            {cs.address && <Typography.Text type="secondary">{cs.address}</Typography.Text>}
+                            {cs.phone && <span>{cs.phone}</span>}
+                            {cs.email && <Typography.Text type="secondary">{cs.email}</Typography.Text>}
+                            <Row justify="end">
+                                <Space>
+                                    <EditButton onClick={() => { showDrawer(); setSelectedCustomer(cs) }} />
+                                    <Tooltip title="Auto del cliente">
+                                        <Button icon={<CarOutlined />} onClick={() => setCarsCustomer(cs)} />
+                                    </Tooltip>
+                                    <DeleteButton onConfirm={() => {
+                                        api.deleteCustomer(cs.id).then(() => {
+                                            message.success("Eliminato con successo!");
+                                            reload();
+                                        }).catch((e) => message.error("Errore nell'eliminazione: " + e))
+                                    }} />
+                                </Space>
+                            </Row>
+                        </Space>
+                    </Card>
+                )}
+            />
+        ) : (
+            <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={customers} columns={columns as any} rowKey="id" loading={loading} />
+        )}
         <CustomersTour />
     </>
 };

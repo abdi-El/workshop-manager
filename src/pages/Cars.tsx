@@ -1,5 +1,5 @@
 import { FileTextOutlined, HistoryOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, InputRef, message, Row, Space, Table, Tooltip } from "antd";
+import { Button, Card, Drawer, InputRef, List, message, Row, Space, Spin, Table, Tooltip, Typography } from "antd";
 import { useEffect, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
@@ -7,8 +7,8 @@ import EditButton from "../components/buttons/EditButton";
 import CarHistory from "../components/CarHistory";
 import CarsForm from "../components/forms/CarsForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
-import { getDb } from "../modules/db/instance";
-import { useDrawerWidth, useQuery } from "../modules/hooks";
+import { api } from "../modules/api";
+import { useDrawerWidth, useIsMobile, useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
 import { getLogoUrl } from "../modules/utils";
 import { Car } from "../types/database";
@@ -16,8 +16,9 @@ import { Car } from "../types/database";
 
 export default function Cars() {
     const drawerWidth = useDrawerWidth();
+    const isMobile = useIsMobile();
     const [open, setOpen] = useState(false);
-    const { data: cars, loading, reload } = useQuery<Car>(() => getDb().getCars())
+    const { data: cars, loading, reload } = useQuery<Car>(() => api.getCars())
     const { searchTarget, setSearchTarget } = useStore((state) => state)
     const [selectedCar, setSelectedCar] = useState<Car>();
     const [historyCar, setHistoryCar] = useState<Car>();
@@ -90,7 +91,7 @@ export default function Cars() {
                         <Button icon={<HistoryOutlined />} onClick={() => setHistoryCar(cr)} />
                     </Tooltip>
                     <DeleteButton onConfirm={() => {
-                        getDb().deleteRow(cr.id, "cars").then(() => {
+                        api.deleteCar(cr.id).then(() => {
                             message.success("Eliminato con successo!");
                             reload();
                         }).catch((e) => message.error("Errore nell'eliminazione: " + e))
@@ -132,7 +133,54 @@ export default function Cars() {
         >
             {historyCar && <CarHistory car={historyCar} />}
         </Drawer>
-        <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={cars} columns={columns as any} rowKey="id" loading={loading} />
+        {isMobile ? (
+            loading ? <Spin style={{ display: 'block', margin: '40px auto' }} /> :
+            <List
+                dataSource={cars}
+                rowKey="id"
+                renderItem={(cr) => (
+                    <Card
+                        size="small"
+                        style={{ marginBottom: 8 }}
+                        title={
+                            <Space>
+                                {cr.maker_name && <img
+                                    src={getLogoUrl(cr.maker_name)}
+                                    alt={cr.maker_name}
+                                    style={{ height: 20, maxWidth: 40, objectFit: 'contain' }}
+                                    onError={(e) => { (e.target as HTMLImageElement).replaceWith(Object.assign(document.createElement('span'), { textContent: cr.maker_name })) }}
+                                />}
+                                <span>{cr.number_plate}</span>
+                                {cr.notes && (
+                                    <Tooltip title={cr.notes}>
+                                        <FileTextOutlined style={{ color: "#1677ff" }} />
+                                    </Tooltip>
+                                )}
+                            </Space>
+                        }
+                        extra={<Typography.Text type="secondary">{cr.year}</Typography.Text>}
+                    >
+                        <Row justify="space-between" align="middle">
+                            <span>{cr.model_name}</span>
+                            <Space>
+                                <EditButton onClick={() => { showDrawer(); setSelectedCar(cr) }} />
+                                <Tooltip title="Storico interventi">
+                                    <Button icon={<HistoryOutlined />} onClick={() => setHistoryCar(cr)} />
+                                </Tooltip>
+                                <DeleteButton onConfirm={() => {
+                                    api.deleteCar(cr.id).then(() => {
+                                        message.success("Eliminato con successo!");
+                                        reload();
+                                    }).catch((e) => message.error("Errore nell'eliminazione: " + e))
+                                }} />
+                            </Space>
+                        </Row>
+                    </Card>
+                )}
+            />
+        ) : (
+            <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={cars} columns={columns as any} rowKey="id" loading={loading} />
+        )}
     </>
 };
 

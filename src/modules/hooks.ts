@@ -4,9 +4,13 @@ import { create } from "zustand";
 import { storeSettings } from "./store";
 import { getModelsAndMakers } from "./scraper";
 
-export function useDrawerWidth(desktop: number | string = 600) {
+export function useIsMobile() {
     const screens = Grid.useBreakpoint();
-    return screens.md ? desktop : "100%";
+    return !screens.md;
+}
+
+export function useDrawerWidth(desktop: number | string = 600) {
+    return useIsMobile() ? "100%" : desktop;
 }
 
 export function useDebounce<T>(value: T, delay: number): T {

@@ -1,5 +1,5 @@
 import { CalendarOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Card, Drawer, Grid, InputRef, List, message, Popover, Row, Space, Spin, Table, Typography } from "antd";
+import { Button, Card, Drawer, InputRef, List, message, Popover, Row, Space, Spin, Table, Typography } from "antd";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
@@ -9,9 +9,9 @@ import EstimatesForm from "../components/forms/EstimatesForm";
 import { lazy } from "react";
 const SaveEstimatePdf = lazy(() => import("../components/pdf/SavePdfButton"));
 import { getColumnSearchProps } from "../components/TableSearchProps";
-import { getDb } from "../modules/db/instance";
+import { api } from "../modules/api";
 import { sortBytDate } from "../modules/dates";
-import { useDrawerWidth, useQuery } from "../modules/hooks";
+import { useDrawerWidth, useIsMobile, useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
 import { getLogoUrl } from "../modules/utils";
 import { Estimate } from "../types/database";
@@ -23,10 +23,9 @@ function estimateSorter(a: Estimate, b: Estimate, key: keyof Estimate) {
 
 export default function Estimates() {
     const drawerWidth = useDrawerWidth("75%");
-    const screens = Grid.useBreakpoint();
-    const isMobile = !screens.md;
+    const isMobile = useIsMobile();
     const [open, setOpen] = useState(false);
-    const { data: estimateRows, loading, reload } = useQuery<Estimate>(() => getDb().getEstimates())
+    const { data: estimateRows, loading, reload } = useQuery<Estimate>(() => api.getEstimates())
     const estimates = useMemo(() => {
         return estimateRows.map((r) => ({ ...r, has_iva: (r.has_iva as any) == "true" }))
     }, [estimateRows])
@@ -119,7 +118,7 @@ export default function Estimates() {
                         <Button icon={<CalendarOutlined />} type={!!es.appointment_id ? "primary" : "dashed"} size="small" />
                     </Popover>
                     <DeleteButton onConfirm={() => {
-                        getDb().deleteRow(es.id, "estimates").then(() => {
+                        api.deleteEstimate(es.id).then(() => {
                             message.success("Eliminato con successo!");
                             reload();
                         }).catch((e) => message.error("Errore nell'eliminazione: " + e))
@@ -192,7 +191,7 @@ export default function Estimates() {
                                     <Button icon={<CalendarOutlined />} type={!!es.appointment_id ? "primary" : "dashed"} size="small" />
                                 </Popover>
                                 <DeleteButton onConfirm={() => {
-                                    getDb().deleteRow(es.id, "estimates").then(() => {
+                                    api.deleteEstimate(es.id).then(() => {
                                         message.success("Eliminato con successo!");
                                         reload();
                                     }).catch((e) => message.error("Errore nell'eliminazione: " + e))
