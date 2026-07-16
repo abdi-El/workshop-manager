@@ -1,7 +1,7 @@
 import { Card, Row } from "antd";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { getDb } from "../../modules/db/instance";
+import { api } from "../../modules/api";
 
 interface DataType {
     year: string;
@@ -14,7 +14,7 @@ export default function CarsByYearChart() {
 
     useEffect(() => {
         setLoading(true)
-        getDb().getCarsByYear().then((res) => {
+        api.getCarsByYear().then((res) => {
             setData(res as DataType[])
         }).finally(() => {
             setLoading(false)

@@ -1,7 +1,7 @@
 import { Card } from "antd";
 import { useEffect, useState } from "react";
 import { Bar, BarChart, CartesianGrid, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
-import { getDb } from "../../modules/db/instance";
+import { api } from "../../modules/api";
 
 interface CustomerRevenue {
     customer_name: string;
@@ -15,7 +15,7 @@ export default function TopCustomers() {
 
     useEffect(() => {
         setLoading(true);
-        getDb().getTopCustomersByRevenue().then((res) => {
+        api.getTopCustomersByRevenue().then((res) => {
             setData(res);
         }).finally(() => setLoading(false));
     }, []);

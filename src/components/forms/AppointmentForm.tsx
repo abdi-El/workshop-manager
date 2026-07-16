@@ -1,7 +1,7 @@
 import { Button, DatePicker, Form, FormProps, message, TimePicker } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
-import { getDb } from "../../modules/db/instance";
+import { api } from "../../modules/api";
 import { DATE_FORMAT, TIME_FORMAT } from "../../modules/dates";
 import { useStore } from "../../modules/state";
 import { Appointment, Estimate } from "../../types/database";
@@ -32,7 +32,7 @@ export default function AppointmentForm({ estimateId, appointmentId, initialData
             form.setFieldsValue(initialData)
         }
         if (appointmentId) {
-            getDb().getAppointment(appointmentId).then((data) => {
+            api.getAppointment(appointmentId).then((data) => {
                 if (data) {
                     form.setFieldsValue({
                         ...data,
@@ -66,14 +66,13 @@ export default function AppointmentForm({ estimateId, appointmentId, initialData
         const onExecute = () => {
             onSubmit && onSubmit()
         }
-        const table = "appointments"
         if (appointmentId) {
-            getDb().update(formattedData, appointmentId, table).then(() => {
+            api.updateAppointment(appointmentId, formattedData).then(() => {
                 message.success("Aggiornato con successo!");
                 onExecute();
             })
         } else {
-            getDb().create(formattedData, table).then(() => {
+            api.createAppointment(formattedData).then(() => {
                 message.success("Creato con successo!");
                 onExecute();
             })

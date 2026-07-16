@@ -1,4 +1,4 @@
-import { getDb } from "./db/instance";
+import { api } from "./api";
 
 export type SearchResultType = "customer" | "car" | "estimate";
 
@@ -11,5 +11,5 @@ export interface SearchResult {
 }
 
 export async function globalSearch(rawQuery: string): Promise<SearchResult[]> {
-    return getDb().globalSearch(rawQuery);
+    return api.globalSearch(rawQuery);
 }

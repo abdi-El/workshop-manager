@@ -1,6 +1,6 @@
 import { Empty, message, Space, Spin, Tag, Timeline, Typography } from 'antd';
 import { useEffect, useState } from 'react';
-import { getDb } from '../modules/db/instance';
+import { api } from '../modules/api';
 import { Car, CarHistoryEntry } from '../types/database';
 
 interface CarHistoryProps {
@@ -12,7 +12,7 @@ export default function CarHistory({ car }: CarHistoryProps) {
 
     useEffect(() => {
         setEntries(undefined);
-        getDb().getCarHistory(car.id).then((rows) => {
+        api.getCarHistory(car.id).then((rows) => {
             setEntries(rows);
         }).catch((error) => {
             message.error("Errore nel recupero dello storico: " + error);

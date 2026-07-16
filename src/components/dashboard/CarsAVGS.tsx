@@ -1,7 +1,7 @@
 import { Card, Col, Row, Statistic } from "antd";
 
 import { useEffect, useState } from "react";
-import { getDb } from '../../modules/db/instance';
+import { api } from '../../modules/api';
 
 interface DataType {
     brand_name: string,
@@ -14,7 +14,7 @@ export default function CarsAVGS() {
     const [carsAverages, setCarsAverages] = useState<DataType[]>()
     useEffect(() => {
         setLoading(true)
-        getDb().getCarBrandsByCount().then((res) => {
+        api.getCarBrandsByCount().then((res) => {
             setCarsAverages(res as DataType[])
         }).finally(() => {
             setLoading(false)

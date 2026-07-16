@@ -1,6 +1,6 @@
 import { Table, Typography } from "antd";
 import { useEffect, useState } from "react";
-import { getDb } from "../../modules/db/instance";
+import { api } from "../../modules/api";
 
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
@@ -46,7 +46,7 @@ export default function InspectionReminder(props: Props) {
 
 
     useEffect(() => {
-        getDb().getUpcomingInspections().then((data) => {
+        api.getUpcomingInspections().then((data) => {
             setInspections(data as DataType[])
         })
     }, [])

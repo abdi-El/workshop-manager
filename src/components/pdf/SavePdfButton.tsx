@@ -4,7 +4,7 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { Button, message, Modal } from "antd";
 import { useState } from "react";
-import { getDb } from "../../modules/db/instance";
+import { api } from "../../modules/api";
 import { useStore } from "../../modules/state";
 import { EstimateItem } from "../../types/database";
 import EstimatePdf, { DataProps } from "./EstimatePdf";
@@ -22,8 +22,8 @@ export default function SaveEstimatePdf({ estimateId }: Props) {
 
     async function loadData() {
         const [pdfData, items] = await Promise.all([
-            getDb().getEstimatePdfData(estimateId),
-            getDb().getEstimateItems(estimateId),
+            api.getEstimatePdfData(estimateId),
+            api.getEstimateItems(estimateId),
         ]);
         setData(pdfData as any);
         setEstimateItems(items);

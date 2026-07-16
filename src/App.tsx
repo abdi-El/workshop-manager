@@ -5,7 +5,6 @@ import 'dayjs/locale/it';
 import updateLocale from 'dayjs/plugin/updateLocale';
 import { useEffect } from "react";
 import Paginator from "./components/Paginator";
-import { initDatabaseService } from './modules/db/instance';
 import { useScraper } from './modules/hooks';
 import { useStore } from './modules/state';
 import { initStore } from './modules/store';
@@ -19,7 +18,6 @@ export default function Page() {
   const { setPercentage } = useScraper()
   async function initApp() {
     setIsDebug(await fetchIsDebug());
-    await initDatabaseService();
     if (isTauri()) {
       await initStore();
     }

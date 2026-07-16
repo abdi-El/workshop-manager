@@ -9,7 +9,7 @@ import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from 'react';
 import AppointmentForm from '../components/forms/AppointmentForm';
 import PlannerEvent from '../components/PlannerEvent';
-import { getDb } from '../modules/db/instance';
+import { api } from '../modules/api';
 import { fromISOFormat, toISOFormat } from '../modules/dates';
 import "../styles/full-calendar-dark.css";
 import { AppointmentEventData } from '../types/database';
@@ -40,7 +40,7 @@ export default function Planner() {
     const [selectedDate, setSelectedDate] = useState<Date>()
 
     function getData() {
-        getDb().getPlannerEvents().then((res) => setAppointments(res))
+        api.getPlannerEvents().then((res) => setAppointments(res))
     }
 
     function close() {
@@ -70,7 +70,7 @@ export default function Planner() {
             to_time: newEnd.time
         }
 
-        getDb().update(newDates, appointment.id, "appointments").then(() => {
+        api.updateAppointment(appointment.id, newDates).then(() => {
             setAppointments(prev =>
                 prev.map(appt =>
                     appt.id === appointment.id ? {

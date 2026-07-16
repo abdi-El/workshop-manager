@@ -2,7 +2,7 @@ import { FieldTimeOutlined } from '@ant-design/icons';
 import { Card, Col, Row, Statistic } from "antd";
 
 import { useEffect, useState } from "react";
-import { getDb } from '../../modules/db/instance';
+import { api } from '../../modules/api';
 import { EstiamatesAverages } from '../../types/database';
 
 
@@ -11,7 +11,7 @@ export default function EstimatesAVGS() {
     const [estimatesAverages, setEstimatesAverages] = useState<EstiamatesAverages>()
     useEffect(() => {
         setLoading(true)
-        getDb().getDashboardAverages().then((res) => {
+        api.getDashboardAverages().then((res) => {
             setEstimatesAverages(res[0])
         }).finally(() => {
             setLoading(false)

@@ -1,11 +1,10 @@
 use axum::{
-    extract::State,
+    extract::{Path, Query, State},
     http::StatusCode,
     response::{Html, IntoResponse},
-    routing::{get, post},
+    routing::{get, post, put},
     Json, Router,
 };
-use regex::Regex;
 use rusqlite::{params_from_iter, types::Value as SqlValue, Connection};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
@@ -13,36 +12,17 @@ use std::sync::{Arc, Mutex};
 use tower_http::cors::CorsLayer;
 
 type Db = Arc<Mutex<Connection>>;
+type ApiResult<T> = Result<T, (StatusCode, String)>;
 
-#[derive(Deserialize)]
-struct QueryRequest {
-    query: String,
-    params: Option<Vec<Value>>,
+fn db_err(e: impl std::fmt::Display) -> (StatusCode, String) {
+    (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
 }
 
-#[derive(Serialize)]
-struct ExecuteResult {
-    #[serde(rename = "lastInsertId")]
-    last_insert_id: i64,
-    #[serde(rename = "rowsAffected")]
-    rows_affected: usize,
+fn lock(db: &Db) -> ApiResult<std::sync::MutexGuard<'_, Connection>> {
+    db.lock().map_err(db_err)
 }
 
-#[derive(Deserialize)]
-struct EstimateRequest {
-    estimate: Map<String, Value>,
-    items: Vec<Map<String, Value>>,
-    #[serde(rename = "estimateId")]
-    estimate_id: Option<i64>,
-}
-
-fn convert_params(sql: &str, params: &[Value]) -> (String, Vec<SqlValue>) {
-    let re = Regex::new(r"\$(\d+)").unwrap();
-    let converted_sql = re.replace_all(sql, "?$1").to_string();
-
-    let sql_params: Vec<SqlValue> = params.iter().map(json_to_sql_value).collect();
-    (converted_sql, sql_params)
-}
+// --- Helpers ---
 
 fn json_to_sql_value(v: &Value) -> SqlValue {
     match v {
@@ -62,83 +42,29 @@ fn json_to_sql_value(v: &Value) -> SqlValue {
 
 fn rows_to_json(
     stmt: &mut rusqlite::Statement,
-    sql_params: &[SqlValue],
+    params: &[SqlValue],
 ) -> Result<Vec<Value>, rusqlite::Error> {
-    let column_names: Vec<String> = stmt
-        .column_names()
-        .iter()
-        .map(|s| s.to_string())
-        .collect();
-
-    let rows = stmt.query_map(params_from_iter(sql_params.iter()), |row| {
+    let column_names: Vec<String> = stmt.column_names().iter().map(|s| s.to_string()).collect();
+    let rows = stmt.query_map(params_from_iter(params.iter()), |row| {
         let mut obj = Map::new();
         for (i, name) in column_names.iter().enumerate() {
             let val = match row.get_ref(i)? {
                 rusqlite::types::ValueRef::Null => Value::Null,
                 rusqlite::types::ValueRef::Integer(n) => json!(n),
                 rusqlite::types::ValueRef::Real(f) => json!(f),
-                rusqlite::types::ValueRef::Text(s) => {
-                    json!(std::str::from_utf8(s).unwrap_or(""))
-                }
+                rusqlite::types::ValueRef::Text(s) => json!(std::str::from_utf8(s).unwrap_or("")),
                 rusqlite::types::ValueRef::Blob(_) => Value::Null,
             };
             obj.insert(name.clone(), val);
         }
         Ok(Value::Object(obj))
     })?;
-
-    let mut result = Vec::new();
-    for row in rows {
-        result.push(row?);
-    }
-    Ok(result)
+    rows.collect()
 }
 
-async fn handle_query(
-    State(db): State<Db>,
-    Json(req): Json<QueryRequest>,
-) -> Result<impl IntoResponse, (StatusCode, String)> {
-    let params = req.params.unwrap_or_default();
-    let (sql, sql_params) = convert_params(&req.query, &params);
-
-    let conn = db.lock().map_err(|e| {
-        (StatusCode::INTERNAL_SERVER_ERROR, format!("Lock error: {e}"))
-    })?;
-
-    let mut stmt = conn.prepare(&sql).map_err(|e| {
-        (StatusCode::BAD_REQUEST, format!("SQL error: {e}"))
-    })?;
-
-    let rows = rows_to_json(&mut stmt, &sql_params).map_err(|e| {
-        (StatusCode::INTERNAL_SERVER_ERROR, format!("Query error: {e}"))
-    })?;
-
-    Ok(Json(rows))
-}
-
-async fn handle_execute(
-    State(db): State<Db>,
-    Json(req): Json<QueryRequest>,
-) -> Result<impl IntoResponse, (StatusCode, String)> {
-    let params = req.params.unwrap_or_default();
-    let (sql, sql_params) = convert_params(&req.query, &params);
-
-    let conn = db.lock().map_err(|e| {
-        (StatusCode::INTERNAL_SERVER_ERROR, format!("Lock error: {e}"))
-    })?;
-
-    conn.execute(&sql, params_from_iter(sql_params.iter()))
-        .map_err(|e| {
-            (StatusCode::BAD_REQUEST, format!("Execute error: {e}"))
-        })?;
-
-    let last_id = conn.last_insert_rowid();
-    let rows_affected = conn.changes() as usize;
-
-    Ok(Json(ExecuteResult {
-        last_insert_id: last_id,
-        rows_affected,
-    }))
+fn query_rows(conn: &Connection, sql: &str, params: &[SqlValue]) -> ApiResult<Vec<Value>> {
+    let mut stmt = conn.prepare(sql).map_err(db_err)?;
+    rows_to_json(&mut stmt, params).map_err(db_err)
 }
 
 fn build_insert(table: &str, data: &Map<String, Value>) -> (String, Vec<SqlValue>) {
@@ -147,10 +73,7 @@ fn build_insert(table: &str, data: &Map<String, Value>) -> (String, Vec<SqlValue
     let sql = format!(
         "INSERT INTO {} ({}) VALUES ({})",
         table,
-        keys.iter()
-            .map(|k| k.as_str())
-            .collect::<Vec<_>>()
-            .join(", "),
+        keys.iter().map(|k| k.as_str()).collect::<Vec<_>>().join(", "),
         placeholders.join(", ")
     );
     let params: Vec<SqlValue> = data.values().map(json_to_sql_value).collect();
@@ -158,10 +81,7 @@ fn build_insert(table: &str, data: &Map<String, Value>) -> (String, Vec<SqlValue
 }
 
 fn build_update(table: &str, data: &Map<String, Value>, id: i64) -> (String, Vec<SqlValue>) {
-    let entries: Vec<(&String, &Value)> = data
-        .iter()
-        .filter(|(k, _)| k.as_str() != "id")
-        .collect();
+    let entries: Vec<(&String, &Value)> = data.iter().filter(|(k, _)| k.as_str() != "id").collect();
     let set_clause: Vec<String> = entries
         .iter()
         .enumerate()
@@ -178,72 +98,588 @@ fn build_update(table: &str, data: &Map<String, Value>, id: i64) -> (String, Vec
     (sql, params)
 }
 
-async fn handle_estimates(
-    State(db): State<Db>,
-    Json(req): Json<EstimateRequest>,
-) -> Result<impl IntoResponse, (StatusCode, String)> {
-    let conn = db.lock().map_err(|e| {
-        (StatusCode::INTERNAL_SERVER_ERROR, format!("Lock error: {e}"))
-    })?;
+#[derive(Serialize)]
+struct ExecuteResult {
+    #[serde(rename = "lastInsertId")]
+    last_insert_id: i64,
+    #[serde(rename = "rowsAffected")]
+    rows_affected: usize,
+}
 
-    let tx_result: Result<(), rusqlite::Error> = (|| {
+// --- Shared CRUD primitives (table name is compile-time constant per entity) ---
+
+fn do_list(conn: &Connection, table: &str) -> ApiResult<Vec<Value>> {
+    let sql = format!("SELECT * FROM {} ORDER BY id DESC", table);
+    query_rows(conn, &sql, &[])
+}
+
+fn do_get(conn: &Connection, table: &str, id: i64) -> ApiResult<Value> {
+    let sql = format!("SELECT * FROM {} WHERE id = ?1", table);
+    let rows = query_rows(conn, &sql, &[SqlValue::Integer(id)])?;
+    Ok(rows.into_iter().next().unwrap_or(Value::Null))
+}
+
+fn do_create(conn: &Connection, table: &str, body: &Map<String, Value>) -> ApiResult<ExecuteResult> {
+    let (sql, params) = build_insert(table, body);
+    conn.execute(&sql, params_from_iter(params.iter())).map_err(db_err)?;
+    Ok(ExecuteResult {
+        last_insert_id: conn.last_insert_rowid(),
+        rows_affected: conn.changes() as usize,
+    })
+}
+
+fn do_update(conn: &Connection, table: &str, id: i64, body: &Map<String, Value>) -> ApiResult<()> {
+    let (sql, params) = build_update(table, body, id);
+    conn.execute(&sql, params_from_iter(params.iter())).map_err(db_err)?;
+    Ok(())
+}
+
+fn do_delete(conn: &Connection, table: &str, id: i64) -> ApiResult<()> {
+    let sql = format!("DELETE FROM {} WHERE id = ?1", table);
+    conn.execute(&sql, [id]).map_err(db_err)?;
+    Ok(())
+}
+
+// Generates dedicated list/get/create/update/delete handlers for a simple entity.
+// Each entity gets its own explicit route (OpenAPI-style), no shared /{table} catchall.
+macro_rules! crud_handlers {
+    ($module:ident, $table:literal) => {
+        // Not every entity exposes all five verbs (e.g. appointments has no list route);
+        // unused generated handlers are expected.
+        #[allow(dead_code)]
+        mod $module {
+            use super::*;
+            pub async fn list(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+                Ok(Json(do_list(&*lock(&db)?, $table)?))
+            }
+            pub async fn get(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult<Json<Value>> {
+                Ok(Json(do_get(&*lock(&db)?, $table, id)?))
+            }
+            pub async fn create(
+                State(db): State<Db>,
+                Json(body): Json<Map<String, Value>>,
+            ) -> ApiResult<Json<ExecuteResult>> {
+                Ok(Json(do_create(&*lock(&db)?, $table, &body)?))
+            }
+            pub async fn update(
+                State(db): State<Db>,
+                Path(id): Path<i64>,
+                Json(body): Json<Map<String, Value>>,
+            ) -> ApiResult<StatusCode> {
+                do_update(&*lock(&db)?, $table, id, &body)?;
+                Ok(StatusCode::OK)
+            }
+            pub async fn delete(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult<StatusCode> {
+                do_delete(&*lock(&db)?, $table, id)?;
+                Ok(StatusCode::OK)
+            }
+        }
+    };
+}
+
+crud_handlers!(customers, "customers");
+crud_handlers!(workshops, "workshops");
+crud_handlers!(makers, "makers");
+crud_handlers!(models, "models");
+crud_handlers!(appointments, "appointments");
+crud_handlers!(default_estimate_items, "default_estimate_items");
+
+// Cars & estimates: dedicated create/update/delete (list/get are custom JOIN handlers below).
+async fn create_car(
+    State(db): State<Db>,
+    Json(body): Json<Map<String, Value>>,
+) -> ApiResult<Json<ExecuteResult>> {
+    Ok(Json(do_create(&*lock(&db)?, "cars", &body)?))
+}
+
+async fn update_car(
+    State(db): State<Db>,
+    Path(id): Path<i64>,
+    Json(body): Json<Map<String, Value>>,
+) -> ApiResult<StatusCode> {
+    do_update(&*lock(&db)?, "cars", id, &body)?;
+    Ok(StatusCode::OK)
+}
+
+async fn delete_car(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult<StatusCode> {
+    do_delete(&*lock(&db)?, "cars", id)?;
+    Ok(StatusCode::OK)
+}
+
+async fn delete_estimate(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult<StatusCode> {
+    do_delete(&*lock(&db)?, "estimates", id)?;
+    Ok(StatusCode::OK)
+}
+
+// --- Cars (with JOINs) ---
+
+const CARS_BASE_QUERY: &str = "SELECT cars.id as car_id,
+    cars.model_id, cars.maker_id, cars.*,
+    model.id as model_id, model.name as model_name,
+    maker.id as maker_id, maker.name as maker_name,
+    CONCAT(maker.name, ' ', model.name, ' ', number_plate, ' (', year, ')') as car_info
+    FROM cars
+    LEFT JOIN models as model ON cars.model_id = model.id
+    LEFT JOIN makers as maker ON cars.maker_id = maker.id";
+
+async fn list_cars(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    let sql = format!("{CARS_BASE_QUERY} ORDER BY cars.id DESC");
+    Ok(Json(query_rows(&conn, &sql, &[])?))
+}
+
+async fn get_customer_cars(
+    State(db): State<Db>,
+    Path(customer_id): Path<i64>,
+) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    let sql = "SELECT cars.*, model.name as model_name, maker.name as maker_name
+        FROM cars
+        LEFT JOIN models as model ON cars.model_id = model.id
+        LEFT JOIN makers as maker ON cars.maker_id = maker.id
+        WHERE cars.customer_id = ?1
+        ORDER BY cars.id DESC";
+    Ok(Json(query_rows(&conn, sql, &[SqlValue::Integer(customer_id)])?))
+}
+
+async fn get_car_history(
+    State(db): State<Db>,
+    Path(car_id): Path<i64>,
+) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    let sql = "SELECT
+        e.id, e.date, e.labor_hours, e.labor_hourly_cost,
+        e.discount, e.car_kms, e.notes,
+        ROUND(
+            (e.labor_hours * e.labor_hourly_cost) +
+            COALESCE(ei.items_total, 0) - COALESCE(e.discount, 0),
+        2) as total,
+        ei.items_descriptions
+        FROM estimates e
+        LEFT JOIN (
+            SELECT estimate_id,
+                SUM(quantity * unit_price) as items_total,
+                GROUP_CONCAT(quantity || '× ' || description, ' · ') as items_descriptions
+            FROM estimate_items GROUP BY estimate_id
+        ) ei ON e.id = ei.estimate_id
+        WHERE e.car_id = ?1
+        ORDER BY DATE(
+            SUBSTR(e.date, 7, 4) || '-' ||
+            SUBSTR(e.date, 4, 2) || '-' ||
+            SUBSTR(e.date, 1, 2)
+        ) DESC";
+    Ok(Json(query_rows(&conn, sql, &[SqlValue::Integer(car_id)])?))
+}
+
+// --- Estimates (with JOINs) ---
+
+const ESTIMATES_BASE_QUERY: &str = "SELECT
+    estimates.id as estimate_id, estimates.car_id, estimates.customer_id,
+    estimates.workshop_id, estimates.*,
+    car.id as car_id, car.number_plate as car_number_plate,
+    customer.id as customer_id, customer.name as customer_name,
+    workshop.id as workshop_id, workshop.name as workshop_name,
+    appointment.id as appointment_id, appointment.estimate_id,
+    maker.name as maker_name,
+    CONCAT(estimates.date, ' ', car.number_plate, ' ', customer.name) as estimate_info,
+    ROUND(
+        (estimates.labor_hours * estimates.labor_hourly_cost) +
+        COALESCE(ei.items_total, 0) - COALESCE(estimates.discount, 0),
+    2) as total
+    FROM estimates
+    LEFT JOIN cars as car ON estimates.car_id = car.id
+    LEFT JOIN customers as customer ON estimates.customer_id = customer.id
+    LEFT JOIN workshops as workshop ON estimates.workshop_id = workshop.id
+    LEFT JOIN appointments as appointment ON appointment.estimate_id = estimates.id
+    LEFT JOIN makers as maker ON car.maker_id = maker.id
+    LEFT JOIN (
+        SELECT estimate_id, SUM(quantity * unit_price) as items_total
+        FROM estimate_items GROUP BY estimate_id
+    ) ei ON estimates.id = ei.estimate_id";
+
+async fn list_estimates(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    let sql = format!("{ESTIMATES_BASE_QUERY} ORDER BY estimates.id DESC");
+    Ok(Json(query_rows(&conn, &sql, &[])?))
+}
+
+async fn get_estimate_items(
+    State(db): State<Db>,
+    Path(estimate_id): Path<i64>,
+) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    let sql = "SELECT *, quantity * unit_price AS total_price FROM estimate_items WHERE estimate_id = ?1";
+    Ok(Json(query_rows(&conn, sql, &[SqlValue::Integer(estimate_id)])?))
+}
+
+async fn get_estimate_pdf_data(
+    State(db): State<Db>,
+    Path(estimate_id): Path<i64>,
+) -> ApiResult<Json<Value>> {
+    let conn = lock(&db)?;
+
+    let estimate_sql = format!("{ESTIMATES_BASE_QUERY} WHERE estimates.id = ?1");
+    let estimates = query_rows(&conn, &estimate_sql, &[SqlValue::Integer(estimate_id)])?;
+    let Some(mut estimate) = estimates.into_iter().next() else {
+        return Ok(Json(Value::Null));
+    };
+
+    if let Some(iva) = estimate.get("has_iva") {
+        let bool_val = iva.as_str().map(|s| s == "true").unwrap_or(false);
+        estimate.as_object_mut().unwrap().insert("has_iva".into(), json!(bool_val));
+    }
+
+    let car_id = estimate.get("car_id").and_then(|v| v.as_i64()).unwrap_or(0);
+    let customer_id = estimate.get("customer_id").and_then(|v| v.as_i64()).unwrap_or(0);
+    let workshop_id = estimate.get("workshop_id").and_then(|v| v.as_i64()).unwrap_or(0);
+
+    let car_sql = format!("{CARS_BASE_QUERY} WHERE cars.id = ?1");
+    let cars = query_rows(&conn, &car_sql, &[SqlValue::Integer(car_id)])?;
+    let customers = query_rows(&conn, "SELECT * FROM customers WHERE id = ?1", &[SqlValue::Integer(customer_id)])?;
+    let workshops = query_rows(&conn, "SELECT * FROM workshops WHERE id = ?1", &[SqlValue::Integer(workshop_id)])?;
+
+    let car = cars.into_iter().next();
+    let customer = customers.into_iter().next();
+    let workshop = workshops.into_iter().next();
+
+    if car.is_none() || customer.is_none() || workshop.is_none() {
+        return Ok(Json(Value::Null));
+    }
+
+    Ok(Json(json!({
+        "estimate": estimate,
+        "car": car,
+        "customer": customer,
+        "workshop": workshop,
+    })))
+}
+
+#[derive(Deserialize)]
+struct EstimatePayload {
+    estimate: Map<String, Value>,
+    items: Vec<Map<String, Value>>,
+}
+
+// Persist estimate + its items in a single transaction.
+// existing_id = Some → update that estimate; None → insert new. Returns the estimate id.
+fn persist_estimate(
+    conn: &Connection,
+    estimate: &Map<String, Value>,
+    items: &[Map<String, Value>],
+    existing_id: Option<i64>,
+) -> ApiResult<i64> {
+    let tx_result: Result<i64, rusqlite::Error> = (|| {
         conn.execute_batch("BEGIN TRANSACTION")?;
 
-        let estimate_id = if let Some(id) = req.estimate_id {
-            let (sql, params) = build_update("estimates", &req.estimate, id);
+        let estimate_id = if let Some(id) = existing_id {
+            let (sql, params) = build_update("estimates", estimate, id);
             conn.execute(&sql, params_from_iter(params.iter()))?;
             id
         } else {
-            let (sql, params) = build_insert("estimates", &req.estimate);
+            let (sql, params) = build_insert("estimates", estimate);
             conn.execute(&sql, params_from_iter(params.iter()))?;
             conn.last_insert_rowid()
         };
 
-        conn.execute(
-            "DELETE FROM estimate_items WHERE estimate_id = ?1",
-            [estimate_id],
-        )?;
+        conn.execute("DELETE FROM estimate_items WHERE estimate_id = ?1", [estimate_id])?;
 
-        for item in &req.items {
+        for item in items {
             let mut item_data = item.clone();
             item_data.remove("total_price");
-            item_data.insert(
-                "estimate_id".to_string(),
-                Value::Number(estimate_id.into()),
-            );
+            item_data.insert("estimate_id".to_string(), Value::Number(estimate_id.into()));
             let (sql, params) = build_insert("estimate_items", &item_data);
             conn.execute(&sql, params_from_iter(params.iter()))?;
         }
 
         conn.execute_batch("COMMIT")?;
-        Ok(())
+        Ok(estimate_id)
     })();
 
-    match tx_result {
-        Ok(()) => Ok(StatusCode::OK),
-        Err(e) => {
-            let _ = conn.execute_batch("ROLLBACK");
-            Err((
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Transaction error: {e}"),
-            ))
-        }
-    }
+    tx_result.map_err(|e| {
+        let _ = conn.execute_batch("ROLLBACK");
+        db_err(e)
+    })
 }
+
+async fn create_estimate(
+    State(db): State<Db>,
+    Json(payload): Json<EstimatePayload>,
+) -> ApiResult<Json<ExecuteResult>> {
+    let conn = lock(&db)?;
+    let id = persist_estimate(&conn, &payload.estimate, &payload.items, None)?;
+    Ok(Json(ExecuteResult { last_insert_id: id, rows_affected: 1 }))
+}
+
+async fn update_estimate(
+    State(db): State<Db>,
+    Path(id): Path<i64>,
+    Json(payload): Json<EstimatePayload>,
+) -> ApiResult<StatusCode> {
+    let conn = lock(&db)?;
+    persist_estimate(&conn, &payload.estimate, &payload.items, Some(id))?;
+    Ok(StatusCode::OK)
+}
+
+// --- Planner ---
+
+async fn get_planner_events(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    let sql = "SELECT
+        a.id as id, a.workshop_id, a.date, a.from_time, a.to_time,
+        c.name as customer_name, c.phone as customer_phone,
+        CONCAT(maker.name, ' ', model.name, ' (', car.year, ')') as car_info,
+        car.number_plate,
+        CASE WHEN a.estimate_id IS NOT NULL THEN 1 ELSE 0 END as estimate_status
+        FROM appointments a
+        LEFT JOIN estimates e ON a.estimate_id = e.id
+        LEFT JOIN customers c ON COALESCE(e.customer_id, a.customer_id) = c.id
+        LEFT JOIN cars car ON COALESCE(e.car_id, a.car_id) = car.id
+        LEFT JOIN makers maker ON car.maker_id = maker.id
+        LEFT JOIN models model ON car.model_id = model.id
+        ORDER BY a.date DESC, a.from_time";
+    Ok(Json(query_rows(&conn, sql, &[])?))
+}
+
+// --- Inspections ---
+
+async fn get_upcoming_inspections(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    let sql = "SELECT
+        c.id as car_id, c.year, c.last_inspection_date,
+        c.customer_id, cust.name as customer_name, cust.phone as customer_phone,
+        ma.name as maker_name, md.name as model_name
+        FROM cars c
+        JOIN customers cust ON c.customer_id = cust.id
+        JOIN makers ma ON c.maker_id = ma.id
+        JOIN models md ON c.model_id = md.id
+        WHERE c.last_inspection_date IS NOT NULL
+        AND (
+            DATE(
+                SUBSTR(c.last_inspection_date, 7, 4) || '-' ||
+                SUBSTR(c.last_inspection_date, 4, 2) || '-' ||
+                SUBSTR(c.last_inspection_date, 1, 2),
+                CASE
+                    WHEN c.last_inspection_date = c.year THEN '+4 years'
+                    ELSE '+2 years'
+                END
+            )
+        ) <= DATE('now', '+30 days') ORDER BY c.last_inspection_date ASC";
+    Ok(Json(query_rows(&conn, sql, &[])?))
+}
+
+// --- Default Estimate Items ---
+
+#[derive(Deserialize)]
+struct SearchQuery {
+    q: String,
+}
+
+async fn search_default_estimate_items(
+    State(db): State<Db>,
+    Query(params): Query<SearchQuery>,
+) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    let sql = "SELECT * FROM default_estimate_items
+        WHERE LOWER(description) LIKE '%' || LOWER(?1) || '%'
+        ORDER BY description ASC";
+    Ok(Json(query_rows(&conn, sql, &[SqlValue::Text(params.q)])?))
+}
+
+// --- Dashboard ---
+
+async fn dashboard_averages(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    let sql = "SELECT
+        COUNT(*) as total_estimates,
+        AVG(e.labor_hours) as avg_labor_hours,
+        AVG(e.labor_hourly_cost) as avg_hourly_cost,
+        AVG(COALESCE(e.discount, 0)) as avg_discount,
+        AVG(COALESCE(ei.items_total, 0)) as avg_parts_cost,
+        AVG(
+            (e.labor_hours * e.labor_hourly_cost) +
+            COALESCE(ei.items_total, 0) - COALESCE(e.discount, 0)
+        ) as avg_total_estimate_value
+        FROM estimates e
+        LEFT JOIN (
+            SELECT estimate_id, SUM(quantity * unit_price) as items_total
+            FROM estimate_items GROUP BY estimate_id
+        ) ei ON e.id = ei.estimate_id";
+    Ok(Json(query_rows(&conn, sql, &[])?))
+}
+
+async fn dashboard_brands(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    let sql = "SELECT m.name as brand_name, COUNT(c.id) as car_count
+        FROM cars c JOIN makers m ON c.maker_id = m.id
+        GROUP BY m.id, m.name ORDER BY car_count DESC";
+    Ok(Json(query_rows(&conn, sql, &[])?))
+}
+
+async fn dashboard_cars_by_year(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    let sql = "SELECT year, COUNT(*) as car_count
+        FROM cars WHERE year IS NOT NULL
+        GROUP BY year ORDER BY year ASC";
+    Ok(Json(query_rows(&conn, sql, &[])?))
+}
+
+async fn dashboard_revenue(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    let sql = "SELECT
+        SUBSTR(e.date, 7, 4) || '-' || SUBSTR(e.date, 4, 2) as month,
+        ROUND(SUM(
+            (e.labor_hours * e.labor_hourly_cost) +
+            COALESCE(ei.items_total, 0) - COALESCE(e.discount, 0)
+        ), 2) as total_revenue
+        FROM estimates e
+        LEFT JOIN (
+            SELECT estimate_id, SUM(quantity * unit_price) as items_total
+            FROM estimate_items GROUP BY estimate_id
+        ) ei ON e.id = ei.estimate_id
+        GROUP BY SUBSTR(e.date, 7, 4) || '-' || SUBSTR(e.date, 4, 2)
+        ORDER BY month ASC";
+    Ok(Json(query_rows(&conn, sql, &[])?))
+}
+
+async fn dashboard_top_customers(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    let sql = "SELECT
+        c.name as customer_name,
+        ROUND(SUM(
+            (e.labor_hours * e.labor_hourly_cost) +
+            COALESCE(ei.items_total, 0) - COALESCE(e.discount, 0)
+        ), 2) as total_revenue,
+        COUNT(e.id) as estimate_count
+        FROM estimates e
+        JOIN customers c ON e.customer_id = c.id
+        LEFT JOIN (
+            SELECT estimate_id, SUM(quantity * unit_price) as items_total
+            FROM estimate_items GROUP BY estimate_id
+        ) ei ON e.id = ei.estimate_id
+        GROUP BY e.customer_id, c.name
+        ORDER BY total_revenue DESC LIMIT 10";
+    Ok(Json(query_rows(&conn, sql, &[])?))
+}
+
+// --- Search ---
+
+async fn global_search(
+    State(db): State<Db>,
+    Query(params): Query<SearchQuery>,
+) -> ApiResult<Json<Value>> {
+    let q = params.q.trim().to_lowercase();
+    if q.is_empty() {
+        return Ok(Json(json!([])));
+    }
+    let pattern = SqlValue::Text(format!("%{q}%"));
+
+    let conn = lock(&db)?;
+
+    let customers = query_rows(&conn,
+        "SELECT id, name, phone, email FROM customers
+        WHERE LOWER(name) LIKE ?1
+            OR LOWER(COALESCE(phone, '')) LIKE ?1
+            OR LOWER(COALESCE(email, '')) LIKE ?1
+            OR LOWER(COALESCE(address, '')) LIKE ?1
+        ORDER BY id DESC LIMIT 8",
+        &[pattern.clone()])?;
+
+    let cars = query_rows(&conn,
+        "SELECT cars.id, cars.number_plate, cars.year,
+            maker.name as maker_name, model.name as model_name
+        FROM cars
+        LEFT JOIN makers as maker ON cars.maker_id = maker.id
+        LEFT JOIN models as model ON cars.model_id = model.id
+        WHERE LOWER(cars.number_plate) LIKE ?1
+            OR LOWER(COALESCE(maker.name, '')) LIKE ?1
+            OR LOWER(COALESCE(model.name, '')) LIKE ?1
+        ORDER BY cars.id DESC LIMIT 8",
+        &[pattern.clone()])?;
+
+    let estimates = query_rows(&conn,
+        "SELECT e.id, e.date, car.number_plate, customer.name as customer_name
+        FROM estimates e
+        LEFT JOIN cars as car ON e.car_id = car.id
+        LEFT JOIN customers as customer ON e.customer_id = customer.id
+        WHERE LOWER(COALESCE(customer.name, '')) LIKE ?1
+            OR LOWER(COALESCE(car.number_plate, '')) LIKE ?1
+            OR e.date LIKE ?1
+        ORDER BY e.id DESC LIMIT 8",
+        &[pattern])?;
+
+    let mut results: Vec<Value> = Vec::new();
+
+    for c in customers {
+        let name = c.get("name").and_then(|v| v.as_str()).unwrap_or("");
+        let phone = c.get("phone").and_then(|v| v.as_str()).unwrap_or("");
+        let email = c.get("email").and_then(|v| v.as_str()).unwrap_or("");
+        let subtitle_parts: Vec<&str> = [phone, email].into_iter().filter(|s| !s.is_empty()).collect();
+        results.push(json!({
+            "type": "customer",
+            "id": c.get("id"),
+            "title": name,
+            "subtitle": subtitle_parts.join(" · "),
+            "page": "customers",
+        }));
+    }
+
+    for c in cars {
+        let plate = c.get("number_plate").and_then(|v| v.as_str()).unwrap_or("");
+        let maker = c.get("maker_name").and_then(|v| v.as_str()).unwrap_or("");
+        let model = c.get("model_name").and_then(|v| v.as_str()).unwrap_or("");
+        let year = c.get("year").and_then(|v| v.as_i64()).map(|y| y.to_string()).unwrap_or_default();
+        let parts: Vec<&str> = [maker, model].into_iter().filter(|s| !s.is_empty()).collect();
+        let mut subtitle = parts.join(" ");
+        if !year.is_empty() { subtitle = format!("{subtitle} {year}"); }
+        results.push(json!({
+            "type": "car",
+            "id": c.get("id"),
+            "title": plate,
+            "subtitle": subtitle.trim(),
+            "page": "cars",
+        }));
+    }
+
+    for e in estimates {
+        let date = e.get("date").and_then(|v| v.as_str()).unwrap_or("");
+        let plate = e.get("number_plate").and_then(|v| v.as_str()).unwrap_or("");
+        let customer = e.get("customer_name").and_then(|v| v.as_str()).unwrap_or("");
+        let title_parts: Vec<&str> = [date, plate].into_iter().filter(|s| !s.is_empty()).collect();
+        results.push(json!({
+            "type": "estimate",
+            "id": e.get("id"),
+            "title": title_parts.join(" · "),
+            "subtitle": customer,
+            "page": "estimates",
+        }));
+    }
+
+    Ok(Json(json!(results)))
+}
+
+// --- Makers count ---
+
+async fn makers_count(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    Ok(Json(query_rows(&conn, "SELECT COUNT(*) as count FROM makers", &[])?))
+}
+
+// --- Fallback ---
 
 async fn fallback_index() -> impl IntoResponse {
     Html(include_str!("../../dist/index.html"))
 }
 
+// --- Router ---
+
 pub async fn start(db_path: String, dist_path: String) {
     let conn = Connection::open(&db_path).expect("Failed to open database");
-    conn.execute_batch("PRAGMA journal_mode=WAL;")
-        .expect("Failed to set WAL mode");
-    conn.busy_timeout(std::time::Duration::from_secs(5))
-        .expect("Failed to set busy timeout");
+    conn.execute_batch("PRAGMA journal_mode=WAL;").expect("Failed to set WAL mode");
+    conn.busy_timeout(std::time::Duration::from_secs(5)).expect("Failed to set busy timeout");
     let db: Db = Arc::new(Mutex::new(conn));
 
     let api = Router::new()
+        // Utility
         .route("/api/debug", get(|| async { Json(cfg!(debug_assertions)) }))
         .route("/api/lan-url", get(|| async {
             let ip = local_ip_address::local_ip()
@@ -251,9 +687,46 @@ pub async fn start(db_path: String, dist_path: String) {
                 .unwrap_or_else(|_| "http://localhost:3333".to_string());
             Json(json!({ "url": ip }))
         }))
-        .route("/api/query", post(handle_query))
-        .route("/api/execute", post(handle_execute))
-        .route("/api/estimates", post(handle_estimates))
+        // Customers
+        .route("/api/customers", get(customers::list).post(customers::create))
+        .route("/api/customers/{id}", get(customers::get).put(customers::update).delete(customers::delete))
+        .route("/api/customers/{id}/cars", get(get_customer_cars))
+        // Workshops
+        .route("/api/workshops", get(workshops::list).post(workshops::create))
+        .route("/api/workshops/{id}", get(workshops::get).put(workshops::update).delete(workshops::delete))
+        // Makers
+        .route("/api/makers", get(makers::list).post(makers::create))
+        .route("/api/makers/count", get(makers_count))
+        .route("/api/makers/{id}", get(makers::get).put(makers::update).delete(makers::delete))
+        // Models
+        .route("/api/models", get(models::list).post(models::create))
+        .route("/api/models/{id}", get(models::get).put(models::update).delete(models::delete))
+        // Cars (custom GET with JOINs, dedicated write handlers)
+        .route("/api/cars", get(list_cars).post(create_car))
+        .route("/api/cars/{id}", put(update_car).delete(delete_car))
+        .route("/api/cars/{id}/history", get(get_car_history))
+        // Estimates (custom GET with JOINs; create/update are transactional: estimate + items)
+        .route("/api/estimates", get(list_estimates).post(create_estimate))
+        .route("/api/estimates/{id}", put(update_estimate).delete(delete_estimate))
+        .route("/api/estimates/{id}/items", get(get_estimate_items))
+        .route("/api/estimates/{id}/pdf-data", get(get_estimate_pdf_data))
+        // Appointments
+        .route("/api/appointments", post(appointments::create))
+        .route("/api/appointments/{id}", get(appointments::get).put(appointments::update).delete(appointments::delete))
+        // Default estimate items
+        .route("/api/default-estimate-items/search", get(search_default_estimate_items))
+        .route("/api/default_estimate_items", get(default_estimate_items::list).post(default_estimate_items::create))
+        .route("/api/default_estimate_items/{id}", get(default_estimate_items::get).put(default_estimate_items::update).delete(default_estimate_items::delete))
+        // Planner / inspections / search
+        .route("/api/planner/events", get(get_planner_events))
+        .route("/api/inspections/upcoming", get(get_upcoming_inspections))
+        .route("/api/search", get(global_search))
+        // Dashboard
+        .route("/api/dashboard/averages", get(dashboard_averages))
+        .route("/api/dashboard/brands", get(dashboard_brands))
+        .route("/api/dashboard/cars-by-year", get(dashboard_cars_by_year))
+        .route("/api/dashboard/revenue", get(dashboard_revenue))
+        .route("/api/dashboard/top-customers", get(dashboard_top_customers))
         .with_state(db)
         .layer(CorsLayer::permissive());
 

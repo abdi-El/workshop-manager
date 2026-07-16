@@ -1,6 +1,6 @@
 import { Button, Form, Input, message } from "antd";
 import React, { useEffect } from "react";
-import { getDb } from "../../modules/db/instance";
+import { api } from "../../modules/api";
 import { useStore } from "../../modules/state";
 import { parseError } from "../../modules/utils";
 import { Customer } from "../../types/database";
@@ -18,13 +18,13 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ customer = {}, onSubmit }) 
             form.setFields(parseError(error));
         }
         if (!customer.id) {
-            getDb().create({ ...values, "workshop_id": settings.selectedWorkshop?.id }, "customers").then(() => {
+            api.createCustomer({ ...values, "workshop_id": settings.selectedWorkshop?.id }).then(() => {
                 message.success("Creato con successo!");
                 form.resetFields();
                 onSubmit(values);
             }).catch(onError);
         } else {
-            getDb().update(values, customer.id, "customers").then(() => {
+            api.updateCustomer(customer.id, values).then(() => {
                 message.success("Aggiornato con successo!");
                 form.resetFields();
                 onSubmit(values);

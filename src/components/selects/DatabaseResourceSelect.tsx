@@ -1,15 +1,15 @@
 import { PlusOutlined } from '@ant-design/icons';
 import { Button, Col, Form, Row, Select, Tooltip } from "antd";
 import { useEffect, useMemo } from "react";
-import { getDb } from "../../modules/db/instance";
+import { api } from "../../modules/api";
 import { useQuery } from "../../modules/hooks";
 
 const resourceMethods = {
-    customers: () => getDb().getCustomers(),
-    makers: () => getDb().getMakers(),
-    models: () => getDb().getModels(),
-    cars: () => getDb().getCars(),
-    estimates: () => getDb().getEstimates(),
+    customers: () => api.getCustomers(),
+    makers: () => api.getMakers(),
+    models: () => api.getModels(),
+    cars: () => api.getCars(),
+    estimates: () => api.getEstimates(),
 } as const;
 
 type Resource = keyof typeof resourceMethods
