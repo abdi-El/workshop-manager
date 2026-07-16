@@ -25,7 +25,7 @@ export class LocalDatabase extends DatabaseService {
             await this.db.execute("COMMIT");
             return result;
         } catch (error) {
-            await this.db.execute("ROLLBACK");
+            try { await this.db.execute("ROLLBACK"); } catch (_) { /* already rolled back */ }
             throw error;
         }
     }

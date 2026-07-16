@@ -1,5 +1,5 @@
 import { CalendarOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Drawer, InputRef, message, Popover, Row, Space, Table } from "antd";
+import { Button, Card, Drawer, Grid, InputRef, List, message, Popover, Row, Space, Spin, Table, Typography } from "antd";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
@@ -23,6 +23,8 @@ function estimateSorter(a: Estimate, b: Estimate, key: keyof Estimate) {
 
 export default function Estimates() {
     const drawerWidth = useDrawerWidth("75%");
+    const screens = Grid.useBreakpoint();
+    const isMobile = !screens.md;
     const [open, setOpen] = useState(false);
     const { data: estimateRows, loading, reload } = useQuery<Estimate>(() => getDb().getEstimates())
     const estimates = useMemo(() => {
@@ -149,7 +151,60 @@ export default function Estimates() {
         >
             <EstimatesForm onSubmit={() => { onClose(); reload(); }} estimate={selectedEstimate} />
         </Drawer>
-        <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={estimates} columns={columns as any} rowKey="id" loading={loading} />
+        {isMobile ? (
+            loading ? <Spin style={{ display: 'block', margin: '40px auto' }} /> :
+            <List
+                dataSource={estimates}
+                rowKey="id"
+                renderItem={(es) => (
+                    <Card
+                        size="small"
+                        style={{ marginBottom: 8 }}
+                        title={
+                            <Space>
+                                {es.maker_name && <img
+                                    src={getLogoUrl(es.maker_name)}
+                                    alt={es.maker_name}
+                                    style={{ height: 20, maxWidth: 40, objectFit: 'contain' }}
+                                    onError={(e) => { (e.target as HTMLImageElement).replaceWith(Object.assign(document.createElement('span'), { textContent: es.maker_name })) }}
+                                />}
+                                <span>{es.customer_name}</span>
+                            </Space>
+                        }
+                        extra={
+                            <Typography.Text strong>
+                                € {(es.total ?? 0).toFixed(2)}{!es.has_iva ? ' + IVA' : ''}
+                            </Typography.Text>
+                        }
+                    >
+                        <Row justify="space-between" align="middle">
+                            <Space direction="vertical" size={0}>
+                                <Typography.Text type="secondary">{es.date}</Typography.Text>
+                                <span>{es.car_number_plate}</span>
+                            </Space>
+                            <Space size={4}>
+                                <EditButton onClick={() => { showDrawer(); setSelectedEstimate(es) }} />
+                                <SaveEstimatePdf estimateId={es.id} />
+                                <Popover
+                                    title={!es.appointment_id ? "Crea appuntamento" : "Appuntamento già creato"}
+                                    content={!es.appointment_id && <AppointmentForm estimateId={es.id} onSubmit={reload} />}
+                                >
+                                    <Button icon={<CalendarOutlined />} type={!!es.appointment_id ? "primary" : "dashed"} size="small" />
+                                </Popover>
+                                <DeleteButton onConfirm={() => {
+                                    getDb().deleteRow(es.id, "estimates").then(() => {
+                                        message.success("Eliminato con successo!");
+                                        reload();
+                                    }).catch((e) => message.error("Errore nell'eliminazione: " + e))
+                                }} />
+                            </Space>
+                        </Row>
+                    </Card>
+                )}
+            />
+        ) : (
+            <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={estimates} columns={columns as any} rowKey="id" loading={loading} />
+        )}
     </>
 };
 
