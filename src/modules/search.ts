@@ -8,6 +8,7 @@ export interface SearchResult {
     title: string;
     subtitle: string;
     page: "customers" | "cars" | "estimates";
+    phone?: string;
 }
 
 export async function globalSearch(rawQuery: string): Promise<SearchResult[]> {

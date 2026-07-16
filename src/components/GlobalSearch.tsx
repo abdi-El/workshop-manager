@@ -1,7 +1,7 @@
-import { CarOutlined, FileTextOutlined, SearchOutlined, UserOutlined } from '@ant-design/icons';
-import { AutoComplete, Input, InputRef, Typography } from 'antd';
+import { CarOutlined, FileTextOutlined, PhoneOutlined, SearchOutlined, UserOutlined } from '@ant-design/icons';
+import { AutoComplete, Button, Input, InputRef, Typography } from 'antd';
 import { ReactNode, useEffect, useRef, useState } from 'react';
-import { useDebounce } from '../modules/hooks';
+import { useDebounce, useIsMobile } from '../modules/hooks';
 import { globalSearch, SearchResult, SearchResultType } from '../modules/search';
 import { useStore } from '../modules/state';
 
@@ -21,6 +21,7 @@ export default function GlobalSearch({ autoFocus, onSelect: onSelectCallback }: 
     const [results, setResults] = useState<SearchResult[]>([]);
     const { updatePage, setSearchTarget, dbReady } = useStore((state) => state);
     const inputRef = useRef<InputRef>(null);
+    const isMobile = useIsMobile();
 
     useEffect(() => {
         function onKeyDown(e: KeyboardEvent) {
@@ -65,6 +66,17 @@ export default function GlobalSearch({ autoFocus, onSelect: onSelectCallback }: 
                             <Typography.Text type="secondary" ellipsis style={{ flex: 1, minWidth: 0 }}>
                                 {r.subtitle}
                             </Typography.Text>
+                            {isMobile && r.type === 'customer' && r.phone && (
+                                <Button
+                                    type="primary"
+                                    size="small"
+                                    icon={<PhoneOutlined />}
+                                    href={`tel:${r.phone}`}
+                                    onClick={(e) => e.stopPropagation()}
+                                    onMouseDown={(e) => e.stopPropagation()}
+                                    style={{ flexShrink: 0 }}
+                                />
+                            )}
                         </div>
                     ),
                 })),

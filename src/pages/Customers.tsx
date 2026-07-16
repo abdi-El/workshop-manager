@@ -1,4 +1,4 @@
-import { CarOutlined, FileTextOutlined, PlusOutlined } from "@ant-design/icons";
+import { CarOutlined, FileTextOutlined, PhoneOutlined, PlusOutlined } from "@ant-design/icons";
 import { Button, Card, Drawer, InputRef, List, message, Row, Space, Spin, Table, Tooltip, Typography } from "antd";
 import { useEffect, useRef, useState } from "react";
 
@@ -151,6 +151,11 @@ export default function Customers() {
                             {cs.email && <Typography.Text type="secondary">{cs.email}</Typography.Text>}
                             <Row justify="end">
                                 <Space>
+                                    {cs.phone && (
+                                        <Tooltip title="Chiama">
+                                            <Button type="primary" icon={<PhoneOutlined />} href={`tel:${cs.phone}`} />
+                                        </Tooltip>
+                                    )}
                                     <EditButton onClick={() => { showDrawer(); setSelectedCustomer(cs) }} />
                                     <Tooltip title="Auto del cliente">
                                         <Button icon={<CarOutlined />} onClick={() => setCarsCustomer(cs)} />

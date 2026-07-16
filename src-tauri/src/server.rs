@@ -620,6 +620,7 @@ async fn global_search(
             "title": name,
             "subtitle": subtitle_parts.join(" · "),
             "page": "customers",
+            "phone": phone,
         }));
     }
 
