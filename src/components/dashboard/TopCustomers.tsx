@@ -9,16 +9,16 @@ interface CustomerRevenue {
     estimate_count: number;
 }
 
-export default function TopCustomers() {
+export default function TopCustomers({ workshopId }: { workshopId?: number }) {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<CustomerRevenue[]>([]);
 
     useEffect(() => {
         setLoading(true);
-        api.getTopCustomersByRevenue().then((res) => {
+        api.getTopCustomersByRevenue(workshopId).then((res) => {
             setData(res);
         }).finally(() => setLoading(false));
-    }, []);
+    }, [workshopId]);
 
     return (
         <Card loading={loading} style={{ marginTop: 16 }} title="Top clienti per fatturato">

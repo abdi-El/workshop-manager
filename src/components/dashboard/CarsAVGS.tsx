@@ -9,17 +9,17 @@ interface DataType {
 }
 
 
-export default function CarsAVGS() {
+export default function CarsAVGS({ workshopId }: { workshopId?: number }) {
     const [loading, setLoading] = useState(false)
     const [carsAverages, setCarsAverages] = useState<DataType[]>()
     useEffect(() => {
         setLoading(true)
-        api.getCarBrandsByCount().then((res) => {
+        api.getCarBrandsByCount(workshopId).then((res) => {
             setCarsAverages(res as DataType[])
         }).finally(() => {
             setLoading(false)
         })
-    }, [])
+    }, [workshopId])
 
     return <Row>
         <Card loading={loading} style={{ marginTop: 16, width: "100%" }} title="Auto riparate per numero">

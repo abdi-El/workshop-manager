@@ -5,6 +5,7 @@ import { api } from "../../modules/api";
 
 
 interface Props extends React.HTMLAttributes<HTMLDivElement> {
+    workshopId?: number
 }
 
 interface DataType {
@@ -20,14 +21,14 @@ interface DataType {
 
 const { Title, Text } = Typography;
 
-export default function InspectionReminder(props: Props) {
+export default function InspectionReminder({ workshopId, ...props }: Props) {
     const [inspections, setInspections] = useState<DataType[]>()
 
     useEffect(() => {
-        api.getUpcomingInspections().then((data) => {
+        api.getUpcomingInspections(workshopId).then((data) => {
             setInspections(data as DataType[])
         })
-    }, [])
+    }, [workshopId])
 
     const items = (inspections ?? []).map((record) => ({
         key: record.car_id,

@@ -18,8 +18,9 @@ export default function Customers() {
     const drawerWidth = useDrawerWidth();
     const isMobile = useIsMobile();
     const [open, setOpen] = useState(false);
-    const { data: customers, loading, reload } = useQuery<Customer>(() => api.getCustomers())
-    const { searchTarget, setSearchTarget } = useStore((state) => state)
+    const { settings, searchTarget, setSearchTarget } = useStore((state) => state)
+    const workshopId = settings.selectedWorkshop?.id;
+    const { data: customers, loading, reload } = useQuery<Customer>(() => api.getCustomers(workshopId), [workshopId])
     const [selectedCustomer, setSelectedCustomer] = useState<Customer>();
     const [carsCustomer, setCarsCustomer] = useState<Customer>();
     const searchInput = useRef<InputRef>(null);

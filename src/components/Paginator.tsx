@@ -1,8 +1,10 @@
-import { CalendarOutlined, CarOutlined, DashboardOutlined, FileTextOutlined, LoadingOutlined, MenuOutlined, SearchOutlined, SettingOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
-import { Button, Drawer, Layout, Menu, Row, Spin, theme, Typography } from "antd";
+import { CalendarOutlined, CarOutlined, DashboardOutlined, FileTextOutlined, LoadingOutlined, MenuOutlined, SearchOutlined, SettingOutlined, SwapOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
+import { Button, Drawer, Dropdown, Layout, Menu, Row, Spin, theme, Typography } from "antd";
 import { lazy, Suspense, useEffect, useState } from 'react';
+import { api } from '../modules/api';
 import { useIsMobile, useScraper } from '../modules/hooks';
 import { useStore } from "../modules/state";
+import { Workshop } from '../types/database';
 import ErrorBoundary from './ErrorBoundary';
 import GlobalSearch from './GlobalSearch';
 
@@ -17,12 +19,25 @@ const Workshops = lazy(() => import('../pages/Workshops'));
 const { Title } = Typography;
 
 export default function Paginator() {
-    const { page, loading, updatePage, dbReady } = useStore()
+    const { page, loading, updatePage, dbReady, settings, updateSettings } = useStore()
     const { percentage, loading: scraping } = useScraper()
     const { token } = theme.useToken()
     const isMobile = useIsMobile()
     const [drawerOpen, setDrawerOpen] = useState(false)
     const [searchOpen, setSearchOpen] = useState(false)
+    const [workshops, setWorkshops] = useState<Workshop[]>([])
+
+    useEffect(() => {
+        if (dbReady) {
+            api.getWorkshops().then(setWorkshops);
+        }
+    }, [dbReady, page]);
+
+    const workshopMenuItems = workshops.map((w) => ({
+        key: w.id.toString(),
+        label: w.name,
+        onClick: () => updateSettings({ selectedWorkshop: w }),
+    }));
 
     const items = {
         "dashboard": {
@@ -98,6 +113,15 @@ export default function Paginator() {
             </> : <>
                 <Menu style={{ flex: 1, minWidth: 0 }} onClick={(e) => onMenuClick(e.key)} selectedKeys={[page]} mode="horizontal" items={Object.values(items)} />
             </>}
+            {workshops.length > 1 && (
+                <Dropdown menu={{ items: workshopMenuItems, selectedKeys: settings.selectedWorkshop?.id ? [settings.selectedWorkshop.id.toString()] : [] }}>
+                    <Button type="text" icon={<SwapOutlined />}>
+                        {!isMobile && <span style={{ maxWidth: 120, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                            {settings.selectedWorkshop?.name}
+                        </span>}
+                    </Button>
+                </Dropdown>
+            )}
             <Button type="text" icon={<SearchOutlined />} onClick={() => setSearchOpen(!searchOpen)} />
         </Layout.Header>
 

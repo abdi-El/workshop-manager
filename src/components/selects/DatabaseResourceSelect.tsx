@@ -3,16 +3,19 @@ import { Button, Col, Form, Row, Select, Tooltip } from "antd";
 import { useEffect, useMemo } from "react";
 import { api } from "../../modules/api";
 import { useQuery } from "../../modules/hooks";
+import { useStore } from "../../modules/state";
 
-const resourceMethods = {
-    customers: () => api.getCustomers(),
-    makers: () => api.getMakers(),
-    models: () => api.getModels(),
-    cars: () => api.getCars(),
-    estimates: () => api.getEstimates(),
-} as const;
+type Resource = "customers" | "makers" | "models" | "cars" | "estimates";
 
-type Resource = keyof typeof resourceMethods
+function getResourceFetcher(resource: Resource, workshopId?: number) {
+    switch (resource) {
+        case "customers": return () => api.getCustomers(workshopId);
+        case "cars": return () => api.getCars(workshopId);
+        case "estimates": return () => api.getEstimates(workshopId);
+        case "makers": return () => api.getMakers();
+        case "models": return () => api.getModels();
+    }
+}
 
 export interface DatabaseSelectProps extends React.ComponentProps<typeof Form.Item> {
     resource: Resource
@@ -26,7 +29,9 @@ export interface DatabaseSelectProps extends React.ComponentProps<typeof Form.It
 }
 
 export default function DatabasResourceSelect<T extends { id: number }>({ resource, selectLabel, name, inputLabel, allowClear, filterFunc, onAddClick, refreshToken, className, ...props }: DatabaseSelectProps) {
-    const { data: rows, loading, reload } = useQuery<T>(() => resourceMethods[resource]() as unknown as Promise<T[]>);
+    const { settings } = useStore((state) => state);
+    const workshopId = settings.selectedWorkshop?.id;
+    const { data: rows, loading, reload } = useQuery<T>(() => getResourceFetcher(resource, workshopId)() as unknown as Promise<T[]>, [workshopId]);
 
     useEffect(() => {
         if (refreshToken) {

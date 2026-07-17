@@ -9,18 +9,19 @@ import { useStore } from "../modules/state";
 
 export default function Dashboard() {
     const { settings } = useStore((state) => state)
+    const workshopId = settings.selectedWorkshop?.id;
 
     return <>
-        <EstimatesAVGS />
-        <CarsAVGS />
+        <EstimatesAVGS workshopId={workshopId} />
+        <CarsAVGS workshopId={workshopId} />
         {settings.showRevenueStatistics &&
             <Row gutter={[16, 0]}>
-                <Col xs={24} lg={12}><RevenueChart /></Col>
-                <Col xs={24} lg={12}><TopCustomers /></Col>
+                <Col xs={24} lg={12}><RevenueChart workshopId={workshopId} /></Col>
+                <Col xs={24} lg={12}><TopCustomers workshopId={workshopId} /></Col>
             </Row>
         }
-        <CarsByYearChart />
-        <InspectionReminder style={{ marginTop: 20 }} />
+        <CarsByYearChart workshopId={workshopId} />
+        <InspectionReminder workshopId={workshopId} style={{ marginTop: 20 }} />
     </>
 }
 

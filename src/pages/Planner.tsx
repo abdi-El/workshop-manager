@@ -12,6 +12,7 @@ import PlannerEvent from '../components/PlannerEvent';
 import { api } from '../modules/api';
 import { fromISOFormat, toISOFormat } from '../modules/dates';
 import { useIsMobile } from '../modules/hooks';
+import { useStore } from '../modules/state';
 import "../styles/full-calendar-dark.css";
 import { AppointmentEventData } from '../types/database';
 
@@ -37,12 +38,14 @@ const mapAppointmentsToEvents = (appointments: AppointmentEventData[]) => {
 
 export default function Planner() {
     const isMobile = useIsMobile();
+    const { settings } = useStore((state) => state);
+    const workshopId = settings.selectedWorkshop?.id;
     const [appointments, setAppointments] = useState<AppointmentEventData[]>([])
     const [editing, setEditing] = useState<AppointmentEventData>()
     const [selectedDate, setSelectedDate] = useState<Date>()
 
     function getData() {
-        api.getPlannerEvents().then((res) => setAppointments(res))
+        api.getPlannerEvents(workshopId).then((res) => setAppointments(res))
     }
 
     function close() {
@@ -56,7 +59,7 @@ export default function Planner() {
 
     useEffect(() => {
         getData()
-    }, [])
+    }, [workshopId])
 
 
     const handleEventDrop = (info: any) => {

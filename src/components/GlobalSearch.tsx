@@ -19,7 +19,8 @@ interface GlobalSearchProps {
 export default function GlobalSearch({ autoFocus, onSelect: onSelectCallback }: GlobalSearchProps = {}) {
     const [value, setValue] = useState('');
     const [results, setResults] = useState<SearchResult[]>([]);
-    const { updatePage, setSearchTarget, dbReady } = useStore((state) => state);
+    const { updatePage, setSearchTarget, dbReady, settings } = useStore((state) => state);
+    const workshopId = settings.selectedWorkshop?.id;
     const inputRef = useRef<InputRef>(null);
     const isMobile = useIsMobile();
 
@@ -42,7 +43,7 @@ export default function GlobalSearch({ autoFocus, onSelect: onSelectCallback }: 
             return;
         }
         let cancelled = false;
-        globalSearch(debouncedValue).then((found) => {
+        globalSearch(debouncedValue, workshopId).then((found) => {
             if (!cancelled) setResults(found);
         }).catch(() => {
             if (!cancelled) setResults([]);

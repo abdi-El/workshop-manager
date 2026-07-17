@@ -22,7 +22,7 @@ export function useDebounce<T>(value: T, delay: number): T {
     return debounced;
 }
 
-export function useQuery<T>(queryFn: () => Promise<T[]>) {
+export function useQuery<T>(queryFn: () => Promise<T[]>, deps: unknown[] = []) {
     const [data, setData] = useState<T[]>([]);
     const [loading, setLoading] = useState(true);
     const fnRef = useRef(queryFn);
@@ -39,7 +39,7 @@ export function useQuery<T>(queryFn: () => Promise<T[]>) {
 
     useEffect(() => {
         reload();
-    }, [reload]);
+    }, [reload, ...deps]);
 
     return { data, loading, reload };
 }

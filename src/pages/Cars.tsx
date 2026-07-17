@@ -18,8 +18,9 @@ export default function Cars() {
     const drawerWidth = useDrawerWidth();
     const isMobile = useIsMobile();
     const [open, setOpen] = useState(false);
-    const { data: cars, loading, reload } = useQuery<Car>(() => api.getCars())
-    const { searchTarget, setSearchTarget } = useStore((state) => state)
+    const { settings, searchTarget, setSearchTarget } = useStore((state) => state)
+    const workshopId = settings.selectedWorkshop?.id;
+    const { data: cars, loading, reload } = useQuery<Car>(() => api.getCars(workshopId), [workshopId])
     const [selectedCar, setSelectedCar] = useState<Car>();
     const [historyCar, setHistoryCar] = useState<Car>();
     const searchInput = useRef<InputRef>(null);

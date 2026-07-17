@@ -9,16 +9,16 @@ interface MonthlyData {
     total_revenue: number;
 }
 
-export default function RevenueChart() {
+export default function RevenueChart({ workshopId }: { workshopId?: number }) {
     const [loading, setLoading] = useState(false);
     const [data, setData] = useState<MonthlyData[]>([]);
 
     useEffect(() => {
         setLoading(true);
-        api.getMonthlyRevenue().then((res) => {
+        api.getMonthlyRevenue(workshopId).then((res) => {
             setData(res);
         }).finally(() => setLoading(false));
-    }, []);
+    }, [workshopId]);
 
     const formatted = data.map(d => ({
         ...d,

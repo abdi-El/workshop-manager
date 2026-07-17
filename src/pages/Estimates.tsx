@@ -25,11 +25,12 @@ export default function Estimates() {
     const drawerWidth = useDrawerWidth("75%");
     const isMobile = useIsMobile();
     const [open, setOpen] = useState(false);
-    const { data: estimateRows, loading, reload } = useQuery<Estimate>(() => api.getEstimates())
+    const { settings, searchTarget, setSearchTarget } = useStore((state) => state)
+    const workshopId = settings.selectedWorkshop?.id;
+    const { data: estimateRows, loading, reload } = useQuery<Estimate>(() => api.getEstimates(workshopId), [workshopId])
     const estimates = useMemo(() => {
         return estimateRows.map((r) => ({ ...r, has_iva: (r.has_iva as any) == "true" }))
     }, [estimateRows])
-    const { searchTarget, setSearchTarget } = useStore((state) => state)
     const [selectedEstimate, setSelectedEstimate] = useState<Estimate>();
     const searchInput = useRef<InputRef>(null);
 

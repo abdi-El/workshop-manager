@@ -6,17 +6,17 @@ import { api } from '../../modules/api';
 import { EstiamatesAverages } from '../../types/database';
 
 
-export default function EstimatesAVGS() {
+export default function EstimatesAVGS({ workshopId }: { workshopId?: number }) {
     const [loading, setLoading] = useState(false)
     const [estimatesAverages, setEstimatesAverages] = useState<EstiamatesAverages>()
     useEffect(() => {
         setLoading(true)
-        api.getDashboardAverages().then((res) => {
+        api.getDashboardAverages(workshopId).then((res) => {
             setEstimatesAverages(res[0])
         }).finally(() => {
             setLoading(false)
         })
-    }, [])
+    }, [workshopId])
     return <Row gutter={[16, 16]}>
         <Col xs={12} md={8}>
             <Card variant="borderless">

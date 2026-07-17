@@ -106,7 +106,20 @@ struct ExecuteResult {
     rows_affected: usize,
 }
 
-// --- Shared CRUD primitives (table name is compile-time constant per entity) ---
+// --- Query parameter structs ---
+
+#[derive(Deserialize)]
+struct WorkshopFilter {
+    workshop_id: Option<i64>,
+}
+
+#[derive(Deserialize)]
+struct SearchQuery {
+    q: String,
+    workshop_id: Option<i64>,
+}
+
+// --- Shared CRUD primitives ---
 
 fn do_list(conn: &Connection, table: &str) -> ApiResult<Vec<Value>> {
     let sql = format!("SELECT * FROM {} ORDER BY id DESC", table);
@@ -140,12 +153,8 @@ fn do_delete(conn: &Connection, table: &str, id: i64) -> ApiResult<()> {
     Ok(())
 }
 
-// Generates dedicated list/get/create/update/delete handlers for a simple entity.
-// Each entity gets its own explicit route (OpenAPI-style), no shared /{table} catchall.
 macro_rules! crud_handlers {
     ($module:ident, $table:literal) => {
-        // Not every entity exposes all five verbs (e.g. appointments has no list route);
-        // unused generated handlers are expected.
         #[allow(dead_code)]
         mod $module {
             use super::*;
@@ -184,7 +193,24 @@ crud_handlers!(models, "models");
 crud_handlers!(appointments, "appointments");
 crud_handlers!(default_estimate_items, "default_estimate_items");
 
-// Cars & estimates: dedicated create/update/delete (list/get are custom JOIN handlers below).
+// --- Workshop-scoped list handlers ---
+
+async fn list_customers(
+    State(db): State<Db>,
+    Query(f): Query<WorkshopFilter>,
+) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    if let Some(wid) = f.workshop_id {
+        Ok(Json(query_rows(&conn,
+            "SELECT * FROM customers WHERE workshop_id = ?1 ORDER BY id DESC",
+            &[SqlValue::Integer(wid)])?))
+    } else {
+        Ok(Json(do_list(&conn, "customers")?))
+    }
+}
+
+// --- Cars (with JOINs) ---
+
 async fn create_car(
     State(db): State<Db>,
     Json(body): Json<Map<String, Value>>,
@@ -211,8 +237,6 @@ async fn delete_estimate(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult
     Ok(StatusCode::OK)
 }
 
-// --- Cars (with JOINs) ---
-
 const CARS_BASE_QUERY: &str = "SELECT cars.id as car_id,
     cars.model_id, cars.maker_id, cars.*,
     model.id as model_id, model.name as model_name,
@@ -222,10 +246,18 @@ const CARS_BASE_QUERY: &str = "SELECT cars.id as car_id,
     LEFT JOIN models as model ON cars.model_id = model.id
     LEFT JOIN makers as maker ON cars.maker_id = maker.id";
 
-async fn list_cars(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+async fn list_cars(
+    State(db): State<Db>,
+    Query(f): Query<WorkshopFilter>,
+) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
-    let sql = format!("{CARS_BASE_QUERY} ORDER BY cars.id DESC");
-    Ok(Json(query_rows(&conn, &sql, &[])?))
+    if let Some(wid) = f.workshop_id {
+        let sql = format!("{CARS_BASE_QUERY} WHERE cars.workshop_id = ?1 ORDER BY cars.id DESC");
+        Ok(Json(query_rows(&conn, &sql, &[SqlValue::Integer(wid)])?))
+    } else {
+        let sql = format!("{CARS_BASE_QUERY} ORDER BY cars.id DESC");
+        Ok(Json(query_rows(&conn, &sql, &[])?))
+    }
 }
 
 async fn get_customer_cars(
@@ -297,10 +329,18 @@ const ESTIMATES_BASE_QUERY: &str = "SELECT
         FROM estimate_items GROUP BY estimate_id
     ) ei ON estimates.id = ei.estimate_id";
 
-async fn list_estimates(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+async fn list_estimates(
+    State(db): State<Db>,
+    Query(f): Query<WorkshopFilter>,
+) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
-    let sql = format!("{ESTIMATES_BASE_QUERY} ORDER BY estimates.id DESC");
-    Ok(Json(query_rows(&conn, &sql, &[])?))
+    if let Some(wid) = f.workshop_id {
+        let sql = format!("{ESTIMATES_BASE_QUERY} WHERE estimates.workshop_id = ?1 ORDER BY estimates.id DESC");
+        Ok(Json(query_rows(&conn, &sql, &[SqlValue::Integer(wid)])?))
+    } else {
+        let sql = format!("{ESTIMATES_BASE_QUERY} ORDER BY estimates.id DESC");
+        Ok(Json(query_rows(&conn, &sql, &[])?))
+    }
 }
 
 async fn get_estimate_items(
@@ -360,8 +400,6 @@ struct EstimatePayload {
     items: Vec<Map<String, Value>>,
 }
 
-// Persist estimate + its items in a single transaction.
-// existing_id = Some → update that estimate; None → insert new. Returns the estimate id.
 fn persist_estimate(
     conn: &Connection,
     estimate: &Map<String, Value>,
@@ -422,9 +460,17 @@ async fn update_estimate(
 
 // --- Planner ---
 
-async fn get_planner_events(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+async fn get_planner_events(
+    State(db): State<Db>,
+    Query(f): Query<WorkshopFilter>,
+) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
-    let sql = "SELECT
+    let (where_clause, params) = if let Some(wid) = f.workshop_id {
+        ("WHERE a.workshop_id = ?1", vec![SqlValue::Integer(wid)])
+    } else {
+        ("", vec![])
+    };
+    let sql = format!("SELECT
         a.id as id, a.workshop_id, a.date, a.from_time, a.to_time,
         c.name as customer_name, c.phone as customer_phone,
         CONCAT(maker.name, ' ', model.name, ' (', car.year, ')') as car_info,
@@ -436,15 +482,24 @@ async fn get_planner_events(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>>
         LEFT JOIN cars car ON COALESCE(e.car_id, a.car_id) = car.id
         LEFT JOIN makers maker ON car.maker_id = maker.id
         LEFT JOIN models model ON car.model_id = model.id
-        ORDER BY a.date DESC, a.from_time";
-    Ok(Json(query_rows(&conn, sql, &[])?))
+        {where_clause}
+        ORDER BY a.date DESC, a.from_time");
+    Ok(Json(query_rows(&conn, &sql, &params)?))
 }
 
 // --- Inspections ---
 
-async fn get_upcoming_inspections(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+async fn get_upcoming_inspections(
+    State(db): State<Db>,
+    Query(f): Query<WorkshopFilter>,
+) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
-    let sql = "SELECT
+    let (extra_where, params) = if let Some(wid) = f.workshop_id {
+        ("AND c.workshop_id = ?1", vec![SqlValue::Integer(wid)])
+    } else {
+        ("", vec![])
+    };
+    let sql = format!("SELECT
         c.id as car_id, c.year, c.last_inspection_date,
         c.customer_id, cust.name as customer_name, cust.phone as customer_phone,
         ma.name as maker_name, md.name as model_name
@@ -453,6 +508,7 @@ async fn get_upcoming_inspections(State(db): State<Db>) -> ApiResult<Json<Vec<Va
         JOIN makers ma ON c.maker_id = ma.id
         JOIN models md ON c.model_id = md.id
         WHERE c.last_inspection_date IS NOT NULL
+        {extra_where}
         AND (
             DATE(
                 SUBSTR(c.last_inspection_date, 7, 4) || '-' ||
@@ -463,16 +519,11 @@ async fn get_upcoming_inspections(State(db): State<Db>) -> ApiResult<Json<Vec<Va
                     ELSE '+2 years'
                 END
             )
-        ) <= DATE('now', '+30 days') ORDER BY c.last_inspection_date ASC";
-    Ok(Json(query_rows(&conn, sql, &[])?))
+        ) <= DATE('now', '+30 days') ORDER BY c.last_inspection_date ASC");
+    Ok(Json(query_rows(&conn, &sql, &params)?))
 }
 
 // --- Default Estimate Items ---
-
-#[derive(Deserialize)]
-struct SearchQuery {
-    q: String,
-}
 
 async fn search_default_estimate_items(
     State(db): State<Db>,
@@ -487,9 +538,17 @@ async fn search_default_estimate_items(
 
 // --- Dashboard ---
 
-async fn dashboard_averages(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+async fn dashboard_averages(
+    State(db): State<Db>,
+    Query(f): Query<WorkshopFilter>,
+) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
-    let sql = "SELECT
+    let (where_clause, params) = if let Some(wid) = f.workshop_id {
+        ("WHERE e.workshop_id = ?1", vec![SqlValue::Integer(wid)])
+    } else {
+        ("", vec![])
+    };
+    let sql = format!("SELECT
         COUNT(*) as total_estimates,
         AVG(e.labor_hours) as avg_labor_hours,
         AVG(e.labor_hourly_cost) as avg_hourly_cost,
@@ -503,29 +562,55 @@ async fn dashboard_averages(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>>
         LEFT JOIN (
             SELECT estimate_id, SUM(quantity * unit_price) as items_total
             FROM estimate_items GROUP BY estimate_id
-        ) ei ON e.id = ei.estimate_id";
-    Ok(Json(query_rows(&conn, sql, &[])?))
+        ) ei ON e.id = ei.estimate_id
+        {where_clause}");
+    Ok(Json(query_rows(&conn, &sql, &params)?))
 }
 
-async fn dashboard_brands(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+async fn dashboard_brands(
+    State(db): State<Db>,
+    Query(f): Query<WorkshopFilter>,
+) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
-    let sql = "SELECT m.name as brand_name, COUNT(c.id) as car_count
+    let (where_clause, params) = if let Some(wid) = f.workshop_id {
+        ("WHERE c.workshop_id = ?1", vec![SqlValue::Integer(wid)])
+    } else {
+        ("", vec![])
+    };
+    let sql = format!("SELECT m.name as brand_name, COUNT(c.id) as car_count
         FROM cars c JOIN makers m ON c.maker_id = m.id
-        GROUP BY m.id, m.name ORDER BY car_count DESC";
-    Ok(Json(query_rows(&conn, sql, &[])?))
+        {where_clause}
+        GROUP BY m.id, m.name ORDER BY car_count DESC");
+    Ok(Json(query_rows(&conn, &sql, &params)?))
 }
 
-async fn dashboard_cars_by_year(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+async fn dashboard_cars_by_year(
+    State(db): State<Db>,
+    Query(f): Query<WorkshopFilter>,
+) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
-    let sql = "SELECT year, COUNT(*) as car_count
-        FROM cars WHERE year IS NOT NULL
-        GROUP BY year ORDER BY year ASC";
-    Ok(Json(query_rows(&conn, sql, &[])?))
+    let (extra_where, params) = if let Some(wid) = f.workshop_id {
+        ("AND workshop_id = ?1", vec![SqlValue::Integer(wid)])
+    } else {
+        ("", vec![])
+    };
+    let sql = format!("SELECT year, COUNT(*) as car_count
+        FROM cars WHERE year IS NOT NULL {extra_where}
+        GROUP BY year ORDER BY year ASC");
+    Ok(Json(query_rows(&conn, &sql, &params)?))
 }
 
-async fn dashboard_revenue(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+async fn dashboard_revenue(
+    State(db): State<Db>,
+    Query(f): Query<WorkshopFilter>,
+) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
-    let sql = "SELECT
+    let (where_clause, params) = if let Some(wid) = f.workshop_id {
+        ("WHERE e.workshop_id = ?1", vec![SqlValue::Integer(wid)])
+    } else {
+        ("", vec![])
+    };
+    let sql = format!("SELECT
         SUBSTR(e.date, 7, 4) || '-' || SUBSTR(e.date, 4, 2) as month,
         ROUND(SUM(
             (e.labor_hours * e.labor_hourly_cost) +
@@ -536,14 +621,23 @@ async fn dashboard_revenue(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> 
             SELECT estimate_id, SUM(quantity * unit_price) as items_total
             FROM estimate_items GROUP BY estimate_id
         ) ei ON e.id = ei.estimate_id
+        {where_clause}
         GROUP BY SUBSTR(e.date, 7, 4) || '-' || SUBSTR(e.date, 4, 2)
-        ORDER BY month ASC";
-    Ok(Json(query_rows(&conn, sql, &[])?))
+        ORDER BY month ASC");
+    Ok(Json(query_rows(&conn, &sql, &params)?))
 }
 
-async fn dashboard_top_customers(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
+async fn dashboard_top_customers(
+    State(db): State<Db>,
+    Query(f): Query<WorkshopFilter>,
+) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
-    let sql = "SELECT
+    let (where_clause, params) = if let Some(wid) = f.workshop_id {
+        ("WHERE e.workshop_id = ?1", vec![SqlValue::Integer(wid)])
+    } else {
+        ("", vec![])
+    };
+    let sql = format!("SELECT
         c.name as customer_name,
         ROUND(SUM(
             (e.labor_hours * e.labor_hourly_cost) +
@@ -556,9 +650,10 @@ async fn dashboard_top_customers(State(db): State<Db>) -> ApiResult<Json<Vec<Val
             SELECT estimate_id, SUM(quantity * unit_price) as items_total
             FROM estimate_items GROUP BY estimate_id
         ) ei ON e.id = ei.estimate_id
+        {where_clause}
         GROUP BY e.customer_id, c.name
-        ORDER BY total_revenue DESC LIMIT 10";
-    Ok(Json(query_rows(&conn, sql, &[])?))
+        ORDER BY total_revenue DESC LIMIT 10");
+    Ok(Json(query_rows(&conn, &sql, &params)?))
 }
 
 // --- Search ---
@@ -575,37 +670,51 @@ async fn global_search(
 
     let conn = lock(&db)?;
 
+    let (cust_filter, car_filter, est_filter) = if let Some(wid) = params.workshop_id {
+        let w = SqlValue::Integer(wid);
+        (vec![pattern.clone(), w.clone()], vec![pattern.clone(), w.clone()], vec![pattern.clone(), w])
+    } else {
+        (vec![pattern.clone()], vec![pattern.clone()], vec![pattern.clone()])
+    };
+
+    let wid_cust = if params.workshop_id.is_some() { "AND workshop_id = ?2" } else { "" };
+    let wid_car = if params.workshop_id.is_some() { "AND cars.workshop_id = ?2" } else { "" };
+    let wid_est = if params.workshop_id.is_some() { "AND e.workshop_id = ?2" } else { "" };
+
     let customers = query_rows(&conn,
-        "SELECT id, name, phone, email FROM customers
-        WHERE LOWER(name) LIKE ?1
+        &format!("SELECT id, name, phone, email FROM customers
+        WHERE (LOWER(name) LIKE ?1
             OR LOWER(COALESCE(phone, '')) LIKE ?1
             OR LOWER(COALESCE(email, '')) LIKE ?1
-            OR LOWER(COALESCE(address, '')) LIKE ?1
-        ORDER BY id DESC LIMIT 8",
-        &[pattern.clone()])?;
+            OR LOWER(COALESCE(address, '')) LIKE ?1)
+        {wid_cust}
+        ORDER BY id DESC LIMIT 8"),
+        &cust_filter)?;
 
     let cars = query_rows(&conn,
-        "SELECT cars.id, cars.number_plate, cars.year,
+        &format!("SELECT cars.id, cars.number_plate, cars.year,
             maker.name as maker_name, model.name as model_name
         FROM cars
         LEFT JOIN makers as maker ON cars.maker_id = maker.id
         LEFT JOIN models as model ON cars.model_id = model.id
-        WHERE LOWER(cars.number_plate) LIKE ?1
+        WHERE (LOWER(cars.number_plate) LIKE ?1
             OR LOWER(COALESCE(maker.name, '')) LIKE ?1
-            OR LOWER(COALESCE(model.name, '')) LIKE ?1
-        ORDER BY cars.id DESC LIMIT 8",
-        &[pattern.clone()])?;
+            OR LOWER(COALESCE(model.name, '')) LIKE ?1)
+        {wid_car}
+        ORDER BY cars.id DESC LIMIT 8"),
+        &car_filter)?;
 
     let estimates = query_rows(&conn,
-        "SELECT e.id, e.date, car.number_plate, customer.name as customer_name
+        &format!("SELECT e.id, e.date, car.number_plate, customer.name as customer_name
         FROM estimates e
         LEFT JOIN cars as car ON e.car_id = car.id
         LEFT JOIN customers as customer ON e.customer_id = customer.id
-        WHERE LOWER(COALESCE(customer.name, '')) LIKE ?1
+        WHERE (LOWER(COALESCE(customer.name, '')) LIKE ?1
             OR LOWER(COALESCE(car.number_plate, '')) LIKE ?1
-            OR e.date LIKE ?1
-        ORDER BY e.id DESC LIMIT 8",
-        &[pattern])?;
+            OR e.date LIKE ?1)
+        {wid_est}
+        ORDER BY e.id DESC LIMIT 8"),
+        &est_filter)?;
 
     let mut results: Vec<Value> = Vec::new();
 
@@ -688,8 +797,8 @@ pub async fn start(db_path: String, dist_path: String) {
                 .unwrap_or_else(|_| "http://localhost:3333".to_string());
             Json(json!({ "url": ip }))
         }))
-        // Customers
-        .route("/api/customers", get(customers::list).post(customers::create))
+        // Customers (scoped list, generic CRUD)
+        .route("/api/customers", get(list_customers).post(customers::create))
         .route("/api/customers/{id}", get(customers::get).put(customers::update).delete(customers::delete))
         .route("/api/customers/{id}/cars", get(get_customer_cars))
         // Workshops
@@ -702,11 +811,11 @@ pub async fn start(db_path: String, dist_path: String) {
         // Models
         .route("/api/models", get(models::list).post(models::create))
         .route("/api/models/{id}", get(models::get).put(models::update).delete(models::delete))
-        // Cars (custom GET with JOINs, dedicated write handlers)
+        // Cars (scoped list with JOINs, dedicated write handlers)
         .route("/api/cars", get(list_cars).post(create_car))
         .route("/api/cars/{id}", put(update_car).delete(delete_car))
         .route("/api/cars/{id}/history", get(get_car_history))
-        // Estimates (custom GET with JOINs; create/update are transactional: estimate + items)
+        // Estimates (scoped list with JOINs; create/update are transactional)
         .route("/api/estimates", get(list_estimates).post(create_estimate))
         .route("/api/estimates/{id}", put(update_estimate).delete(delete_estimate))
         .route("/api/estimates/{id}/items", get(get_estimate_items))
@@ -718,11 +827,11 @@ pub async fn start(db_path: String, dist_path: String) {
         .route("/api/default-estimate-items/search", get(search_default_estimate_items))
         .route("/api/default_estimate_items", get(default_estimate_items::list).post(default_estimate_items::create))
         .route("/api/default_estimate_items/{id}", get(default_estimate_items::get).put(default_estimate_items::update).delete(default_estimate_items::delete))
-        // Planner / inspections / search
+        // Planner / inspections / search (all scoped)
         .route("/api/planner/events", get(get_planner_events))
         .route("/api/inspections/upcoming", get(get_upcoming_inspections))
         .route("/api/search", get(global_search))
-        // Dashboard
+        // Dashboard (all scoped)
         .route("/api/dashboard/averages", get(dashboard_averages))
         .route("/api/dashboard/brands", get(dashboard_brands))
         .route("/api/dashboard/cars-by-year", get(dashboard_cars_by_year))

@@ -8,18 +8,18 @@ interface DataType {
     car_count: number;
 }
 
-export default function CarsByYearChart() {
+export default function CarsByYearChart({ workshopId }: { workshopId?: number }) {
     const [loading, setLoading] = useState(false)
     const [data, setData] = useState<DataType[]>([])
 
     useEffect(() => {
         setLoading(true)
-        api.getCarsByYear().then((res) => {
+        api.getCarsByYear(workshopId).then((res) => {
             setData(res as DataType[])
         }).finally(() => {
             setLoading(false)
         })
-    }, [])
+    }, [workshopId])
 
     return <Row>
         <Card loading={loading} style={{ marginTop: 16, width: "100%" }} title="Auto per anno di immatricolazione">

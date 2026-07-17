@@ -7,6 +7,12 @@ import { SearchResult } from "./search";
 
 const API = "__TAURI_INTERNALS__" in window ? "http://localhost:3333/api" : "/api";
 
+function wq(path: string, workshopId?: number) {
+    if (!workshopId) return path;
+    const sep = path.includes("?") ? "&" : "?";
+    return `${path}${sep}workshop_id=${workshopId}`;
+}
+
 async function get<T>(path: string): Promise<T> {
     const res = await fetch(`${API}${path}`);
     if (!res.ok) throw new Error(await res.text());
@@ -44,19 +50,21 @@ export interface QueryResult {
 }
 
 export const api = {
-    // Customers
-    getCustomers: () => get<Customer[]>("/customers"),
+    // Customers (scoped)
+    getCustomers: (workshopId?: number) => get<Customer[]>(wq("/customers", workshopId)),
     createCustomer: (data: Record<string, unknown>) => post<QueryResult>("/customers", data),
     updateCustomer: (id: number, data: Record<string, unknown>) => put(`/customers/${id}`, data),
     deleteCustomer: (id: number) => del(`/customers/${id}`),
 
     // Workshops
     getWorkshops: () => get<Workshop[]>("/workshops"),
+    getWorkshop: (id: number) => get<Workshop>(`/workshops/${id}`),
     createWorkshop: (data: Record<string, unknown>) => post<QueryResult>("/workshops", data),
     updateWorkshop: (id: number, data: Record<string, unknown>) => put(`/workshops/${id}`, data),
+    deleteWorkshop: (id: number) => del(`/workshops/${id}`),
 
-    // Cars (custom GET with JOINs)
-    getCars: () => get<Car[]>("/cars"),
+    // Cars (scoped)
+    getCars: (workshopId?: number) => get<Car[]>(wq("/cars", workshopId)),
     createCar: (data: Record<string, unknown>) => post<QueryResult>("/cars", data),
     updateCar: (id: number, data: Record<string, unknown>) => put(`/cars/${id}`, data),
     deleteCar: (id: number) => del(`/cars/${id}`),
@@ -72,8 +80,8 @@ export const api = {
     createModel: (data: Record<string, unknown>) => post<QueryResult>("/models", data),
     updateModel: (id: number, data: Record<string, unknown>) => put(`/models/${id}`, data),
 
-    // Estimates (custom GET with JOINs)
-    getEstimates: () => get<Estimate[]>("/estimates"),
+    // Estimates (scoped)
+    getEstimates: (workshopId?: number) => get<Estimate[]>(wq("/estimates", workshopId)),
     deleteEstimate: (id: number) => del(`/estimates/${id}`),
     getEstimateItems: (estimateId: number) => get<EstimateItem[]>(`/estimates/${estimateId}/items`),
     getEstimatePdfData: (estimateId: number) => get<{ estimate: Estimate; car: Car; customer: Customer; workshop: Workshop } | null>(`/estimates/${estimateId}/pdf-data`),
@@ -94,19 +102,19 @@ export const api = {
     updateDefaultEstimateItem: (id: number, data: Record<string, unknown>) => put(`/default_estimate_items/${id}`, data),
     deleteDefaultEstimateItem: (id: number) => del(`/default_estimate_items/${id}`),
 
-    // Planner
-    getPlannerEvents: () => get<AppointmentEventData[]>("/planner/events"),
+    // Planner (scoped)
+    getPlannerEvents: (workshopId?: number) => get<AppointmentEventData[]>(wq("/planner/events", workshopId)),
 
-    // Inspections
-    getUpcomingInspections: () => get<unknown[]>("/inspections/upcoming"),
+    // Inspections (scoped)
+    getUpcomingInspections: (workshopId?: number) => get<unknown[]>(wq("/inspections/upcoming", workshopId)),
 
-    // Dashboard
-    getDashboardAverages: () => get<EstiamatesAverages[]>("/dashboard/averages"),
-    getCarBrandsByCount: () => get<{ brand_name: string; car_count: number }[]>("/dashboard/brands"),
-    getCarsByYear: () => get<{ year: string; car_count: number }[]>("/dashboard/cars-by-year"),
-    getMonthlyRevenue: () => get<{ month: string; total_revenue: number }[]>("/dashboard/revenue"),
-    getTopCustomersByRevenue: () => get<{ customer_name: string; total_revenue: number; estimate_count: number }[]>("/dashboard/top-customers"),
+    // Dashboard (scoped)
+    getDashboardAverages: (workshopId?: number) => get<EstiamatesAverages[]>(wq("/dashboard/averages", workshopId)),
+    getCarBrandsByCount: (workshopId?: number) => get<{ brand_name: string; car_count: number }[]>(wq("/dashboard/brands", workshopId)),
+    getCarsByYear: (workshopId?: number) => get<{ year: string; car_count: number }[]>(wq("/dashboard/cars-by-year", workshopId)),
+    getMonthlyRevenue: (workshopId?: number) => get<{ month: string; total_revenue: number }[]>(wq("/dashboard/revenue", workshopId)),
+    getTopCustomersByRevenue: (workshopId?: number) => get<{ customer_name: string; total_revenue: number; estimate_count: number }[]>(wq("/dashboard/top-customers", workshopId)),
 
-    // Search
-    globalSearch: (q: string) => get<SearchResult[]>(`/search?q=${encodeURIComponent(q)}`),
+    // Search (scoped)
+    globalSearch: (q: string, workshopId?: number) => get<SearchResult[]>(wq(`/search?q=${encodeURIComponent(q)}`, workshopId)),
 };

@@ -11,6 +11,6 @@ export interface SearchResult {
     phone?: string;
 }
 
-export async function globalSearch(rawQuery: string): Promise<SearchResult[]> {
-    return api.globalSearch(rawQuery);
+export async function globalSearch(rawQuery: string, workshopId?: number): Promise<SearchResult[]> {
+    return api.globalSearch(rawQuery, workshopId);
 }
