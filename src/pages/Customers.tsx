@@ -7,7 +7,6 @@ import EditButton from "../components/buttons/EditButton";
 import CustomerCars from "../components/CustomerCars";
 import CustomerForm from "../components/forms/CustomerForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
-import CustomersTour from "../components/tours/CustomerTour";
 import { api } from "../modules/api";
 import { useDrawerWidth, useIsMobile, useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
@@ -176,7 +175,6 @@ export default function Customers() {
         ) : (
             <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={customers} columns={columns as any} rowKey="id" loading={loading} />
         )}
-        <CustomersTour />
     </>
 };
 

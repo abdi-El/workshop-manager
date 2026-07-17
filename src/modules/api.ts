@@ -117,4 +117,9 @@ export const api = {
 
     // Search (scoped)
     globalSearch: (q: string, workshopId?: number) => get<SearchResult[]>(wq(`/search?q=${encodeURIComponent(q)}`, workshopId)),
+
+    // Settings (JSON file on server)
+    getSettings: () => get<Record<string, unknown>>("/settings/settings"),
+    saveSettings: (values: Record<string, unknown>) => put("/settings/settings", values),
+    resetSettings: () => del("/settings/settings"),
 };

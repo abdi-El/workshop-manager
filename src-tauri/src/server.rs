@@ -3,13 +3,15 @@ use axum::{
     http::StatusCode,
     response::{Html, IntoResponse},
     routing::{get, post, put},
-    Json, Router,
+    Extension, Json, Router,
 };
 use rusqlite::{params_from_iter, types::Value as SqlValue, Connection};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use std::sync::{Arc, Mutex};
 use tower_http::cors::CorsLayer;
+
+type SettingsPath = Arc<String>;
 
 type Db = Arc<Mutex<Connection>>;
 type ApiResult<T> = Result<T, (StatusCode, String)>;
@@ -774,6 +776,65 @@ async fn makers_count(State(db): State<Db>) -> ApiResult<Json<Vec<Value>>> {
     Ok(Json(query_rows(&conn, "SELECT COUNT(*) as count FROM makers", &[])?))
 }
 
+// --- Settings (JSON file) ---
+
+fn read_settings_file(path: &str) -> ApiResult<Map<String, Value>> {
+    match std::fs::read_to_string(path) {
+        Ok(content) => serde_json::from_str(&content).map_err(db_err),
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => {
+            let defaults = Map::new();
+            write_settings_file(path, &defaults)?;
+            Ok(defaults)
+        }
+        Err(e) => Err(db_err(e)),
+    }
+}
+
+fn write_settings_file(path: &str, data: &Map<String, Value>) -> ApiResult<()> {
+    let json = serde_json::to_string_pretty(data).map_err(db_err)?;
+    std::fs::write(path, json).map_err(db_err)
+}
+
+async fn get_setting(
+    Extension(path): Extension<SettingsPath>,
+    Path(key): Path<String>,
+) -> ApiResult<Json<Value>> {
+    let data = read_settings_file(&path)?;
+    Ok(Json(data.get(&key).cloned().unwrap_or(Value::Object(Map::new()))))
+}
+
+async fn put_setting(
+    Extension(path): Extension<SettingsPath>,
+    Path(key): Path<String>,
+    Json(body): Json<Value>,
+) -> ApiResult<StatusCode> {
+    let mut data = read_settings_file(&path)?;
+    if let (Some(existing), Some(incoming)) = (
+        data.get(&key).and_then(|v| v.as_object()),
+        body.as_object(),
+    ) {
+        let mut merged = existing.clone();
+        for (k, v) in incoming {
+            merged.insert(k.clone(), v.clone());
+        }
+        data.insert(key, Value::Object(merged));
+    } else {
+        data.insert(key, body);
+    }
+    write_settings_file(&path, &data)?;
+    Ok(StatusCode::OK)
+}
+
+async fn delete_setting(
+    Extension(path): Extension<SettingsPath>,
+    Path(key): Path<String>,
+) -> ApiResult<StatusCode> {
+    let mut data = read_settings_file(&path)?;
+    data.remove(&key);
+    write_settings_file(&path, &data)?;
+    Ok(StatusCode::OK)
+}
+
 // --- Fallback ---
 
 async fn fallback_index() -> impl IntoResponse {
@@ -787,6 +848,15 @@ pub async fn start(db_path: String, dist_path: String) {
     conn.execute_batch("PRAGMA journal_mode=WAL;").expect("Failed to set WAL mode");
     conn.busy_timeout(std::time::Duration::from_secs(5)).expect("Failed to set busy timeout");
     let db: Db = Arc::new(Mutex::new(conn));
+
+    let settings_path: SettingsPath = Arc::new(
+        std::path::Path::new(&db_path)
+            .parent()
+            .unwrap_or(std::path::Path::new("."))
+            .join("settings.json")
+            .to_string_lossy()
+            .to_string(),
+    );
 
     let api = Router::new()
         // Utility
@@ -837,7 +907,10 @@ pub async fn start(db_path: String, dist_path: String) {
         .route("/api/dashboard/cars-by-year", get(dashboard_cars_by_year))
         .route("/api/dashboard/revenue", get(dashboard_revenue))
         .route("/api/dashboard/top-customers", get(dashboard_top_customers))
+        // Settings (JSON file)
+        .route("/api/settings/{key}", get(get_setting).put(put_setting).delete(delete_setting))
         .with_state(db)
+        .layer(Extension(settings_path))
         .layer(CorsLayer::permissive());
 
     let serve_dir = tower_http::services::ServeDir::new(&dist_path)

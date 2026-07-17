@@ -1,7 +1,7 @@
 import { message } from 'antd';
 import { create } from 'zustand';
 import { SettingsType } from '../types/common';
-import { storeSettings } from './store';
+import { api } from './api';
 
 export interface SearchTarget {
     table: "customers" | "cars" | "estimates"
@@ -23,6 +23,8 @@ interface AppState {
     setDbReady: (dbReady: boolean) => void
 }
 
+const defaultSettings: SettingsType = { theme: 'light', pdfTheme: 'default', showPdfNumber: true, showRevenueStatistics: true };
+
 export const useStore = create<AppState>()((set) => ({
     isDebug: false,
     setIsDebug: (isDebug) => set({ isDebug }),
@@ -36,7 +38,7 @@ export const useStore = create<AppState>()((set) => ({
             message.warning("Compila dati dell'officina prima di procedere.");
         }
         const newSettings = { ...current.settings, lastPage: actualPage };
-        storeSettings?.set('settings', newSettings);
+        api.saveSettings(newSettings).catch(() => {});
         return { page: actualPage, settings: newSettings };
     }),
     setLoading: (loading: boolean) => set({ loading }),
@@ -44,32 +46,31 @@ export const useStore = create<AppState>()((set) => ({
     setSearchTarget: (searchTarget) => set({ searchTarget }),
     dbReady: false,
     setDbReady: (dbReady) => set({ dbReady }),
-    settings: { theme: 'light', pdfTheme: 'default', showPdfNumber: true, showRevenueStatistics: true },
+    settings: defaultSettings,
     updateSettings: (values) => {
         set({ loading: true })
         if (values) {
             set((old) => {
                 const newValues = { ...old.settings, ...values }
-                storeSettings?.set('settings', newValues).finally(() => set({ loading: false }));
-                if (!storeSettings) set({ loading: false });
+                api.saveSettings(newValues).finally(() => set({ loading: false }));
                 return { settings: newValues }
             })
         } else {
-            if (!storeSettings) {
-                set({ page: "workshop", loading: false });
-                return;
-            }
-            storeSettings.get('settings').then(stored => {
-                const settings = stored as SettingsType;
-                set({ settings });
+            api.getSettings().then(stored => {
+                const settings = stored as unknown as SettingsType;
+                if (!settings || !settings.theme) {
+                    set({ page: "workshop", loading: false });
+                    return;
+                }
+                set({ settings: { ...defaultSettings, ...settings } });
                 if (!settings?.selectedWorkshop) {
                     set({ page: "workshop" });
                 } else {
                     set({ page: settings?.lastPage ?? "dashboard" });
                 }
+            }).catch(() => {
+                set({ page: "workshop" });
             }).finally(() => set({ loading: false }))
         }
-
     },
-
 }))

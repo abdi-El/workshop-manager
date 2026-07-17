@@ -4,7 +4,6 @@ import { useState } from "react";
 import DeleteButton from "../components/buttons/DeleteButton";
 import EditButton from "../components/buttons/EditButton";
 import WorkshopForm from "../components/forms/WorkshopForm";
-import WorkshopTour from "../components/tours/WorkshopTour";
 import { api } from "../modules/api";
 import { useDrawerWidth, useIsMobile, useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
@@ -53,6 +52,10 @@ export default function Workshops() {
             title: "Azioni", key: "actions",
             render: (_: unknown, ws: Workshop) => (
                 <Space>
+                    {settings.selectedWorkshop?.id === ws.id
+                        ? <Button size="small" disabled>Attiva</Button>
+                        : <Button size="small" type="primary" onClick={() => updateSettings({ selectedWorkshop: ws })}>Seleziona</Button>
+                    }
                     <EditButton onClick={() => { showDrawer(); setSelectedWorkshop(ws) }} />
                     {settings.selectedWorkshop?.id !== ws.id && (
                         <DeleteButton onConfirm={() => {
@@ -129,6 +132,5 @@ export default function Workshops() {
             <Table dataSource={workshops} columns={columns as any} rowKey="id" loading={loading}
                 rowClassName={(ws) => settings.selectedWorkshop?.id === ws.id ? 'ant-table-row-selected' : ''} />
         )}
-        <WorkshopTour />
     </>;
 }

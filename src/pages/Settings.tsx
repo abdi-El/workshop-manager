@@ -8,9 +8,9 @@ import DefaultEstimateItems from '../components/DefaultEstimateItems';
 import MakersModelsImporter from '../components/MakersModelsImporter';
 import themes from "../components/pdf/themes.json";
 import ThemeSelector from '../components/pdf/ThemeSelector';
+import { api } from '../modules/api';
 import { useIsMobile } from '../modules/hooks';
 import { useStore } from '../modules/state';
-import { storeSettings } from '../modules/store';
 import { isTauri } from '../modules/utils';
 
 const { Text } = Typography;
@@ -128,7 +128,7 @@ export default function Settings() {
                             okText="Reimposta"
                             cancelText="Annulla"
                             okButtonProps={{ danger: true }}
-                            onConfirm={() => storeSettings.reset().then(() => updateSettings())}
+                            onConfirm={() => api.resetSettings().then(() => updateSettings())}
                         >
                             <Button danger block>Reset impostazioni</Button>
                         </Popconfirm>

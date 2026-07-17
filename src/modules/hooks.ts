@@ -1,7 +1,6 @@
 import { Grid, message } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { create } from "zustand";
-import { storeSettings } from "./store";
 import { getModelsAndMakers } from "./scraper";
 
 export function useIsMobile() {
@@ -77,33 +76,3 @@ export const useScraper = create<ScraperState>()((set) => {
 })
 
 
-async function updateTourState(name: string, value: boolean) {
-    if (!storeSettings) return;
-    storeSettings.get("tours").then(values => {
-        let newValues = {
-            ...(values || {}), [name]: value
-        }
-        storeSettings.set("tours", newValues)
-    })
-
-}
-
-export function useTour(name: string): [boolean, ((value: boolean) => Promise<void>)] {
-    const [isOpen, setIsOpen] = useState(false)
-    useEffect(() => {
-        if (!storeSettings) return;
-        storeSettings.get("tours").then((values) => {
-            const storeValue = (values as Record<string, boolean>)?.[name]
-            if (storeValue == undefined) {
-                setIsOpen(true)
-                return
-            }
-            setIsOpen(storeValue)
-        })
-    }, [])
-    async function setOpenState(value: boolean) {
-        updateTourState(name, value)
-        setIsOpen(value)
-    }
-    return [isOpen, setOpenState]
-}

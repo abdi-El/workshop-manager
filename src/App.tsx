@@ -7,8 +7,7 @@ import { useEffect } from "react";
 import Paginator from "./components/Paginator";
 import { useScraper } from './modules/hooks';
 import { useStore } from './modules/state';
-import { initStore } from './modules/store';
-import { fetchIsDebug, isTauri } from './modules/utils';
+import { fetchIsDebug } from './modules/utils';
 
 dayjs.locale('it');
 dayjs.extend(updateLocale);
@@ -18,9 +17,6 @@ export default function Page() {
   const { setPercentage } = useScraper()
   async function initApp() {
     setIsDebug(await fetchIsDebug());
-    if (isTauri()) {
-      await initStore();
-    }
     setDbReady(true);
     updateSettings();
     setPercentage(100);
@@ -41,4 +37,3 @@ export default function Page() {
     </div>
   </ConfigProvider >
 }
-
