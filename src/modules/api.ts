@@ -5,7 +5,7 @@ import {
 } from "../types/database";
 import { SearchResult } from "./search";
 
-const API = "/api";
+const API = "__TAURI_INTERNALS__" in window ? "http://localhost:3333/api" : "/api";
 
 async function get<T>(path: string): Promise<T> {
     const res = await fetch(`${API}${path}`);
