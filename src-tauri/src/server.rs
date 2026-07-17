@@ -1,15 +1,18 @@
 use axum::{
     extract::{Path, Query, State},
-    http::StatusCode,
-    response::{Html, IntoResponse},
+    http::{header, StatusCode},
+    response::Response,
     routing::{get, post, put},
     Extension, Json, Router,
 };
+use include_dir::{include_dir, Dir};
 use rusqlite::{params_from_iter, types::Value as SqlValue, Connection};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Map, Value};
 use std::sync::{Arc, Mutex};
 use tower_http::cors::CorsLayer;
+
+static DIST: Dir = include_dir!("$CARGO_MANIFEST_DIR/../dist");
 
 type SettingsPath = Arc<String>;
 
@@ -835,15 +838,43 @@ async fn delete_setting(
     Ok(StatusCode::OK)
 }
 
-// --- Fallback ---
+// --- Static files (embedded) ---
 
-async fn fallback_index() -> impl IntoResponse {
-    Html(include_str!("../../dist/index.html"))
+fn mime_from_path(path: &str) -> &'static str {
+    match path.rsplit('.').next().unwrap_or("") {
+        "html" => "text/html; charset=utf-8",
+        "js" => "application/javascript; charset=utf-8",
+        "css" => "text/css; charset=utf-8",
+        "json" => "application/json",
+        "svg" => "image/svg+xml",
+        "png" => "image/png",
+        "ico" => "image/x-icon",
+        "woff" => "font/woff",
+        "woff2" => "font/woff2",
+        "webmanifest" => "application/manifest+json",
+        _ => "application/octet-stream",
+    }
+}
+
+async fn serve_embedded(req: axum::extract::Request) -> Response {
+    let path = req.uri().path().trim_start_matches('/');
+    if let Some(file) = DIST.get_file(path) {
+        Response::builder()
+            .header(header::CONTENT_TYPE, mime_from_path(path))
+            .body(axum::body::Body::from(file.contents().to_vec()))
+            .unwrap()
+    } else {
+        let index = DIST.get_file("index.html").expect("index.html missing from dist");
+        Response::builder()
+            .header(header::CONTENT_TYPE, "text/html; charset=utf-8")
+            .body(axum::body::Body::from(index.contents().to_vec()))
+            .unwrap()
+    }
 }
 
 // --- Router ---
 
-pub async fn start(db_path: String, dist_path: String) {
+pub async fn start(db_path: String) {
     let conn = Connection::open(&db_path).expect("Failed to open database");
     conn.execute_batch("PRAGMA journal_mode=WAL;").expect("Failed to set WAL mode");
     conn.busy_timeout(std::time::Duration::from_secs(5)).expect("Failed to set busy timeout");
@@ -911,13 +942,8 @@ pub async fn start(db_path: String, dist_path: String) {
         .route("/api/settings/{key}", get(get_setting).put(put_setting).delete(delete_setting))
         .with_state(db)
         .layer(Extension(settings_path))
-        .layer(CorsLayer::permissive());
-
-    let serve_dir = tower_http::services::ServeDir::new(&dist_path)
-        .fallback(tower::util::service_fn(|_req: axum::http::Request<axum::body::Body>| async {
-            Ok::<_, std::convert::Infallible>(fallback_index().await.into_response())
-        }));
-    let app = api.fallback_service(serve_dir);
+        .layer(CorsLayer::permissive())
+        .fallback(get(serve_embedded));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3333")
         .await
@@ -925,5 +951,5 @@ pub async fn start(db_path: String, dist_path: String) {
 
     println!("Server LAN avviato su http://0.0.0.0:3333");
 
-    axum::serve(listener, app).await.ok();
+    axum::serve(listener, api.into_make_service()).await.ok();
 }

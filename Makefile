@@ -9,7 +9,7 @@ dist:
 	yarn tauri build
 
 reset:
-	cd ~/.config && rm -rf com.mechanic-estimates.app
+	rm -rf ~/.config/com.workshop-manager.app
 
 version:
 	@echo "Versione corrente: $$(grep -m1 '\"version\"' src-tauri/tauri.conf.json | grep -oP '[\d.]+')"

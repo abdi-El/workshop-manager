@@ -86,13 +86,7 @@ pub fn run() {
             let app_data_dir = app.path().app_config_dir()?;
             let db_path = app_data_dir.join("estimates.db");
             let db_path_str = db_path.to_string_lossy().to_string();
-            let dist_path = std::path::PathBuf::from(env!("CARGO_MANIFEST_DIR"))
-                .parent()
-                .expect("Failed to get project root")
-                .join("dist")
-                .to_string_lossy()
-                .to_string();
-            tauri::async_runtime::spawn(server::start(db_path_str, dist_path));
+            tauri::async_runtime::spawn(server::start(db_path_str));
             Ok(())
         })
         .run(tauri::generate_context!())
