@@ -92,7 +92,7 @@ export default function Estimates() {
             title: "Ore",
             dataIndex: "labor_hours",
             key: "labor_hours",
-            width: 70,
+            width: 100,
             sorter: (a: Estimate, b: Estimate) => estimateSorter(a, b, "labor_hours"),
         },
         {
