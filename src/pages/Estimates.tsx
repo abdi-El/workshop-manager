@@ -1,9 +1,11 @@
-import { CalendarOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Card, Drawer, InputRef, List, message, Popover, Row, Space, Spin, Table, Typography } from "antd";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { CalendarOutlined, DeleteOutlined, EditOutlined, EyeOutlined, FilePdfOutlined, MoreOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
+import { Button, Card, Drawer, Dropdown, InputRef, List, message, Modal, Row, Space, Spin, Table, Typography } from "antd";
+import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
 import EditButton from "../components/buttons/EditButton";
+import EstimateDetail from "../components/detail/EstimateDetail";
+import DetailModal from "../components/detail/DetailModal";
 import AppointmentForm from "../components/forms/AppointmentForm";
 import EstimatesForm from "../components/forms/EstimatesForm";
 import { lazy } from "react";
@@ -32,6 +34,8 @@ export default function Estimates() {
         return estimateRows.map((r) => ({ ...r, has_iva: (r.has_iva as any) == "true" }))
     }, [estimateRows])
     const [selectedEstimate, setSelectedEstimate] = useState<Estimate>();
+    const [detailEstimate, setDetailEstimate] = useState<Estimate>();
+    const [appointmentEstimateId, setAppointmentEstimateId] = useState<number>();
     const searchInput = useRef<InputRef>(null);
 
     useEffect(() => {
@@ -39,8 +43,12 @@ export default function Estimates() {
         const target = estimates.find((e) => e.id === searchTarget.id);
         setSearchTarget(undefined);
         if (target) {
-            setSelectedEstimate(target);
-            setOpen(true);
+            if (searchTarget.action === "edit") {
+                setSelectedEstimate(target);
+                setOpen(true);
+            } else {
+                setDetailEstimate(target);
+            }
         }
     }, [searchTarget, estimates]);
 
@@ -107,24 +115,47 @@ export default function Estimates() {
             title: "Azioni",
             dataIndex: "",
             key: "actions",
-            width: 180,
+            width: 60,
             render: (_: unknown, es: Estimate) =>
-                <Space size={4}>
-                    <EditButton onClick={() => { showDrawer(); setSelectedEstimate(es) }} />
-                    <SaveEstimatePdf estimateId={es.id} />
-                    <Popover
-                        title={!es.appointment_id ? "Crea appuntamento" : `Appuntamento già creato`}
-                        content={!es.appointment_id && <AppointmentForm estimateId={es.id} onSubmit={reload} />}
-                    >
-                        <Button icon={<CalendarOutlined />} type={!!es.appointment_id ? "primary" : "dashed"} size="small" />
-                    </Popover>
-                    <DeleteButton onConfirm={() => {
-                        api.deleteEstimate(es.id).then(() => {
-                            message.success("Eliminato con successo!");
-                            reload();
-                        }).catch((e) => message.error("Errore nell'eliminazione: " + e))
-                    }} />
-                </Space >,
+                <Suspense fallback={<Button icon={<MoreOutlined />} />}>
+                    <SaveEstimatePdf estimateId={es.id}>
+                        {({ save, preview }) => (
+                            <Dropdown menu={{
+                                items: [
+                                    { key: 'detail', label: 'Dettaglio', icon: <EyeOutlined /> },
+                                    { key: 'edit', label: 'Modifica', icon: <EditOutlined /> },
+                                    { key: 'preview', label: 'Anteprima PDF', icon: <FilePdfOutlined /> },
+                                    { key: 'save', label: 'Salva PDF', icon: <SaveOutlined /> },
+                                    es.appointment_id
+                                        ? { key: 'appointment', label: 'Appuntamento creato', icon: <CalendarOutlined />, disabled: true }
+                                        : { key: 'appointment', label: 'Crea appuntamento', icon: <CalendarOutlined /> },
+                                    { type: 'divider' as const },
+                                    { key: 'delete', label: 'Elimina', icon: <DeleteOutlined />, danger: true },
+                                ],
+                                onClick: ({ key }) => {
+                                    if (key === 'detail') setDetailEstimate(es);
+                                    else if (key === 'edit') { showDrawer(); setSelectedEstimate(es); }
+                                    else if (key === 'preview') preview();
+                                    else if (key === 'save') save();
+                                    else if (key === 'appointment') setAppointmentEstimateId(es.id);
+                                    else if (key === 'delete') Modal.confirm({
+                                        title: 'Conferma eliminazione',
+                                        content: 'Sei sicuro di voler eliminare questo lavoro?',
+                                        okText: 'Elimina',
+                                        okType: 'danger',
+                                        cancelText: 'Annulla',
+                                        onOk: () => api.deleteEstimate(es.id).then(() => {
+                                            message.success("Eliminato con successo!");
+                                            reload();
+                                        }).catch((e) => message.error("Errore nell'eliminazione: " + e))
+                                    });
+                                }
+                            }}>
+                                <Button icon={<MoreOutlined />} />
+                            </Dropdown>
+                        )}
+                    </SaveEstimatePdf>
+                </Suspense>,
         },
     ]
     const showDrawer = () => {
@@ -151,6 +182,39 @@ export default function Estimates() {
         >
             <EstimatesForm onSubmit={() => { onClose(); reload(); }} estimate={selectedEstimate} />
         </Drawer>
+        <DetailModal
+            open={!!detailEstimate}
+            onClose={() => setDetailEstimate(undefined)}
+            title={detailEstimate ? `Lavoro — ${detailEstimate.customer_name ?? ""} ${detailEstimate.car_number_plate ?? ""}` : ""}
+            footer={detailEstimate && <Space size={4}>
+                <EditButton onClick={() => { setDetailEstimate(undefined); setSelectedEstimate(detailEstimate); setOpen(true); }} />
+                <SaveEstimatePdf estimateId={detailEstimate.id} />
+                <Button
+                    icon={<CalendarOutlined />}
+                    type={detailEstimate.appointment_id ? "primary" : "dashed"}
+                    size="small"
+                    disabled={!!detailEstimate.appointment_id}
+                    onClick={() => { setDetailEstimate(undefined); setAppointmentEstimateId(detailEstimate.id); }}
+                />
+                <DeleteButton onConfirm={() => {
+                    api.deleteEstimate(detailEstimate.id).then(() => {
+                        message.success("Eliminato con successo!");
+                        setDetailEstimate(undefined);
+                        reload();
+                    }).catch((e) => message.error("Errore nell'eliminazione: " + e))
+                }} />
+            </Space>}
+        >
+            {detailEstimate && <EstimateDetail estimate={detailEstimate} />}
+        </DetailModal>
+        <Modal
+            open={!!appointmentEstimateId}
+            onCancel={() => setAppointmentEstimateId(undefined)}
+            footer={null}
+            title="Crea appuntamento"
+        >
+            {appointmentEstimateId && <AppointmentForm estimateId={appointmentEstimateId} onSubmit={() => { setAppointmentEstimateId(undefined); reload(); }} />}
+        </Modal>
         {isMobile ? (
             loading ? <Spin style={{ display: 'block', margin: '40px auto' }} /> :
             <List
@@ -182,22 +246,45 @@ export default function Estimates() {
                                 <Typography.Text type="secondary">{es.date}</Typography.Text>
                                 <span>{es.car_number_plate}</span>
                             </Space>
-                            <Space size={4}>
-                                <EditButton onClick={() => { showDrawer(); setSelectedEstimate(es) }} />
-                                <SaveEstimatePdf estimateId={es.id} />
-                                <Popover
-                                    title={!es.appointment_id ? "Crea appuntamento" : "Appuntamento già creato"}
-                                    content={!es.appointment_id && <AppointmentForm estimateId={es.id} onSubmit={reload} />}
-                                >
-                                    <Button icon={<CalendarOutlined />} type={!!es.appointment_id ? "primary" : "dashed"} size="small" />
-                                </Popover>
-                                <DeleteButton onConfirm={() => {
-                                    api.deleteEstimate(es.id).then(() => {
-                                        message.success("Eliminato con successo!");
-                                        reload();
-                                    }).catch((e) => message.error("Errore nell'eliminazione: " + e))
-                                }} />
-                            </Space>
+                            <Suspense fallback={<Button icon={<MoreOutlined />} />}>
+                                <SaveEstimatePdf estimateId={es.id}>
+                                    {({ save, preview }) => (
+                                        <Dropdown menu={{
+                                            items: [
+                                                { key: 'detail', label: 'Dettaglio', icon: <EyeOutlined /> },
+                                                { key: 'edit', label: 'Modifica', icon: <EditOutlined /> },
+                                                { key: 'preview', label: 'Anteprima PDF', icon: <FilePdfOutlined /> },
+                                                { key: 'save', label: 'Salva PDF', icon: <SaveOutlined /> },
+                                                es.appointment_id
+                                                    ? { key: 'appointment', label: 'Appuntamento creato', icon: <CalendarOutlined />, disabled: true }
+                                                    : { key: 'appointment', label: 'Crea appuntamento', icon: <CalendarOutlined /> },
+                                                { type: 'divider' as const },
+                                                { key: 'delete', label: 'Elimina', icon: <DeleteOutlined />, danger: true },
+                                            ],
+                                            onClick: ({ key }) => {
+                                                if (key === 'detail') setDetailEstimate(es);
+                                                else if (key === 'edit') { showDrawer(); setSelectedEstimate(es); }
+                                                else if (key === 'preview') preview();
+                                                else if (key === 'save') save();
+                                                else if (key === 'appointment') setAppointmentEstimateId(es.id);
+                                                else if (key === 'delete') Modal.confirm({
+                                                    title: 'Conferma eliminazione',
+                                                    content: 'Sei sicuro di voler eliminare questo lavoro?',
+                                                    okText: 'Elimina',
+                                                    okType: 'danger',
+                                                    cancelText: 'Annulla',
+                                                    onOk: () => api.deleteEstimate(es.id).then(() => {
+                                                        message.success("Eliminato con successo!");
+                                                        reload();
+                                                    }).catch((e) => message.error("Errore nell'eliminazione: " + e))
+                                                });
+                                            }
+                                        }}>
+                                            <Button icon={<MoreOutlined />} />
+                                        </Dropdown>
+                                    )}
+                                </SaveEstimatePdf>
+                            </Suspense>
                         </Row>
                     </Card>
                 )}

@@ -1,10 +1,12 @@
-import { CarOutlined, FileTextOutlined, PhoneOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Card, Drawer, InputRef, List, message, Row, Space, Spin, Table, Tooltip, Typography } from "antd";
+import { CarOutlined, DeleteOutlined, EditOutlined, EyeOutlined, FileTextOutlined, MoreOutlined, PhoneOutlined, PlusOutlined } from "@ant-design/icons";
+import { Button, Card, Drawer, Dropdown, InputRef, List, message, Modal, Row, Space, Spin, Table, Tooltip, Typography } from "antd";
 import { useEffect, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
 import EditButton from "../components/buttons/EditButton";
 import CustomerCars from "../components/CustomerCars";
+import CustomerDetail from "../components/detail/CustomerDetail";
+import DetailModal from "../components/detail/DetailModal";
 import CustomerForm from "../components/forms/CustomerForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import { api } from "../modules/api";
@@ -21,6 +23,7 @@ export default function Customers() {
     const workshopId = settings.selectedWorkshop?.id;
     const { data: customers, loading, reload } = useQuery<Customer>(() => api.getCustomers(workshopId), [workshopId])
     const [selectedCustomer, setSelectedCustomer] = useState<Customer>();
+    const [detailCustomer, setDetailCustomer] = useState<Customer>();
     const [carsCustomer, setCarsCustomer] = useState<Customer>();
     const searchInput = useRef<InputRef>(null);
 
@@ -29,8 +32,12 @@ export default function Customers() {
         const target = customers.find((c) => c.id === searchTarget.id);
         setSearchTarget(undefined);
         if (target) {
-            setSelectedCustomer(target);
-            setOpen(true);
+            if (searchTarget.action === "edit") {
+                setSelectedCustomer(target);
+                setOpen(true);
+            } else {
+                setDetailCustomer(target);
+            }
         }
     }, [searchTarget, customers]);
 
@@ -77,18 +84,33 @@ export default function Customers() {
             dataIndex: "",
             key: "actions",
             render: (_: unknown, cs: Customer) =>
-                <Space>
-                    <EditButton onClick={() => { showDrawer(); setSelectedCustomer(cs) }} />
-                    <Tooltip title="Auto del cliente">
-                        <Button icon={<CarOutlined />} onClick={() => setCarsCustomer(cs)} />
-                    </Tooltip>
-                    <DeleteButton onConfirm={() => {
-                        api.deleteCustomer(cs.id).then(() => {
-                            message.success("Eliminato con successo!");
-                            reload();
-                        }).catch((e) => message.error("Errore nell'eliminazione: " + e))
-                    }} />
-                </Space >,
+                <Dropdown menu={{
+                    items: [
+                        { key: 'detail', label: 'Dettaglio', icon: <EyeOutlined /> },
+                        { key: 'edit', label: 'Modifica', icon: <EditOutlined /> },
+                        { key: 'cars', label: 'Auto del cliente', icon: <CarOutlined /> },
+                        { type: 'divider' as const },
+                        { key: 'delete', label: 'Elimina', icon: <DeleteOutlined />, danger: true },
+                    ],
+                    onClick: ({ key }) => {
+                        if (key === 'detail') setDetailCustomer(cs);
+                        else if (key === 'edit') { showDrawer(); setSelectedCustomer(cs); }
+                        else if (key === 'cars') setCarsCustomer(cs);
+                        else if (key === 'delete') Modal.confirm({
+                            title: 'Conferma eliminazione',
+                            content: 'Sei sicuro di voler eliminare questo cliente?',
+                            okText: 'Elimina',
+                            okType: 'danger',
+                            cancelText: 'Annulla',
+                            onOk: () => api.deleteCustomer(cs.id).then(() => {
+                                message.success("Eliminato con successo!");
+                                reload();
+                            }).catch((e) => message.error("Errore nell'eliminazione: " + e))
+                        });
+                    }
+                }}>
+                    <Button icon={<MoreOutlined />} />
+                </Dropdown>,
         },
     ]
     const showDrawer = () => {
@@ -125,6 +147,26 @@ export default function Customers() {
         >
             {carsCustomer && <CustomerCars customer={carsCustomer} />}
         </Drawer>
+        <DetailModal
+            open={!!detailCustomer}
+            onClose={() => setDetailCustomer(undefined)}
+            title={detailCustomer?.name ?? ""}
+            footer={detailCustomer && <Space>
+                <EditButton onClick={() => { setDetailCustomer(undefined); setSelectedCustomer(detailCustomer); setOpen(true); }} />
+                <Tooltip title="Auto del cliente">
+                    <Button icon={<CarOutlined />} onClick={() => { setDetailCustomer(undefined); setCarsCustomer(detailCustomer); }} />
+                </Tooltip>
+                <DeleteButton onConfirm={() => {
+                    api.deleteCustomer(detailCustomer.id).then(() => {
+                        message.success("Eliminato con successo!");
+                        setDetailCustomer(undefined);
+                        reload();
+                    }).catch((e) => message.error("Errore nell'eliminazione: " + e))
+                }} />
+            </Space>}
+        >
+            {detailCustomer && <CustomerDetail customer={detailCustomer} />}
+        </DetailModal>
         {isMobile ? (
             loading ? <Spin style={{ display: 'block', margin: '40px auto' }} /> :
             <List
@@ -150,23 +192,35 @@ export default function Customers() {
                             {cs.phone && <span>{cs.phone}</span>}
                             {cs.email && <Typography.Text type="secondary">{cs.email}</Typography.Text>}
                             <Row justify="end">
-                                <Space>
-                                    {cs.phone && (
-                                        <Tooltip title="Chiama">
-                                            <Button type="primary" icon={<PhoneOutlined />} href={`tel:${cs.phone}`} />
-                                        </Tooltip>
-                                    )}
-                                    <EditButton onClick={() => { showDrawer(); setSelectedCustomer(cs) }} />
-                                    <Tooltip title="Auto del cliente">
-                                        <Button icon={<CarOutlined />} onClick={() => setCarsCustomer(cs)} />
-                                    </Tooltip>
-                                    <DeleteButton onConfirm={() => {
-                                        api.deleteCustomer(cs.id).then(() => {
-                                            message.success("Eliminato con successo!");
-                                            reload();
-                                        }).catch((e) => message.error("Errore nell'eliminazione: " + e))
-                                    }} />
-                                </Space>
+                                <Dropdown menu={{
+                                    items: [
+                                        { key: 'detail', label: 'Dettaglio', icon: <EyeOutlined /> },
+                                        { key: 'edit', label: 'Modifica', icon: <EditOutlined /> },
+                                        { key: 'cars', label: 'Auto del cliente', icon: <CarOutlined /> },
+                                        ...(cs.phone ? [{ key: 'call', label: 'Chiama', icon: <PhoneOutlined /> }] : []),
+                                        { type: 'divider' as const },
+                                        { key: 'delete', label: 'Elimina', icon: <DeleteOutlined />, danger: true },
+                                    ],
+                                    onClick: ({ key }) => {
+                                        if (key === 'detail') setDetailCustomer(cs);
+                                        else if (key === 'edit') { showDrawer(); setSelectedCustomer(cs); }
+                                        else if (key === 'cars') setCarsCustomer(cs);
+                                        else if (key === 'call') window.open(`tel:${cs.phone}`);
+                                        else if (key === 'delete') Modal.confirm({
+                                            title: 'Conferma eliminazione',
+                                            content: 'Sei sicuro di voler eliminare questo cliente?',
+                                            okText: 'Elimina',
+                                            okType: 'danger',
+                                            cancelText: 'Annulla',
+                                            onOk: () => api.deleteCustomer(cs.id).then(() => {
+                                                message.success("Eliminato con successo!");
+                                                reload();
+                                            }).catch((e) => message.error("Errore nell'eliminazione: " + e))
+                                        });
+                                    }
+                                }}>
+                                    <Button icon={<MoreOutlined />} />
+                                </Dropdown>
                             </Row>
                         </Space>
                     </Card>

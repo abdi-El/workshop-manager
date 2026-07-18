@@ -1,10 +1,12 @@
-import { FileTextOutlined, HistoryOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Card, Drawer, InputRef, List, message, Row, Space, Spin, Table, Tooltip, Typography } from "antd";
+import { DeleteOutlined, EditOutlined, EyeOutlined, FileTextOutlined, HistoryOutlined, MoreOutlined, PlusOutlined } from "@ant-design/icons";
+import { Button, Card, Drawer, Dropdown, InputRef, List, message, Modal, Row, Space, Spin, Table, Tooltip, Typography } from "antd";
 import { useEffect, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
 import EditButton from "../components/buttons/EditButton";
 import CarHistory from "../components/CarHistory";
+import CarDetail from "../components/detail/CarDetail";
+import DetailModal from "../components/detail/DetailModal";
 import CarsForm from "../components/forms/CarsForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import { api } from "../modules/api";
@@ -22,6 +24,7 @@ export default function Cars() {
     const workshopId = settings.selectedWorkshop?.id;
     const { data: cars, loading, reload } = useQuery<Car>(() => api.getCars(workshopId), [workshopId])
     const [selectedCar, setSelectedCar] = useState<Car>();
+    const [detailCar, setDetailCar] = useState<Car>();
     const [historyCar, setHistoryCar] = useState<Car>();
     const searchInput = useRef<InputRef>(null);
 
@@ -30,8 +33,12 @@ export default function Cars() {
         const target = cars.find((c) => c.id === searchTarget.id);
         setSearchTarget(undefined);
         if (target) {
-            setSelectedCar(target);
-            setOpen(true);
+            if (searchTarget.action === "edit") {
+                setSelectedCar(target);
+                setOpen(true);
+            } else {
+                setDetailCar(target);
+            }
         }
     }, [searchTarget, cars]);
 
@@ -86,18 +93,33 @@ export default function Cars() {
             dataIndex: "",
             key: "actions",
             render: (_: unknown, cr: Car) =>
-                <Space>
-                    <EditButton onClick={() => { showDrawer(); setSelectedCar(cr) }} />
-                    <Tooltip title="Storico interventi">
-                        <Button icon={<HistoryOutlined />} onClick={() => setHistoryCar(cr)} />
-                    </Tooltip>
-                    <DeleteButton onConfirm={() => {
-                        api.deleteCar(cr.id).then(() => {
-                            message.success("Eliminato con successo!");
-                            reload();
-                        }).catch((e) => message.error("Errore nell'eliminazione: " + e))
-                    }} />
-                </Space >,
+                <Dropdown menu={{
+                    items: [
+                        { key: 'detail', label: 'Dettaglio', icon: <EyeOutlined /> },
+                        { key: 'edit', label: 'Modifica', icon: <EditOutlined /> },
+                        { key: 'history', label: 'Storico interventi', icon: <HistoryOutlined /> },
+                        { type: 'divider' as const },
+                        { key: 'delete', label: 'Elimina', icon: <DeleteOutlined />, danger: true },
+                    ],
+                    onClick: ({ key }) => {
+                        if (key === 'detail') setDetailCar(cr);
+                        else if (key === 'edit') { showDrawer(); setSelectedCar(cr); }
+                        else if (key === 'history') setHistoryCar(cr);
+                        else if (key === 'delete') Modal.confirm({
+                            title: 'Conferma eliminazione',
+                            content: 'Sei sicuro di voler eliminare questa auto?',
+                            okText: 'Elimina',
+                            okType: 'danger',
+                            cancelText: 'Annulla',
+                            onOk: () => api.deleteCar(cr.id).then(() => {
+                                message.success("Eliminato con successo!");
+                                reload();
+                            }).catch((e) => message.error("Errore nell'eliminazione: " + e))
+                        });
+                    }
+                }}>
+                    <Button icon={<MoreOutlined />} />
+                </Dropdown>,
         },
     ]
     const showDrawer = () => {
@@ -134,6 +156,26 @@ export default function Cars() {
         >
             {historyCar && <CarHistory car={historyCar} />}
         </Drawer>
+        <DetailModal
+            open={!!detailCar}
+            onClose={() => setDetailCar(undefined)}
+            title={detailCar ? `${detailCar.maker_name ?? ""} ${detailCar.model_name ?? ""} — ${detailCar.number_plate}` : ""}
+            footer={detailCar && <Space>
+                <EditButton onClick={() => { setDetailCar(undefined); setSelectedCar(detailCar); setOpen(true); }} />
+                <Tooltip title="Storico interventi">
+                    <Button icon={<HistoryOutlined />} onClick={() => { setDetailCar(undefined); setHistoryCar(detailCar); }} />
+                </Tooltip>
+                <DeleteButton onConfirm={() => {
+                    api.deleteCar(detailCar.id).then(() => {
+                        message.success("Eliminato con successo!");
+                        setDetailCar(undefined);
+                        reload();
+                    }).catch((e) => message.error("Errore nell'eliminazione: " + e))
+                }} />
+            </Space>}
+        >
+            {detailCar && <CarDetail car={detailCar} />}
+        </DetailModal>
         {isMobile ? (
             loading ? <Spin style={{ display: 'block', margin: '40px auto' }} /> :
             <List
@@ -163,18 +205,33 @@ export default function Cars() {
                     >
                         <Row justify="space-between" align="middle">
                             <span>{cr.model_name}</span>
-                            <Space>
-                                <EditButton onClick={() => { showDrawer(); setSelectedCar(cr) }} />
-                                <Tooltip title="Storico interventi">
-                                    <Button icon={<HistoryOutlined />} onClick={() => setHistoryCar(cr)} />
-                                </Tooltip>
-                                <DeleteButton onConfirm={() => {
-                                    api.deleteCar(cr.id).then(() => {
-                                        message.success("Eliminato con successo!");
-                                        reload();
-                                    }).catch((e) => message.error("Errore nell'eliminazione: " + e))
-                                }} />
-                            </Space>
+                            <Dropdown menu={{
+                                items: [
+                                    { key: 'detail', label: 'Dettaglio', icon: <EyeOutlined /> },
+                                    { key: 'edit', label: 'Modifica', icon: <EditOutlined /> },
+                                    { key: 'history', label: 'Storico interventi', icon: <HistoryOutlined /> },
+                                    { type: 'divider' as const },
+                                    { key: 'delete', label: 'Elimina', icon: <DeleteOutlined />, danger: true },
+                                ],
+                                onClick: ({ key }) => {
+                                    if (key === 'detail') setDetailCar(cr);
+                                    else if (key === 'edit') { showDrawer(); setSelectedCar(cr); }
+                                    else if (key === 'history') setHistoryCar(cr);
+                                    else if (key === 'delete') Modal.confirm({
+                                        title: 'Conferma eliminazione',
+                                        content: 'Sei sicuro di voler eliminare questa auto?',
+                                        okText: 'Elimina',
+                                        okType: 'danger',
+                                        cancelText: 'Annulla',
+                                        onOk: () => api.deleteCar(cr.id).then(() => {
+                                            message.success("Eliminato con successo!");
+                                            reload();
+                                        }).catch((e) => message.error("Errore nell'eliminazione: " + e))
+                                    });
+                                }
+                            }}>
+                                <Button icon={<MoreOutlined />} />
+                            </Dropdown>
                         </Row>
                     </Card>
                 )}

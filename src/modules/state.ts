@@ -6,6 +6,7 @@ import { api } from './api';
 export interface SearchTarget {
     table: "customers" | "cars" | "estimates"
     id: number
+    action?: "detail" | "edit"
 }
 
 interface AppState {

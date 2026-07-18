@@ -3,7 +3,7 @@ import { pdf, PDFViewer, } from "@react-pdf/renderer";
 import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { Button, message, Modal } from "antd";
-import { useState } from "react";
+import { ReactNode, useState } from "react";
 import { api } from "../../modules/api";
 import { useStore } from "../../modules/state";
 import { isTauri } from "../../modules/utils";
@@ -13,9 +13,10 @@ import MissingDataPdf from "./MissingDataPdf";
 
 interface Props {
     estimateId: number;
+    children?: (actions: { save: () => void; preview: () => void }) => ReactNode;
 }
 
-export default function SaveEstimatePdf({ estimateId }: Props) {
+export default function SaveEstimatePdf({ estimateId, children }: Props) {
     const [rendered, setRendered] = useState(false);
     const { settings } = useStore(state => state);
     const [data, setData] = useState<DataProps | null>(null);
@@ -60,9 +61,19 @@ export default function SaveEstimatePdf({ estimateId }: Props) {
         }
     }
 
+    function openPreview() {
+        loadData();
+        setRendered(true);
+    }
+
     return <>
-        <Button onClick={savePdf} icon={<SaveOutlined />} />
-        <Button onClick={() => { loadData(); setRendered(true); }} icon={<EyeOutlined />} />
+        {children
+            ? children({ save: savePdf, preview: openPreview })
+            : <>
+                <Button onClick={savePdf} icon={<SaveOutlined />} />
+                <Button onClick={openPreview} icon={<EyeOutlined />} />
+            </>
+        }
         <Modal open={rendered} onCancel={() => setRendered(false)} footer={null} title="Anteprima PDF" centered width="85%">
             {rendered && <PDFViewer style={{ width: "100%", height: "100vh" }} >
                 {data ? <EstimatePdf {...data} items={estimateItems} pdfTheme={settings.pdfTheme} showPdfNumber={settings.showPdfNumber} /> : <MissingDataPdf />}
