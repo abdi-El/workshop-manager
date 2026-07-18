@@ -82,6 +82,7 @@ export const api = {
 
     // Estimates (scoped)
     getEstimates: (workshopId?: number) => get<Estimate[]>(wq("/estimates", workshopId)),
+    getEstimate: (id: number) => get<Estimate>(`/estimates/${id}`),
     deleteEstimate: (id: number) => del(`/estimates/${id}`),
     getEstimateItems: (estimateId: number) => get<EstimateItem[]>(`/estimates/${estimateId}/items`),
     getEstimatePdfData: (estimateId: number) => get<{ estimate: Estimate; car: Car; customer: Customer; workshop: Workshop } | null>(`/estimates/${estimateId}/pdf-data`),

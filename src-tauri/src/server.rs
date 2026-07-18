@@ -348,6 +348,16 @@ async fn list_estimates(
     }
 }
 
+async fn get_estimate(
+    State(db): State<Db>,
+    Path(id): Path<i64>,
+) -> ApiResult<Json<Value>> {
+    let conn = lock(&db)?;
+    let sql = format!("{ESTIMATES_BASE_QUERY} WHERE estimates.id = ?1");
+    let rows = query_rows(&conn, &sql, &[SqlValue::Integer(id)])?;
+    Ok(Json(rows.into_iter().next().unwrap_or(Value::Null)))
+}
+
 async fn get_estimate_items(
     State(db): State<Db>,
     Path(estimate_id): Path<i64>,
@@ -918,7 +928,7 @@ pub async fn start(db_path: String) {
         .route("/api/cars/{id}/history", get(get_car_history))
         // Estimates (scoped list with JOINs; create/update are transactional)
         .route("/api/estimates", get(list_estimates).post(create_estimate))
-        .route("/api/estimates/{id}", put(update_estimate).delete(delete_estimate))
+        .route("/api/estimates/{id}", get(get_estimate).put(update_estimate).delete(delete_estimate))
         .route("/api/estimates/{id}/items", get(get_estimate_items))
         .route("/api/estimates/{id}/pdf-data", get(get_estimate_pdf_data))
         // Appointments
