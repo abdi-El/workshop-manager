@@ -16,6 +16,7 @@ export type Customer = {
     email?: string | null;
     workshop_id: number;
     notes?: string | null;
+    estimate_count?: number;
 };
 
 export type Maker = {

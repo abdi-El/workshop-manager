@@ -1,4 +1,4 @@
-import { CarOutlined, DeleteOutlined, EditOutlined, EyeOutlined, FileTextOutlined, MoreOutlined, PhoneOutlined, PlusOutlined } from "@ant-design/icons";
+import { CarOutlined, DeleteOutlined, EditOutlined, EyeOutlined, FileTextOutlined, MoreOutlined, PhoneOutlined, PlusOutlined, WhatsAppOutlined } from "@ant-design/icons";
 import { Button, Card, Drawer, Dropdown, InputRef, List, message, Modal, Row, Space, Spin, Table, Tooltip, Typography } from "antd";
 import { useEffect, useRef, useState } from "react";
 
@@ -78,6 +78,13 @@ export default function Customers() {
             key: "email",
             ...getColumnSearchProps("email", "email", searchInput)
 
+        },
+        {
+            title: "Lavori",
+            dataIndex: "estimate_count",
+            key: "estimate_count",
+            width: 80,
+            sorter: (a: Customer, b: Customer) => (a.estimate_count ?? 0) - (b.estimate_count ?? 0),
         },
         {
             title: "Azioni",
@@ -197,7 +204,10 @@ export default function Customers() {
                                         { key: 'detail', label: 'Dettaglio', icon: <EyeOutlined /> },
                                         { key: 'edit', label: 'Modifica', icon: <EditOutlined /> },
                                         { key: 'cars', label: 'Auto del cliente', icon: <CarOutlined /> },
-                                        ...(cs.phone ? [{ key: 'call', label: 'Chiama', icon: <PhoneOutlined /> }] : []),
+                                        ...(cs.phone ? [
+                                            { key: 'call', label: 'Chiama', icon: <PhoneOutlined /> },
+                                            { key: 'whatsapp', label: 'WhatsApp', icon: <WhatsAppOutlined style={{ color: "#25D366" }} /> },
+                                        ] : []),
                                         { type: 'divider' as const },
                                         { key: 'delete', label: 'Elimina', icon: <DeleteOutlined />, danger: true },
                                     ],
@@ -206,6 +216,7 @@ export default function Customers() {
                                         else if (key === 'edit') { showDrawer(); setSelectedCustomer(cs); }
                                         else if (key === 'cars') setCarsCustomer(cs);
                                         else if (key === 'call') window.open(`tel:${cs.phone}`);
+                                        else if (key === 'whatsapp') { const d = cs.phone.replace(/\D/g, ""); window.open(`https://wa.me/${d.startsWith("39") ? d : `39${d}`}`); }
                                         else if (key === 'delete') Modal.confirm({
                                             title: 'Conferma eliminazione',
                                             content: 'Sei sicuro di voler eliminare questo cliente?',

@@ -200,6 +200,12 @@ crud_handlers!(default_estimate_items, "default_estimate_items");
 
 // --- Workshop-scoped list handlers ---
 
+const CUSTOMERS_BASE_QUERY: &str = "SELECT customers.*, \
+    COALESCE(ec.estimate_count, 0) as estimate_count \
+    FROM customers \
+    LEFT JOIN (SELECT customer_id, COUNT(*) as estimate_count FROM estimates GROUP BY customer_id) ec \
+    ON customers.id = ec.customer_id";
+
 async fn list_customers(
     State(db): State<Db>,
     Query(f): Query<WorkshopFilter>,
@@ -207,10 +213,12 @@ async fn list_customers(
     let conn = lock(&db)?;
     if let Some(wid) = f.workshop_id {
         Ok(Json(query_rows(&conn,
-            "SELECT * FROM customers WHERE workshop_id = ?1 ORDER BY id DESC",
+            &format!("{CUSTOMERS_BASE_QUERY} WHERE customers.workshop_id = ?1 ORDER BY customers.id DESC"),
             &[SqlValue::Integer(wid)])?))
     } else {
-        Ok(Json(do_list(&conn, "customers")?))
+        Ok(Json(query_rows(&conn,
+            &format!("{CUSTOMERS_BASE_QUERY} ORDER BY customers.id DESC"),
+            &[])?))
     }
 }
 
