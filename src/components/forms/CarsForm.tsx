@@ -12,7 +12,7 @@ import ModelSelect from "../selects/ModelSelect";
 
 type CarFormProps = {
     car?: Partial<Car>;
-    onSubmit: (values: Omit<Car, "id">) => void;
+    onSubmit: (values: Omit<Car, "id">, newId?: number) => void;
 };
 
 export default function CarsForm({ car, onSubmit }: CarFormProps) {
@@ -35,10 +35,10 @@ export default function CarsForm({ car, onSubmit }: CarFormProps) {
             form.setFields(parseError(error));
         }
         if (!car?.id) {
-            api.createCar(data).then(() => {
+            api.createCar(data).then((result) => {
                 message.success("Creato con successo!");
                 form.resetFields();
-                onSubmit(values);
+                onSubmit(values, result.lastInsertId);
             }).catch(onError);
         } else {
             api.updateCar(car.id, data).then(() => {

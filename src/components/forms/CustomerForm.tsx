@@ -7,7 +7,7 @@ import { Customer } from "../../types/database";
 
 type CustomerFormProps = {
     customer?: Partial<Customer>;
-    onSubmit: (values: Omit<Customer, "id">) => void;
+    onSubmit: (values: Omit<Customer, "id">, newId?: number) => void;
 };
 
 const CustomerForm: React.FC<CustomerFormProps> = ({ customer = {}, onSubmit }) => {
@@ -18,10 +18,10 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ customer = {}, onSubmit }) 
             form.setFields(parseError(error));
         }
         if (!customer.id) {
-            api.createCustomer({ ...values, "workshop_id": settings.selectedWorkshop?.id }).then(() => {
+            api.createCustomer({ ...values, "workshop_id": settings.selectedWorkshop?.id }).then((result) => {
                 message.success("Creato con successo!");
                 form.resetFields();
-                onSubmit(values);
+                onSubmit(values, result.lastInsertId);
             }).catch(onError);
         } else {
             api.updateCustomer(customer.id, values).then(() => {

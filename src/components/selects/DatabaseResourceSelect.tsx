@@ -26,11 +26,13 @@ export interface DatabaseSelectProps extends React.ComponentProps<typeof Form.It
     filterFunc?: (el: any) => boolean
     onAddClick?: () => void
     refreshToken?: number
+    autoSelectSingle?: boolean
 }
 
-export default function DatabasResourceSelect<T extends { id: number }>({ resource, selectLabel, name, inputLabel, allowClear, filterFunc, onAddClick, refreshToken, className, ...props }: DatabaseSelectProps) {
+export default function DatabasResourceSelect<T extends { id: number }>({ resource, selectLabel, name, inputLabel, allowClear, filterFunc, onAddClick, refreshToken, autoSelectSingle, className, ...props }: DatabaseSelectProps) {
     const { settings } = useStore((state) => state);
     const workshopId = settings.selectedWorkshop?.id;
+    const formInstance = Form.useFormInstance();
     const { data: rows, loading, reload } = useQuery<T>(() => getResourceFetcher(resource, workshopId)() as unknown as Promise<T[]>, [workshopId]);
 
     useEffect(() => {
@@ -42,6 +44,12 @@ export default function DatabasResourceSelect<T extends { id: number }>({ resour
     const data = useMemo(() => {
         return filterFunc ? rows.filter(filterFunc) : rows;
     }, [rows, filterFunc]);
+
+    useEffect(() => {
+        if (autoSelectSingle && data.length === 1 && !formInstance.getFieldValue(name)) {
+            formInstance.setFieldValue(name, data[0].id);
+        }
+    }, [data, autoSelectSingle]);
 
     return <Row className={className} justify={"start"}>
         <Col span={onAddClick ? 21 : 24} style={{ marginRight: onAddClick ? 3 : 0 }}>
