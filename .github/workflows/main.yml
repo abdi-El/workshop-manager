@@ -25,6 +25,16 @@ jobs:
 
     runs-on: ${{ matrix.platform }}
     steps:
+      - name: Check signing key
+        run: |
+          if [ -n "$TAURI_SIGNING_PRIVATE_KEY" ]; then
+            echo "Signing key is set (length: ${#TAURI_SIGNING_PRIVATE_KEY})"
+          else
+            echo "WARNING: Signing key is NOT set"
+          fi
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+
       - uses: actions/checkout@v4
 
       - name: install dependencies (ubuntu only)
