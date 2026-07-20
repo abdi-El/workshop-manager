@@ -124,6 +124,6 @@ export interface EstiamatesAverages {
     avg_labor_hours: number
     avg_parts_cost: number
     avg_total_estimate_value: number
+    avg_car_kms: number
     total_estimates: number
-
 }

@@ -26,7 +26,7 @@ export default function CarSelect(props: React.ComponentProps<typeof Form.Item>)
 
     return <>
         <Modal onCancel={close} open={open} footer={false}>
-            <CarsForm onSubmit={(_values, newId) => {
+            <CarsForm defaultCustomerId={customerId} onSubmit={(_values, newId) => {
                 setIsOpen(false)
                 setRefreshToken(token => token + 1)
                 if (newId) form.setFieldValue("car_id", newId)

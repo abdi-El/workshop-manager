@@ -580,7 +580,8 @@ async fn dashboard_averages(
         AVG(
             (e.labor_hours * e.labor_hourly_cost) +
             COALESCE(ei.items_total, 0) - COALESCE(e.discount, 0)
-        ) as avg_total_estimate_value
+        ) as avg_total_estimate_value,
+        ROUND(AVG(CASE WHEN e.car_kms > 0 THEN e.car_kms ELSE NULL END), 0) as avg_car_kms
         FROM estimates e
         LEFT JOIN (
             SELECT estimate_id, SUM(quantity * unit_price) as items_total
@@ -676,6 +677,50 @@ async fn dashboard_top_customers(
         {where_clause}
         GROUP BY e.customer_id, c.name
         ORDER BY total_revenue DESC LIMIT 10");
+    Ok(Json(query_rows(&conn, &sql, &params)?))
+}
+
+async fn dashboard_estimates_per_month(
+    State(db): State<Db>,
+    Query(f): Query<WorkshopFilter>,
+) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    let (where_clause, params) = if let Some(wid) = f.workshop_id {
+        ("WHERE e.workshop_id = ?1", vec![SqlValue::Integer(wid)])
+    } else {
+        ("", vec![])
+    };
+    let sql = format!("SELECT
+        SUBSTR(e.date, 7, 4) || '-' || SUBSTR(e.date, 4, 2) as month,
+        COUNT(*) as estimate_count
+        FROM estimates e
+        {where_clause}
+        GROUP BY SUBSTR(e.date, 7, 4) || '-' || SUBSTR(e.date, 4, 2)
+        ORDER BY month ASC");
+    Ok(Json(query_rows(&conn, &sql, &params)?))
+}
+
+async fn dashboard_top_items(
+    State(db): State<Db>,
+    Query(f): Query<WorkshopFilter>,
+) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    let (where_clause, params) = if let Some(wid) = f.workshop_id {
+        ("WHERE e.workshop_id = ?1", vec![SqlValue::Integer(wid)])
+    } else {
+        ("", vec![])
+    };
+    let sql = format!("SELECT
+        ei.description,
+        COUNT(*) as usage_count,
+        ROUND(AVG(ei.unit_price), 2) as avg_price,
+        EXISTS(SELECT 1 FROM default_estimate_items dei WHERE LOWER(dei.description) = LOWER(ei.description)) as is_default
+        FROM estimate_items ei
+        JOIN estimates e ON ei.estimate_id = e.id
+        {where_clause}
+        GROUP BY LOWER(ei.description)
+        ORDER BY usage_count DESC
+        LIMIT 15");
     Ok(Json(query_rows(&conn, &sql, &params)?))
 }
 
@@ -956,6 +1001,8 @@ pub async fn start(db_path: String) {
         .route("/api/dashboard/cars-by-year", get(dashboard_cars_by_year))
         .route("/api/dashboard/revenue", get(dashboard_revenue))
         .route("/api/dashboard/top-customers", get(dashboard_top_customers))
+        .route("/api/dashboard/estimates-per-month", get(dashboard_estimates_per_month))
+        .route("/api/dashboard/top-items", get(dashboard_top_items))
         // Settings (JSON file)
         .route("/api/settings/{key}", get(get_setting).put(put_setting).delete(delete_setting))
         .with_state(db)

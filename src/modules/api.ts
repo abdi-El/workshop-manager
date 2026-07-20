@@ -115,6 +115,8 @@ export const api = {
     getCarsByYear: (workshopId?: number) => get<{ year: string; car_count: number }[]>(wq("/dashboard/cars-by-year", workshopId)),
     getMonthlyRevenue: (workshopId?: number) => get<{ month: string; total_revenue: number }[]>(wq("/dashboard/revenue", workshopId)),
     getTopCustomersByRevenue: (workshopId?: number) => get<{ customer_name: string; total_revenue: number; estimate_count: number }[]>(wq("/dashboard/top-customers", workshopId)),
+    getEstimatesPerMonth: (workshopId?: number) => get<{ month: string; estimate_count: number }[]>(wq("/dashboard/estimates-per-month", workshopId)),
+    getTopItems: (workshopId?: number) => get<{ description: string; usage_count: number; avg_price: number; is_default: number }[]>(wq("/dashboard/top-items", workshopId)),
 
     // Search (scoped)
     globalSearch: (q: string, workshopId?: number) => get<SearchResult[]>(wq(`/search?q=${encodeURIComponent(q)}`, workshopId)),

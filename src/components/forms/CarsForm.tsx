@@ -12,10 +12,11 @@ import ModelSelect from "../selects/ModelSelect";
 
 type CarFormProps = {
     car?: Partial<Car>;
+    defaultCustomerId?: number;
     onSubmit: (values: Omit<Car, "id">, newId?: number) => void;
 };
 
-export default function CarsForm({ car, onSubmit }: CarFormProps) {
+export default function CarsForm({ car, defaultCustomerId, onSubmit }: CarFormProps) {
     const [form] = Form.useForm();
 
     const selectedMaker = Form.useWatch("maker_id", form)
@@ -58,8 +59,9 @@ export default function CarsForm({ car, onSubmit }: CarFormProps) {
             });
         } else {
             form.resetFields()
+            if (defaultCustomerId) form.setFieldValue("customer_id", defaultCustomerId)
         }
-    }, [car]);
+    }, [car, defaultCustomerId]);
 
     useEffect(() => {
         if (car && car.maker_id == selectedMaker) {

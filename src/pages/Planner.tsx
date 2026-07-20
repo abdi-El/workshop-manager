@@ -8,6 +8,7 @@ import { Modal } from 'antd';
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from 'react';
 import AppointmentForm from '../components/forms/AppointmentForm';
+import MobilePlanner from '../components/MobilePlanner';
 import PlannerEvent from '../components/PlannerEvent';
 import { api } from '../modules/api';
 import { fromISOFormat, toISOFormat } from '../modules/dates';
@@ -88,9 +89,10 @@ export default function Planner() {
     };
 
 
+    if (isMobile) return <MobilePlanner />;
+
     return (
         <>
-
             <Modal open={!!editing || !!selectedDate} onCancel={close} footer={false} zIndex={99999}>
                 <AppointmentForm style={{ marginTop: "40px" }} appointmentId={editing?.id} onSubmit={() => { close(); getData(); }} initialData={selectedDate && {
                     date: dayjs(selectedDate),
@@ -100,14 +102,9 @@ export default function Planner() {
 
             <div id='calendar'>
                 <FullCalendar
-                    key={isMobile ? 'mobile' : 'desktop'}
                     plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-                    initialView={isMobile ? 'timeGridDay' : 'timeGridWeek'}
-                    headerToolbar={isMobile ? {
-                        left: 'prev,next',
-                        center: 'title',
-                        right: 'timeGridDay,dayGridMonth'
-                    } : {
+                    initialView='timeGridWeek'
+                    headerToolbar={{
                         left: 'prev,next today',
                         center: 'title',
                         right: 'dayGridMonth,timeGridWeek,timeGridDay'
@@ -150,7 +147,6 @@ export default function Planner() {
                     }}
                 />
             </div>
-
         </>
     );
 }

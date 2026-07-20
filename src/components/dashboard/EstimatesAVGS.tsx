@@ -1,4 +1,4 @@
-import { FieldTimeOutlined } from '@ant-design/icons';
+import { CarOutlined, FieldTimeOutlined } from '@ant-design/icons';
 import { Card, Col, Row, Statistic } from "antd";
 
 import { useEffect, useState } from "react";
@@ -79,6 +79,18 @@ export default function EstimatesAVGS({ workshopId }: { workshopId?: number }) {
                     value={estimatesAverages?.avg_parts_cost}
                     precision={2}
                     prefix="€"
+                />
+            </Card>
+        </Col>
+        <Col xs={12} md={8}>
+            <Card variant="borderless">
+                <Statistic
+                    loading={loading}
+                    title="Km medi per visita"
+                    value={estimatesAverages?.avg_car_kms}
+                    precision={0}
+                    prefix={<CarOutlined />}
+                    suffix="km"
                 />
             </Card>
         </Col>
