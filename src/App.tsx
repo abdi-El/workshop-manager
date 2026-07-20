@@ -5,6 +5,7 @@ import 'dayjs/locale/it';
 import updateLocale from 'dayjs/plugin/updateLocale';
 import { useEffect } from "react";
 import Paginator from "./components/Paginator";
+import UpdateChecker from "./components/UpdateChecker";
 import { useScraper } from './modules/hooks';
 import { useStore } from './modules/state';
 import { fetchIsDebug } from './modules/utils';
@@ -33,6 +34,7 @@ export default function Page() {
     }}
   >
     <div id={settings?.theme}>
+      <UpdateChecker />
       <Paginator />
     </div>
   </ConfigProvider >

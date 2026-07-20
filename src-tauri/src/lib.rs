@@ -80,6 +80,8 @@ pub fn run() {
                 .add_migrations("sqlite:estimates.db", migrations)
                 .build(),
         )
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![commands::fetch, is_debug])
         .setup(|app| {

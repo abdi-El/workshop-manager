@@ -1,7 +1,7 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Workshop Manager",
-  "version": "3.3.0",
+  "version": "3.4.0",
   "identifier": "com.workshop-manager.app",
   "build": {
     "beforeDevCommand": "yarn dev",
@@ -35,6 +35,12 @@
   "plugins": {
     "sql": {
       "preload": ["sqlite:estimates.db"]
+    },
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDYyQjRCRUE3MzZCM0FFODgKUldTSXJyTTJwNzYwWW1RZ2lqMXpoNW5uRlZOT1JHRnoxK2pmUmplVWJvSlRURFIxSnI5Uzk2S2UK",
+      "endpoints": [
+        "https://github.com/abdi-El/workshop-manager/releases/latest/download/latest.json"
+      ]
     }
   }
 }
