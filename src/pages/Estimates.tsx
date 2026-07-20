@@ -1,5 +1,5 @@
-import { CalendarOutlined, DeleteOutlined, EditOutlined, EyeOutlined, FilePdfOutlined, MoreOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
-import { Button, Card, Drawer, Dropdown, InputRef, List, message, Modal, Row, Space, Spin, Table, Typography } from "antd";
+import { CalendarOutlined, CopyOutlined, DeleteOutlined, EditOutlined, EyeOutlined, FilePdfOutlined, MoreOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
+import { Button, Card, Drawer, Dropdown, Input, InputRef, List, message, Modal, Row, Space, Spin, Table, Typography } from "antd";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
@@ -36,7 +36,20 @@ export default function Estimates() {
     const [selectedEstimate, setSelectedEstimate] = useState<Estimate>();
     const [detailEstimate, setDetailEstimate] = useState<Estimate>();
     const [appointmentEstimateId, setAppointmentEstimateId] = useState<number>();
+    const [duplicateItems, setDuplicateItems] = useState<import("../types/database").EstimateItem[]>();
+    const [mobileSearch, setMobileSearch] = useState("");
     const searchInput = useRef<InputRef>(null);
+
+    const filteredEstimates = useMemo(() => {
+        if (!mobileSearch) return estimates;
+        const q = mobileSearch.toLowerCase();
+        return estimates.filter(e =>
+            e.customer_name?.toLowerCase().includes(q) ||
+            e.car_number_plate?.toLowerCase().includes(q) ||
+            e.maker_name?.toLowerCase().includes(q) ||
+            e.date?.toLowerCase().includes(q)
+        );
+    }, [estimates, mobileSearch]);
 
     useEffect(() => {
         if (searchTarget?.table !== "estimates" || !estimates.length) return;
@@ -124,6 +137,7 @@ export default function Estimates() {
                                 items: [
                                     { key: 'detail', label: 'Dettaglio', icon: <EyeOutlined /> },
                                     { key: 'edit', label: 'Modifica', icon: <EditOutlined /> },
+                                    { key: 'duplicate', label: 'Duplica', icon: <CopyOutlined /> },
                                     { key: 'preview', label: 'Anteprima PDF', icon: <FilePdfOutlined /> },
                                     { key: 'save', label: 'Salva PDF', icon: <SaveOutlined /> },
                                     es.appointment_id
@@ -135,6 +149,7 @@ export default function Estimates() {
                                 onClick: ({ key }) => {
                                     if (key === 'detail') setDetailEstimate(es);
                                     else if (key === 'edit') { showDrawer(); setSelectedEstimate(es); }
+                                    else if (key === 'duplicate') duplicateEstimate(es);
                                     else if (key === 'preview') preview();
                                     else if (key === 'save') save();
                                     else if (key === 'appointment') setAppointmentEstimateId(es.id);
@@ -165,6 +180,16 @@ export default function Estimates() {
     const onClose = () => {
         setOpen(false);
         setSelectedEstimate(undefined);
+        setDuplicateItems(undefined);
+    };
+
+    const duplicateEstimate = (es: Estimate) => {
+        api.getEstimateItems(es.id).then((items) => {
+            const { id, total, customer_name, car_number_plate, maker_name, workshop_name, appointment_id, ...rest } = es as any;
+            setSelectedEstimate(rest);
+            setDuplicateItems(items);
+            setOpen(true);
+        }).catch((e) => message.error("Errore nel duplicare: " + e));
     };
 
     return <>
@@ -174,13 +199,13 @@ export default function Estimates() {
             </Button>
         </Row>
         <Drawer
-            title={`${selectedEstimate ? "Aggiorna" : "Crea Nuovo"} Lavoro`}
+            title={`${duplicateItems ? "Duplica" : selectedEstimate ? "Aggiorna" : "Crea Nuovo"} Lavoro`}
             closable={{ 'aria-label': 'Chiudi' }}
             onClose={onClose}
             open={open}
             width={drawerWidth}
         >
-            <EstimatesForm onSubmit={() => { onClose(); reload(); }} estimate={selectedEstimate} />
+            <EstimatesForm onSubmit={() => { onClose(); reload(); }} estimate={selectedEstimate} initialItems={duplicateItems} />
         </Drawer>
         <DetailModal
             open={!!detailEstimate}
@@ -217,8 +242,15 @@ export default function Estimates() {
         </Modal>
         {isMobile ? (
             loading ? <Spin style={{ display: 'block', margin: '40px auto' }} /> :
+            <>
+            <Input.Search
+                placeholder="Cerca lavoro..."
+                allowClear
+                onChange={(e) => setMobileSearch(e.target.value)}
+                style={{ marginBottom: 12 }}
+            />
             <List
-                dataSource={estimates}
+                dataSource={filteredEstimates}
                 rowKey="id"
                 renderItem={(es) => (
                     <Card
@@ -253,6 +285,7 @@ export default function Estimates() {
                                             items: [
                                                 { key: 'detail', label: 'Dettaglio', icon: <EyeOutlined /> },
                                                 { key: 'edit', label: 'Modifica', icon: <EditOutlined /> },
+                                                { key: 'duplicate', label: 'Duplica', icon: <CopyOutlined /> },
                                                 { key: 'preview', label: 'Anteprima PDF', icon: <FilePdfOutlined /> },
                                                 { key: 'save', label: 'Salva PDF', icon: <SaveOutlined /> },
                                                 es.appointment_id
@@ -264,6 +297,7 @@ export default function Estimates() {
                                             onClick: ({ key }) => {
                                                 if (key === 'detail') setDetailEstimate(es);
                                                 else if (key === 'edit') { showDrawer(); setSelectedEstimate(es); }
+                                                else if (key === 'duplicate') duplicateEstimate(es);
                                                 else if (key === 'preview') preview();
                                                 else if (key === 'save') save();
                                                 else if (key === 'appointment') setAppointmentEstimateId(es.id);
@@ -289,6 +323,7 @@ export default function Estimates() {
                     </Card>
                 )}
             />
+            </>
         ) : (
             <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={estimates} columns={columns as any} rowKey="id" loading={loading} />
         )}

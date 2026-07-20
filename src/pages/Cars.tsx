@@ -1,6 +1,6 @@
 import { DeleteOutlined, EditOutlined, EyeOutlined, FileTextOutlined, HistoryOutlined, MoreOutlined, PlusOutlined } from "@ant-design/icons";
-import { Button, Card, Drawer, Dropdown, InputRef, List, message, Modal, Row, Space, Spin, Table, Tooltip, Typography } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { Button, Card, Drawer, Dropdown, Input, InputRef, List, message, Modal, Row, Space, Spin, Table, Tooltip, Typography } from "antd";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
 import EditButton from "../components/buttons/EditButton";
@@ -26,7 +26,19 @@ export default function Cars() {
     const [selectedCar, setSelectedCar] = useState<Car>();
     const [detailCar, setDetailCar] = useState<Car>();
     const [historyCar, setHistoryCar] = useState<Car>();
+    const [mobileSearch, setMobileSearch] = useState("");
     const searchInput = useRef<InputRef>(null);
+
+    const filteredCars = useMemo(() => {
+        if (!mobileSearch) return cars;
+        const q = mobileSearch.toLowerCase();
+        return cars.filter(c =>
+            c.number_plate?.toLowerCase().includes(q) ||
+            c.maker_name?.toLowerCase().includes(q) ||
+            c.model_name?.toLowerCase().includes(q) ||
+            c.year?.toString().includes(q)
+        );
+    }, [cars, mobileSearch]);
 
     useEffect(() => {
         if (searchTarget?.table !== "cars" || !cars.length) return;
@@ -178,8 +190,15 @@ export default function Cars() {
         </DetailModal>
         {isMobile ? (
             loading ? <Spin style={{ display: 'block', margin: '40px auto' }} /> :
+            <>
+            <Input.Search
+                placeholder="Cerca auto..."
+                allowClear
+                onChange={(e) => setMobileSearch(e.target.value)}
+                style={{ marginBottom: 12 }}
+            />
             <List
-                dataSource={cars}
+                dataSource={filteredCars}
                 rowKey="id"
                 renderItem={(cr) => (
                     <Card
@@ -236,6 +255,7 @@ export default function Cars() {
                     </Card>
                 )}
             />
+            </>
         ) : (
             <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={cars} columns={columns as any} rowKey="id" loading={loading} />
         )}

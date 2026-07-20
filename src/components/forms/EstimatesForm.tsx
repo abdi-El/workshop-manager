@@ -12,6 +12,7 @@ import EstimateItemsForm from "./EstimateItemsForm";
 
 interface EstimatesFormProps {
     estimate?: Partial<Estimate>;
+    initialItems?: EstimateItem[];
     onSubmit: (values: Omit<Estimate, "id">) => void;
 };
 
@@ -26,7 +27,7 @@ function calculateTotal(values: any) {
 
 }
 
-export default function EstimatesForm({ estimate, onSubmit }: EstimatesFormProps) {
+export default function EstimatesForm({ estimate, initialItems, onSubmit }: EstimatesFormProps) {
     const [form] = Form.useForm();
     const { settings } = useStore((state) => state);
     const customer_id = Form.useWatch("customer_id", form)
@@ -55,19 +56,23 @@ export default function EstimatesForm({ estimate, onSubmit }: EstimatesFormProps
             ...estimate,
             date: dayjs(estimate.date, DATE_FORMAT),
         });
-        await getItems()
+        if (initialItems) {
+            form.setFieldValue("items", initialItems);
+        } else {
+            await getItems();
+        }
         setTotal(calculateTotal(form.getFieldsValue()))
     }
 
     useEffect(() => {
         if (!estimate) {
             form.resetFields()
-            form.setFieldsValue({ date: dayjs(), labor_hourly_cost: settings.selectedWorkshop?.base_labor_cost, has_iva: true, items: [{}] })
+            form.setFieldsValue({ date: dayjs(), labor_hourly_cost: settings.selectedWorkshop?.base_labor_cost, has_iva: true, items: initialItems ?? [{}] })
+            if (initialItems) setTotal(calculateTotal(form.getFieldsValue()))
         } else {
             populateForm(estimate)
-
         }
-    }, [estimate])
+    }, [estimate, initialItems])
 
 
     useEffect(() => {

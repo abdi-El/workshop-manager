@@ -1,6 +1,6 @@
 import { CarOutlined, DeleteOutlined, EditOutlined, EyeOutlined, FileTextOutlined, MoreOutlined, PhoneOutlined, PlusOutlined, WhatsAppOutlined } from "@ant-design/icons";
-import { Button, Card, Drawer, Dropdown, InputRef, List, message, Modal, Row, Space, Spin, Table, Tooltip, Typography } from "antd";
-import { useEffect, useRef, useState } from "react";
+import { Button, Card, Drawer, Dropdown, Input, InputRef, List, message, Modal, Row, Space, Spin, Table, Tooltip, Typography } from "antd";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
 import EditButton from "../components/buttons/EditButton";
@@ -25,7 +25,19 @@ export default function Customers() {
     const [selectedCustomer, setSelectedCustomer] = useState<Customer>();
     const [detailCustomer, setDetailCustomer] = useState<Customer>();
     const [carsCustomer, setCarsCustomer] = useState<Customer>();
+    const [mobileSearch, setMobileSearch] = useState("");
     const searchInput = useRef<InputRef>(null);
+
+    const filteredCustomers = useMemo(() => {
+        if (!mobileSearch) return customers;
+        const q = mobileSearch.toLowerCase();
+        return customers.filter(c =>
+            c.name?.toLowerCase().includes(q) ||
+            c.phone?.toLowerCase().includes(q) ||
+            c.email?.toLowerCase().includes(q) ||
+            c.address?.toLowerCase().includes(q)
+        );
+    }, [customers, mobileSearch]);
 
     useEffect(() => {
         if (searchTarget?.table !== "customers" || !customers.length) return;
@@ -176,8 +188,15 @@ export default function Customers() {
         </DetailModal>
         {isMobile ? (
             loading ? <Spin style={{ display: 'block', margin: '40px auto' }} /> :
+            <>
+            <Input.Search
+                placeholder="Cerca cliente..."
+                allowClear
+                onChange={(e) => setMobileSearch(e.target.value)}
+                style={{ marginBottom: 12 }}
+            />
             <List
-                dataSource={customers}
+                dataSource={filteredCustomers}
                 rowKey="id"
                 renderItem={(cs) => (
                     <Card
@@ -237,6 +256,7 @@ export default function Customers() {
                     </Card>
                 )}
             />
+            </>
         ) : (
             <Table virtual scroll={{ y: "calc(100vh - 230px)" }} dataSource={customers} columns={columns as any} rowKey="id" loading={loading} />
         )}
