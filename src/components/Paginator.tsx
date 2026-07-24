@@ -5,6 +5,7 @@ import { api } from '../modules/api';
 import { useIsMobile, useScraper } from '../modules/hooks';
 import { useStore } from "../modules/state";
 import { Workshop } from '../types/database';
+import GlobalDetailModal from './detail/GlobalDetailModal';
 import ErrorBoundary from './ErrorBoundary';
 import GlobalSearch from './GlobalSearch';
 
@@ -163,6 +164,7 @@ export default function Paginator() {
                 </ErrorBoundary>
             </div>
         </Spin>
+        <GlobalDetailModal />
         {scraping && <div style={{
             position: 'fixed', bottom: 24, right: 24, zIndex: 1000,
             background: token.colorBgElevated, borderRadius: 12,

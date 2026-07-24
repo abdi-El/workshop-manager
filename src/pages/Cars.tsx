@@ -42,16 +42,12 @@ export default function Cars() {
     }, [cars, mobileSearch]);
 
     useEffect(() => {
-        if (searchTarget?.table !== "cars" || !cars.length) return;
+        if (searchTarget?.table !== "cars" || searchTarget.action !== "edit" || !cars.length) return;
         const target = cars.find((c) => c.id === searchTarget.id);
         setSearchTarget(undefined);
         if (target) {
-            if (searchTarget.action === "edit") {
-                setSelectedCar(target);
-                setOpen(true);
-            } else {
-                setDetailCar(target);
-            }
+            setSelectedCar(target);
+            setOpen(true);
         }
     }, [searchTarget, cars]);
 

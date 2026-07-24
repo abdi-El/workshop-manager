@@ -19,7 +19,7 @@ interface GlobalSearchProps {
 export default function GlobalSearch({ autoFocus, onSelect: onSelectCallback }: GlobalSearchProps = {}) {
     const [value, setValue] = useState('');
     const [results, setResults] = useState<SearchResult[]>([]);
-    const { updatePage, setSearchTarget, dbReady, settings } = useStore((state) => state);
+    const { setSearchTarget, dbReady, settings } = useStore((state) => state);
     const workshopId = settings.selectedWorkshop?.id;
     const inputRef = useRef<InputRef>(null);
     const isMobile = useIsMobile();
@@ -95,8 +95,7 @@ export default function GlobalSearch({ autoFocus, onSelect: onSelectCallback }: 
         inputRef.current?.blur();
         onSelectCallback?.();
         if (!result) return;
-        setSearchTarget({ table: result.page, id: result.id });
-        updatePage(result.page);
+        setSearchTarget({ table: result.page, id: result.id, action: 'detail' });
     };
 
     return <AutoComplete

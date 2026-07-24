@@ -53,16 +53,12 @@ export default function Estimates() {
     }, [estimates, mobileSearch]);
 
     useEffect(() => {
-        if (searchTarget?.table !== "estimates" || !estimates.length) return;
+        if (searchTarget?.table !== "estimates" || searchTarget.action !== "edit" || !estimates.length) return;
         const target = estimates.find((e) => e.id === searchTarget.id);
         setSearchTarget(undefined);
         if (target) {
-            if (searchTarget.action === "edit") {
-                setSelectedEstimate(target);
-                setOpen(true);
-            } else {
-                setDetailEstimate(target);
-            }
+            setSelectedEstimate(target);
+            setOpen(true);
         }
     }, [searchTarget, estimates]);
 

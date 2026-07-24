@@ -51,6 +51,7 @@ export interface QueryResult {
 
 export const api = {
     // Customers (scoped, soft-delete)
+    getCustomer: (id: number) => get<Customer>(`/customers/${id}`),
     getCustomers: (workshopId?: number) => get<Customer[]>(wq("/customers", workshopId)),
     createCustomer: (data: Record<string, unknown>) => post<QueryResult>("/customers", data),
     updateCustomer: (id: number, data: Record<string, unknown>) => put(`/customers/${id}`, data),
@@ -67,6 +68,7 @@ export const api = {
     deleteWorkshop: (id: number) => del(`/workshops/${id}`),
 
     // Cars (scoped, soft-delete)
+    getCar: (id: number) => get<Car>(`/cars/${id}`),
     getCars: (workshopId?: number) => get<Car[]>(wq("/cars", workshopId)),
     createCar: (data: Record<string, unknown>) => post<QueryResult>("/cars", data),
     updateCar: (id: number, data: Record<string, unknown>) => put(`/cars/${id}`, data),

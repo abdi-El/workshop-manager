@@ -4,7 +4,7 @@ import itLocale from '@fullcalendar/core/locales/it';
 import interactionPlugin from '@fullcalendar/interaction';
 import FullCalendar from '@fullcalendar/react';
 import timeGridPlugin from '@fullcalendar/timegrid';
-import { Descriptions, Modal, Popover, Tag } from 'antd';
+import { Modal } from 'antd';
 import dayjs from "dayjs";
 import { useEffect, useMemo, useState } from 'react';
 import AppointmentForm from '../components/forms/AppointmentForm';
@@ -59,7 +59,7 @@ const mapEstimatesToEvents = (estimates: Estimate[]) => {
 
 export default function Planner() {
     const isMobile = useIsMobile();
-    const { settings } = useStore((state) => state);
+    const { settings, setSearchTarget } = useStore((state) => state);
     const workshopId = settings.selectedWorkshop?.id;
     const [appointments, setAppointments] = useState<AppointmentEventData[]>([])
     const [estimates, setEstimates] = useState<Estimate[]>([])
@@ -157,22 +157,12 @@ export default function Planner() {
                         const { appointment, estimate } = extendedProps;
 
                         if (estimate) {
-                            return <Popover
-                                trigger="click"
-                                title={<>Preventivo #{estimate.id}</>}
-                                content={<Descriptions size="small" column={1} bordered labelStyle={{ fontWeight: 600 }}>
-                                    <Descriptions.Item label="Cliente">{estimate.customer_name}</Descriptions.Item>
-                                    <Descriptions.Item label="Targa">{estimate.car_number_plate}</Descriptions.Item>
-                                    <Descriptions.Item label="Data">{estimate.date}</Descriptions.Item>
-                                    {estimate.total != null && <Descriptions.Item label="Totale">
-                                        <Tag color="blue">{Number(estimate.total).toFixed(2)} €</Tag>
-                                    </Descriptions.Item>}
-                                </Descriptions>}
+                            return <div
+                                style={{ fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 2px', cursor: 'pointer' }}
+                                onClick={() => setSearchTarget({ table: 'estimates', id: estimate.id, action: 'detail' })}
                             >
-                                <div style={{ fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 2px', cursor: 'pointer' }}>
-                                    {estimate.customer_name} · {estimate.car_number_plate}
-                                </div>
-                            </Popover>;
+                                {estimate.customer_name} · {estimate.car_number_plate}
+                            </div>;
                         }
 
                         if (!appointment) return null;

@@ -41,16 +41,12 @@ export default function Customers() {
     }, [customers, mobileSearch]);
 
     useEffect(() => {
-        if (searchTarget?.table !== "customers" || !customers.length) return;
+        if (searchTarget?.table !== "customers" || searchTarget.action !== "edit" || !customers.length) return;
         const target = customers.find((c) => c.id === searchTarget.id);
         setSearchTarget(undefined);
         if (target) {
-            if (searchTarget.action === "edit") {
-                setSelectedCustomer(target);
-                setOpen(true);
-            } else {
-                setDetailCustomer(target);
-            }
+            setSelectedCustomer(target);
+            setOpen(true);
         }
     }, [searchTarget, customers]);
 

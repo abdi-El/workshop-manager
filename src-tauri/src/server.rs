@@ -377,6 +377,16 @@ async fn list_cars(
     }
 }
 
+async fn get_car(
+    State(db): State<Db>,
+    Path(id): Path<i64>,
+) -> ApiResult<Json<Value>> {
+    let conn = lock(&db)?;
+    let sql = format!("{CARS_BASE_QUERY} WHERE cars.id = ?1");
+    let rows = query_rows(&conn, &sql, &[SqlValue::Integer(id)])?;
+    Ok(Json(rows.into_iter().next().unwrap_or(Value::Null)))
+}
+
 async fn get_customer_cars(
     State(db): State<Db>,
     Path(customer_id): Path<i64>,
@@ -1282,7 +1292,7 @@ pub async fn start(db_path: String) {
         // Cars (scoped list with JOINs, soft-delete)
         .route("/api/cars", get(list_cars).post(create_car))
         .route("/api/cars/trash", get(trash_cars))
-        .route("/api/cars/{id}", put(update_car).delete(soft_delete_car))
+        .route("/api/cars/{id}", get(get_car).put(update_car).delete(soft_delete_car))
         .route("/api/cars/{id}/restore", post(restore_car))
         .route("/api/cars/{id}/purge", post(purge_car))
         .route("/api/cars/{id}/history", get(get_car_history))

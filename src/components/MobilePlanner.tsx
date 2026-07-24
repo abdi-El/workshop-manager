@@ -9,7 +9,7 @@ import { AppointmentEventData, Estimate } from "../types/database";
 import AppointmentForm from "./forms/AppointmentForm";
 
 export default function MobilePlanner() {
-    const { settings } = useStore((state) => state);
+    const { settings, setSearchTarget } = useStore((state) => state);
     const workshopId = settings.selectedWorkshop?.id;
     const [appointments, setAppointments] = useState<AppointmentEventData[]>([]);
     const [estimates, setEstimates] = useState<Estimate[]>([]);
@@ -161,7 +161,9 @@ export default function MobilePlanner() {
                     </Card>
                 ))}
                 {dayEstimates.map(e => (
-                    <Card key={`est-${e.id}`} size="small" style={{ marginBottom: 8, borderLeft: '3px solid #1677ff' }}>
+                    <Card key={`est-${e.id}`} size="small" hoverable style={{ marginBottom: 8, borderLeft: '3px solid #1677ff' }}
+                        onClick={() => setSearchTarget({ table: 'estimates', id: e.id, action: 'detail' })}
+                    >
                         <Space direction="vertical" size={2}>
                             <Space>
                                 <FileTextOutlined style={{ color: '#1677ff' }} />
