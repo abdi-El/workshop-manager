@@ -1,5 +1,5 @@
 import { CalendarOutlined, CarOutlined, DashboardOutlined, FileTextOutlined, LoadingOutlined, MenuOutlined, SearchOutlined, SettingOutlined, SwapOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
-import { Button, Drawer, Dropdown, Layout, Menu, Row, Spin, theme, Typography } from "antd";
+import { Button, Drawer, Dropdown, Layout, Menu, Spin, theme, Typography } from "antd";
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { api } from '../modules/api';
 import { useIsMobile, useScraper } from '../modules/hooks';
@@ -163,13 +163,14 @@ export default function Paginator() {
                 </ErrorBoundary>
             </div>
         </Spin>
-        {scraping && <div className='scraper'>
-            <Row className='scraper-spinner' >
-                <Spin percent={percentage} tip={"caricamento"} spinning={true} size="large" />
-                <div style={{ marginTop: "15px" }}>
-                    Caricamento: {percentage}%
-                </div>
-            </Row>
+        {scraping && <div style={{
+            position: 'fixed', bottom: 24, right: 24, zIndex: 1000,
+            background: token.colorBgElevated, borderRadius: 12,
+            padding: '12px 20px', boxShadow: token.boxShadowSecondary,
+            display: 'flex', alignItems: 'center', gap: 12,
+        }}>
+            <Spin size="small" />
+            <span>Importazione marche e modelli: {percentage}%</span>
         </div>}
 
     </Layout>

@@ -1,7 +1,7 @@
 import { Grid, message } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { create } from "zustand";
-import { getModelsAndMakers } from "./scraper";
+import { api } from "./api";
 
 export function useIsMobile() {
     const screens = Grid.useBreakpoint();
@@ -48,31 +48,52 @@ interface ScraperState {
     setPercentage: (percentage: number) => void
     loading: boolean,
     trigger: () => void
+    poll: () => void
 }
-export const useScraper = create<ScraperState>()((set) => {
+export const useScraper = create<ScraperState>()((set, get) => {
+    let intervalId: ReturnType<typeof setInterval> | null = null;
+
+    function startPolling() {
+        if (intervalId) return;
+        intervalId = setInterval(() => {
+            api.getScraperStatus().then((status) => {
+                set({ percentage: Math.round(status.progress), loading: status.running });
+                if (!status.running && status.progress >= 100) {
+                    stopPolling();
+                    message.success("Marche e Modelli importati con successo");
+                }
+            }).catch(() => {});
+        }, 2000);
+    }
+
+    function stopPolling() {
+        if (intervalId) {
+            clearInterval(intervalId);
+            intervalId = null;
+        }
+    }
+
     return {
         percentage: 0,
         setPercentage: (percentage: number) => set({ percentage }),
         loading: false,
-        trigger: () => set((curr) => {
-            if (!curr.loading) {
-                set({ percentage: 0 })
-                set({ loading: true })
-                getModelsAndMakers((percentage: number) => {
-                    if (percentage == 100) {
-                        message.success("Marche e Modelli importati con successo")
-                        set({ loading: false })
-                    }
-                    set({ percentage })
-                }).catch((error) => {
-                    message.error("Errore durante l'importazione di marche e modelli: " + error)
-                    set({ loading: false, percentage: 100 })
-                })
-            }
-            return {}
-        }
-        )
-    }
+        trigger: () => {
+            if (get().loading) return;
+            set({ percentage: 0, loading: true });
+            api.triggerScraper()
+                .then(() => startPolling())
+                .catch((e) => {
+                    message.error("Errore: " + e);
+                    set({ loading: false });
+                });
+        },
+        poll: () => {
+            api.getScraperStatus().then((status) => {
+                set({ percentage: Math.round(status.progress), loading: status.running });
+                if (status.running) startPolling();
+            }).catch(() => {});
+        },
+    };
 })
 
 
