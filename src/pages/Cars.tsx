@@ -9,6 +9,7 @@ import CarDetail from "../components/detail/CarDetail";
 import DetailModal from "../components/detail/DetailModal";
 import CarsForm from "../components/forms/CarsForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
+import TrashToggle from "../components/TrashToggle";
 import { api } from "../modules/api";
 import { useDrawerWidth, useIsMobile, useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
@@ -145,9 +146,19 @@ export default function Cars() {
 
     return <>
         <Row justify="end" align="middle" style={{ marginBottom: 16 }}>
-            <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />}>
-                Crea Auto
-            </Button>
+            <Space>
+                <TrashToggle<Car>
+                    workshopId={workshopId}
+                    getTrash={api.getTrashCars}
+                    restore={api.restoreCar}
+                    purge={api.purgeCar}
+                    renderLabel={(c) => `${c.maker_name ?? ""} ${c.model_name ?? ""} — ${c.number_plate}`}
+                    onRestore={reload}
+                />
+                <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />}>
+                    Crea Auto
+                </Button>
+            </Space>
         </Row>
 
         <Drawer

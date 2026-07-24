@@ -9,6 +9,7 @@ import CustomerDetail from "../components/detail/CustomerDetail";
 import DetailModal from "../components/detail/DetailModal";
 import CustomerForm from "../components/forms/CustomerForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
+import TrashToggle from "../components/TrashToggle";
 import { api } from "../modules/api";
 import { useDrawerWidth, useIsMobile, useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
@@ -143,9 +144,19 @@ export default function Customers() {
 
     return <>
         <Row justify="end" align="middle" style={{ marginBottom: 16 }}>
-            <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />} id="CreateNewCustomer">
-                Crea Cliente
-            </Button>
+            <Space>
+                <TrashToggle<Customer>
+                    workshopId={workshopId}
+                    getTrash={api.getTrashCustomers}
+                    restore={api.restoreCustomer}
+                    purge={api.purgeCustomer}
+                    renderLabel={(c) => c.name}
+                    onRestore={reload}
+                />
+                <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />} id="CreateNewCustomer">
+                    Crea Cliente
+                </Button>
+            </Space>
         </Row>
 
         <Drawer

@@ -11,6 +11,7 @@ import EstimatesForm from "../components/forms/EstimatesForm";
 import { lazy } from "react";
 const SaveEstimatePdf = lazy(() => import("../components/pdf/SavePdfButton"));
 import { getColumnSearchProps } from "../components/TableSearchProps";
+import TrashToggle from "../components/TrashToggle";
 import { api } from "../modules/api";
 import { sortBytDate } from "../modules/dates";
 import { useDrawerWidth, useIsMobile, useQuery } from "../modules/hooks";
@@ -194,9 +195,19 @@ export default function Estimates() {
 
     return <>
         <Row justify="end" align="middle" style={{ marginBottom: 16 }}>
-            <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />}>
-                Crea Lavoro
-            </Button>
+            <Space>
+                <TrashToggle<Estimate>
+                    workshopId={workshopId}
+                    getTrash={api.getTrashEstimates}
+                    restore={api.restoreEstimate}
+                    purge={api.purgeEstimate}
+                    renderLabel={(e) => `${e.date} — ${e.customer_name ?? ""} ${e.car_number_plate ?? ""}`}
+                    onRestore={reload}
+                />
+                <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />}>
+                    Crea Lavoro
+                </Button>
+            </Space>
         </Row>
         <Drawer
             title={`${duplicateItems ? "Duplica" : selectedEstimate ? "Aggiorna" : "Crea Nuovo"} Lavoro`}

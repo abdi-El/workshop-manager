@@ -68,6 +68,12 @@ pub fn run() {
             sql: include_str!("../migrations/009_add_notes.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 10,
+            description: "add_soft_delete",
+            sql: include_str!("../migrations/010_add_soft_delete.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()
