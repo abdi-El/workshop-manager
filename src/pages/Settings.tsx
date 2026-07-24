@@ -5,7 +5,7 @@ import {
 import { Button, Card, Collapse, Flex, Popconfirm, QRCode, Segmented, Space, Switch, Typography } from 'antd';
 import { ReactNode, useEffect, useState } from 'react';
 import DefaultEstimateItems from '../components/DefaultEstimateItems';
-import MakersModelsImporter from '../components/MakersModelsImporter';
+import MakersModelsImporter, { MakersCollapseLabel } from '../components/MakersModelsImporter';
 import themes from "../components/pdf/themes.json";
 import ThemeSelector from '../components/pdf/ThemeSelector';
 import { api } from '../modules/api';
@@ -42,7 +42,12 @@ export default function Settings() {
         if (!isTauri()) return;
         fetch("http://localhost:3333/api/lan-url")
             .then(r => r.json())
-            .then(data => setLanUrl(data.url))
+            .then(data => {
+                const url = isDebug
+                    ? (data.url as string).replace(":3333", ":1420")
+                    : data.url;
+                setLanUrl(url);
+            })
             .catch(() => { });
     }, []);
 
@@ -103,7 +108,7 @@ export default function Settings() {
                     <Collapse
                         items={[
                             { key: 'items', label: 'Voci di default', children: <DefaultEstimateItems /> },
-                            { key: 'makers', label: 'Importa marche e modelli', children: <MakersModelsImporter /> },
+                            { key: 'makers', label: <MakersCollapseLabel />, children: <MakersModelsImporter /> },
                         ]}
                     />
                 </Card>
