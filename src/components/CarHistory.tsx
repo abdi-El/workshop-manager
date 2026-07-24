@@ -1,6 +1,7 @@
 import { EyeOutlined, FilePdfOutlined, SaveOutlined } from '@ant-design/icons';
-import { Button, Empty, message, Space, Spin, Tag, Timeline, Tooltip, Typography } from 'antd';
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { Button, Card, Empty, message, Space, Spin, Tag, Timeline, Tooltip, Typography } from 'antd';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
+import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from 'recharts';
 import { api } from '../modules/api';
 import { Car, CarHistoryEntry, Estimate } from '../types/database';
 import DetailModal from './detail/DetailModal';
@@ -25,6 +26,13 @@ export default function CarHistory({ car }: CarHistoryProps) {
         });
     }, [car.id]);
 
+    const kmData = useMemo(() =>
+        (entries ?? [])
+            .filter(e => e.car_kms)
+            .map(e => ({ date: e.date, km: e.car_kms }))
+            .reverse(),
+    [entries]);
+
     function openDetail(estimateId: number) {
         api.getEstimate(estimateId).then((est) => {
             setDetailEstimate({ ...est, has_iva: (est.has_iva as any) == "true" });
@@ -40,6 +48,19 @@ export default function CarHistory({ car }: CarHistoryProps) {
     }
 
     return <>
+        {kmData.length >= 2 && (
+            <Card size="small" title="Andamento chilometraggio" style={{ marginBottom: 16 }}>
+                <ResponsiveContainer width="100%" height={200}>
+                    <LineChart data={kmData}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="date" />
+                        <YAxis tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} width={50} />
+                        <RTooltip formatter={(v) => [`${Number(v).toLocaleString()} km`, "Chilometraggio"]} />
+                        <Line type="monotone" dataKey="km" stroke="#1677ff" strokeWidth={2} dot={{ r: 4 }} />
+                    </LineChart>
+                </ResponsiveContainer>
+            </Card>
+        )}
         <Timeline
             items={entries.map((entry) => ({
                 children: (
