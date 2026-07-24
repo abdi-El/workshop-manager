@@ -1,6 +1,6 @@
 import {
-    BgColorsOutlined, DatabaseOutlined, FilePdfOutlined,
-    LineChartOutlined, MobileOutlined, ToolOutlined
+    DatabaseOutlined, FilePdfOutlined,
+    MobileOutlined, SettingOutlined, ToolOutlined
 } from '@ant-design/icons';
 import { Button, Card, Collapse, Flex, Popconfirm, QRCode, Segmented, Space, Switch, Typography } from 'antd';
 import { ReactNode, useEffect, useState } from 'react';
@@ -54,7 +54,7 @@ export default function Settings() {
     return (
         <div style={{ maxWidth: 820, width: '100%', margin: '0 auto' }}>
             <Space direction="vertical" size={16} style={{ width: '100%' }}>
-                <Card size="small" title={<SectionTitle icon={<BgColorsOutlined />}>Aspetto</SectionTitle>}>
+                <Card size="small" title={<SectionTitle icon={<SettingOutlined />}>Generale</SectionTitle>}>
                     <SettingRow
                         title="Tema applicazione"
                         description="Aspetto chiaro o scuro dell'interfaccia"
@@ -69,9 +69,6 @@ export default function Settings() {
                             />
                         }
                     />
-                </Card>
-
-                <Card size="small" title={<SectionTitle icon={<LineChartOutlined />}>Dashboard</SectionTitle>}>
                     <SettingRow
                         title="Statistiche di fatturato"
                         description="Mostra i dati economici nella dashboard"
@@ -79,6 +76,16 @@ export default function Settings() {
                             <Switch
                                 checked={settings.showRevenueStatistics}
                                 onChange={(checked) => updateSettings({ showRevenueStatistics: checked })}
+                            />
+                        }
+                    />
+                    <SettingRow
+                        title="Preventivi sul calendario"
+                        description="Mostra i preventivi come eventi nel calendario"
+                        control={
+                            <Switch
+                                checked={settings.showEstimatesOnCalendar}
+                                onChange={(checked) => updateSettings({ showEstimatesOnCalendar: checked })}
                             />
                         }
                     />

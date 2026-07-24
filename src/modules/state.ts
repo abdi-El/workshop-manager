@@ -24,7 +24,7 @@ interface AppState {
     setDbReady: (dbReady: boolean) => void
 }
 
-const defaultSettings: SettingsType = { theme: 'light', pdfTheme: 'default', showPdfNumber: true, showRevenueStatistics: true };
+const defaultSettings: SettingsType = { theme: 'light', pdfTheme: 'default', showPdfNumber: true, showRevenueStatistics: true, showEstimatesOnCalendar: true };
 
 export const useStore = create<AppState>()((set) => ({
     isDebug: false,
