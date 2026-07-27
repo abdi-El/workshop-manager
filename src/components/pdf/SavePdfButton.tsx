@@ -62,8 +62,7 @@ export default function SaveEstimatePdf({ estimateId, children }: Props) {
     }
 
     function openPreview() {
-        loadData();
-        setRendered(true);
+        loadData().then(() => setRendered(true));
     }
 
     return <>
