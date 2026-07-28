@@ -141,7 +141,9 @@ export default function MobilePlanner() {
                                     else if (key === "call") window.open(`tel:${a.customer_phone}`);
                                     else if (key === "whatsapp") {
                                         const d = a.customer_phone.replace(/\D/g, "");
-                                        window.open(`https://wa.me/${d.startsWith("39") ? d : `39${d}`}`);
+                                        const num = d.startsWith("39") ? d : `39${d}`;
+                                        const msg = settings.defaultWhatsappMessage ? `?text=${encodeURIComponent(settings.defaultWhatsappMessage)}` : '';
+                                        window.open(`https://wa.me/${num}${msg}`);
                                     } else if (key === "delete") Modal.confirm({
                                         title: "Conferma eliminazione",
                                         content: "Sei sicuro di voler eliminare questo appuntamento?",

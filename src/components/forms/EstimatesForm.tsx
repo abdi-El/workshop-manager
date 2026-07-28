@@ -67,7 +67,7 @@ export default function EstimatesForm({ estimate, initialItems, onSubmit }: Esti
     useEffect(() => {
         if (!estimate) {
             form.resetFields()
-            form.setFieldsValue({ date: dayjs(), labor_hourly_cost: settings.selectedWorkshop?.base_labor_cost, has_iva: true, items: initialItems ?? [{}] })
+            form.setFieldsValue({ date: dayjs(), labor_hourly_cost: settings.selectedWorkshop?.base_labor_cost, has_iva: true, notes: settings.defaultEstimateNotes || undefined, items: initialItems ?? [{}] })
             if (initialItems) setTotal(calculateTotal(form.getFieldsValue()))
         } else {
             populateForm(estimate)

@@ -1,9 +1,9 @@
 import {
-    DatabaseOutlined, FilePdfOutlined,
-    MobileOutlined, SettingOutlined, ToolOutlined
+    CalendarOutlined, CheckOutlined, CloseOutlined, DatabaseOutlined,
+    EditOutlined, FilePdfOutlined, MobileOutlined, SettingOutlined, ToolOutlined
 } from '@ant-design/icons';
-import { Button, Card, Collapse, Flex, Popconfirm, QRCode, Segmented, Space, Switch, Typography } from 'antd';
-import { ReactNode, useEffect, useState } from 'react';
+import { Button, Card, Collapse, Flex, Input, InputNumber, Popconfirm, QRCode, Segmented, Space, Switch, Typography } from 'antd';
+import { ReactNode, useEffect, useMemo, useState } from 'react';
 import DefaultEstimateItems from '../components/DefaultEstimateItems';
 import MakersModelsImporter, { MakersCollapseLabel } from '../components/MakersModelsImporter';
 import themes from "../components/pdf/themes.json";
@@ -15,8 +15,6 @@ import { isTauri } from '../modules/utils';
 
 const { Text } = Typography;
 
-/** A labelled setting row: title + optional description on the left, control on the right.
- *  Wraps and stacks on narrow screens. */
 function SettingRow({ title, description, control }: { title: string; description?: string; control: ReactNode }) {
     return (
         <Flex justify="space-between" align="center" gap={12} wrap style={{ padding: '6px 0' }}>
@@ -31,6 +29,51 @@ function SettingRow({ title, description, control }: { title: string; descriptio
 
 function SectionTitle({ icon, children }: { icon: ReactNode; children: ReactNode }) {
     return <Space>{icon}{children}</Space>;
+}
+
+function EditableCard({ title, icon, fields, onSave }: {
+    title: string;
+    icon: ReactNode;
+    fields: (draft: Record<string, any>, setDraft: (k: string, v: any) => void, editing: boolean) => ReactNode;
+    onSave: (values: Record<string, any>) => void;
+}) {
+    const { settings } = useStore(state => state);
+    const [editing, setEditing] = useState(false);
+    const [draft, setDraftState] = useState<Record<string, any>>({});
+
+    const initial = useMemo(() => ({ ...settings }), [editing]);
+
+    function startEdit() {
+        setDraftState({ ...settings });
+        setEditing(true);
+    }
+
+    function cancel() {
+        setDraftState({});
+        setEditing(false);
+    }
+
+    function save() {
+        onSave(draft);
+        setEditing(false);
+    }
+
+    function setDraft(k: string, v: any) {
+        setDraftState(prev => ({ ...prev, [k]: v }));
+    }
+
+    const hasChanges = editing && Object.keys(draft).some(k => draft[k] !== (initial as any)[k]);
+
+    return <Card size="small" title={<SectionTitle icon={icon}>{title}</SectionTitle>} extra={
+        editing
+            ? <Space size={4}>
+                <Button size="small" icon={<CheckOutlined />} type="primary" disabled={!hasChanges} onClick={save}>Salva</Button>
+                <Button size="small" icon={<CloseOutlined />} danger onClick={cancel}>Annulla</Button>
+            </Space>
+            : <Button size="small" icon={<EditOutlined />} type="primary" onClick={startEdit}>Modifica</Button>
+    }>
+        {fields(editing ? draft : settings as any, setDraft, editing)}
+    </Card>;
 }
 
 export default function Settings() {
@@ -110,6 +153,61 @@ export default function Settings() {
                         <ThemeSelector />
                     </div>
                 </Card>
+
+                <EditableCard
+                    title="Valori predefiniti"
+                    icon={<CalendarOutlined />}
+                    onSave={(values) => updateSettings({
+                        defaultWhatsappMessage: values.defaultWhatsappMessage,
+                        defaultEstimateNotes: values.defaultEstimateNotes,
+                        defaultAppointmentDuration: values.defaultAppointmentDuration,
+                    })}
+                    fields={(draft, setDraft, editing) => <>
+                        <SettingRow
+                            title="Messaggio WhatsApp"
+                            description="Testo precompilato quando contatti un cliente"
+                            control={
+                                <Input.TextArea
+                                    rows={2}
+                                    style={{ width: 260 }}
+                                    placeholder="Buongiorno, la sua auto è pronta..."
+                                    value={draft.defaultWhatsappMessage}
+                                    onChange={(e) => setDraft('defaultWhatsappMessage', e.target.value)}
+                                    disabled={!editing}
+                                />
+                            }
+                        />
+                        <SettingRow
+                            title="Note preventivo"
+                            description="Testo precompilato nelle note dei nuovi preventivi"
+                            control={
+                                <Input.TextArea
+                                    rows={2}
+                                    style={{ width: 260 }}
+                                    placeholder="Condizioni, garanzia, pagamento..."
+                                    value={draft.defaultEstimateNotes}
+                                    onChange={(e) => setDraft('defaultEstimateNotes', e.target.value)}
+                                    disabled={!editing}
+                                />
+                            }
+                        />
+                        <SettingRow
+                            title="Durata appuntamento"
+                            description="Durata predefinita in minuti per nuovi appuntamenti"
+                            control={
+                                <InputNumber
+                                    min={15}
+                                    max={480}
+                                    step={15}
+                                    value={draft.defaultAppointmentDuration}
+                                    onChange={(v) => setDraft('defaultAppointmentDuration', v ?? 60)}
+                                    disabled={!editing}
+                                    addonAfter="min"
+                                />
+                            }
+                        />
+                    </>}
+                />
 
                 <Card size="small" title={<SectionTitle icon={<DatabaseOutlined />}>Anagrafiche e dati</SectionTitle>}>
                     <Collapse

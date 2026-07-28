@@ -8,4 +8,7 @@ export interface SettingsType {
     showPdfNumber: boolean;
     showRevenueStatistics: boolean;
     showEstimatesOnCalendar: boolean;
+    defaultWhatsappMessage: string;
+    defaultEstimateNotes: string;
+    defaultAppointmentDuration: number;
 }
