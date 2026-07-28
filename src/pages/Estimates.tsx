@@ -250,7 +250,7 @@ export default function Estimates() {
         {isMobile ? (
             loading ? <Spin style={{ display: 'block', margin: '40px auto' }} /> :
             <>
-            <Input.Search
+            <Input
                 placeholder="Cerca lavoro..."
                 allowClear
                 onChange={(e) => setMobileSearch(e.target.value)}

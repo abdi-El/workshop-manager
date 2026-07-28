@@ -156,7 +156,7 @@ export default function Paginator() {
 
         <Spin spinning={loading || !dbReady} indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} >
             <div style={{ padding: '0px 10px', marginTop: 74 }}>
-                <Title level={2}>{items[page as keyof typeof items]?.label}</Title>
+                {!isMobile && <Title level={2}>{items[page as keyof typeof items]?.label}</Title>}
                 <ErrorBoundary>
                     <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 200px)' }}><Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} /></div>}>
                         {dbReady && items[page as keyof typeof items]?.page}

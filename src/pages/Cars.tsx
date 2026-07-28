@@ -198,7 +198,7 @@ export default function Cars() {
         {isMobile ? (
             loading ? <Spin style={{ display: 'block', margin: '40px auto' }} /> :
             <>
-            <Input.Search
+            <Input
                 placeholder="Cerca auto..."
                 allowClear
                 onChange={(e) => setMobileSearch(e.target.value)}
