@@ -50,11 +50,15 @@ export interface QueryResult {
 }
 
 export const api = {
-    // Customers (scoped)
+    // Customers (scoped, soft-delete)
+    getCustomer: (id: number) => get<Customer>(`/customers/${id}`),
     getCustomers: (workshopId?: number) => get<Customer[]>(wq("/customers", workshopId)),
     createCustomer: (data: Record<string, unknown>) => post<QueryResult>("/customers", data),
     updateCustomer: (id: number, data: Record<string, unknown>) => put(`/customers/${id}`, data),
     deleteCustomer: (id: number) => del(`/customers/${id}`),
+    getTrashCustomers: (workshopId?: number) => get<Customer[]>(wq("/customers/trash", workshopId)),
+    restoreCustomer: (id: number) => post<void>(`/customers/${id}/restore`),
+    purgeCustomer: (id: number) => post<void>(`/customers/${id}/purge`),
 
     // Workshops
     getWorkshops: () => get<Workshop[]>("/workshops"),
@@ -63,15 +67,21 @@ export const api = {
     updateWorkshop: (id: number, data: Record<string, unknown>) => put(`/workshops/${id}`, data),
     deleteWorkshop: (id: number) => del(`/workshops/${id}`),
 
-    // Cars (scoped)
+    // Cars (scoped, soft-delete)
+    getCar: (id: number) => get<Car>(`/cars/${id}`),
     getCars: (workshopId?: number) => get<Car[]>(wq("/cars", workshopId)),
     createCar: (data: Record<string, unknown>) => post<QueryResult>("/cars", data),
     updateCar: (id: number, data: Record<string, unknown>) => put(`/cars/${id}`, data),
     deleteCar: (id: number) => del(`/cars/${id}`),
+    getTrashCars: (workshopId?: number) => get<Car[]>(wq("/cars/trash", workshopId)),
+    restoreCar: (id: number) => post<void>(`/cars/${id}/restore`),
+    purgeCar: (id: number) => post<void>(`/cars/${id}/purge`),
     getCustomerCars: (customerId: number) => get<Car[]>(`/customers/${customerId}/cars`),
     getCarHistory: (carId: number) => get<CarHistoryEntry[]>(`/cars/${carId}/history`),
 
-    // Makers & Models
+    // Makers & Models (+ scraper)
+    getScraperStatus: () => get<{ running: boolean; progress: number }>("/makers/scraper/status"),
+    triggerScraper: () => post<void>("/makers/scraper/trigger"),
     getMakers: () => get<Maker[]>("/makers"),
     createMaker: (data: Record<string, unknown>) => post<QueryResult>("/makers", data),
     updateMaker: (id: number, data: Record<string, unknown>) => put(`/makers/${id}`, data),
@@ -80,10 +90,13 @@ export const api = {
     createModel: (data: Record<string, unknown>) => post<QueryResult>("/models", data),
     updateModel: (id: number, data: Record<string, unknown>) => put(`/models/${id}`, data),
 
-    // Estimates (scoped)
+    // Estimates (scoped, soft-delete)
     getEstimates: (workshopId?: number) => get<Estimate[]>(wq("/estimates", workshopId)),
     getEstimate: (id: number) => get<Estimate>(`/estimates/${id}`),
     deleteEstimate: (id: number) => del(`/estimates/${id}`),
+    getTrashEstimates: (workshopId?: number) => get<Estimate[]>(wq("/estimates/trash", workshopId)),
+    restoreEstimate: (id: number) => post<void>(`/estimates/${id}/restore`),
+    purgeEstimate: (id: number) => post<void>(`/estimates/${id}/purge`),
     getEstimateItems: (estimateId: number) => get<EstimateItem[]>(`/estimates/${estimateId}/items`),
     getEstimatePdfData: (estimateId: number) => get<{ estimate: Estimate; car: Car; customer: Customer; workshop: Workshop } | null>(`/estimates/${estimateId}/pdf-data`),
     saveEstimate: (estimate: Record<string, unknown>, items: Record<string, unknown>[], estimateId?: number) =>

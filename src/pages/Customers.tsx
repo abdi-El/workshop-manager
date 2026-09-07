@@ -9,6 +9,7 @@ import CustomerDetail from "../components/detail/CustomerDetail";
 import DetailModal from "../components/detail/DetailModal";
 import CustomerForm from "../components/forms/CustomerForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
+import TrashToggle from "../components/TrashToggle";
 import { api } from "../modules/api";
 import { useDrawerWidth, useIsMobile, useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
@@ -40,16 +41,12 @@ export default function Customers() {
     }, [customers, mobileSearch]);
 
     useEffect(() => {
-        if (searchTarget?.table !== "customers" || !customers.length) return;
+        if (searchTarget?.table !== "customers" || searchTarget.action !== "edit" || !customers.length) return;
         const target = customers.find((c) => c.id === searchTarget.id);
         setSearchTarget(undefined);
         if (target) {
-            if (searchTarget.action === "edit") {
-                setSelectedCustomer(target);
-                setOpen(true);
-            } else {
-                setDetailCustomer(target);
-            }
+            setSelectedCustomer(target);
+            setOpen(true);
         }
     }, [searchTarget, customers]);
 
@@ -143,9 +140,19 @@ export default function Customers() {
 
     return <>
         <Row justify="end" align="middle" style={{ marginBottom: 16 }}>
-            <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />} id="CreateNewCustomer">
-                Crea Cliente
-            </Button>
+            <Space>
+                <TrashToggle<Customer>
+                    workshopId={workshopId}
+                    getTrash={api.getTrashCustomers}
+                    restore={api.restoreCustomer}
+                    purge={api.purgeCustomer}
+                    renderLabel={(c) => c.name}
+                    onRestore={reload}
+                />
+                <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />} id="CreateNewCustomer">
+                    Crea Cliente
+                </Button>
+            </Space>
         </Row>
 
         <Drawer
@@ -189,7 +196,7 @@ export default function Customers() {
         {isMobile ? (
             loading ? <Spin style={{ display: 'block', margin: '40px auto' }} /> :
             <>
-            <Input.Search
+            <Input
                 placeholder="Cerca cliente..."
                 allowClear
                 onChange={(e) => setMobileSearch(e.target.value)}

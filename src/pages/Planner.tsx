@@ -15,17 +15,23 @@ import { fromISOFormat, toISOFormat } from '../modules/dates';
 import { useIsMobile } from '../modules/hooks';
 import { useStore } from '../modules/state';
 import "../styles/full-calendar-dark.css";
-import { AppointmentEventData } from '../types/database';
+import { AppointmentEventData, Estimate } from '../types/database';
 
 interface EventProps extends EventImpl {
     extendedProps: {
-        appointment: AppointmentEventData
+        appointment?: AppointmentEventData
+        estimate?: Estimate
     }
+}
+
+function ddmmyyyyToISO(date: string) {
+    const [d, m, y] = date.split('-');
+    return `${y}-${m}-${d}`;
 }
 
 const mapAppointmentsToEvents = (appointments: AppointmentEventData[]) => {
     return appointments.map((appt) => ({
-        id: appt.id.toString(),
+        id: `appt-${appt.id}`,
         title: appt.customer_name || `Appt #${appt.id}`,
         start: toISOFormat(appt.date, appt.from_time),
         end: toISOFormat(appt.date, appt.to_time),
@@ -37,16 +43,35 @@ const mapAppointmentsToEvents = (appointments: AppointmentEventData[]) => {
     }));
 };
 
+const mapEstimatesToEvents = (estimates: Estimate[]) => {
+    return estimates.map((est) => ({
+        id: `est-${est.id}`,
+        title: `${est.customer_name} · ${est.car_number_plate}`,
+        start: ddmmyyyyToISO(est.date),
+        allDay: true,
+        backgroundColor: '#1677ff',
+        borderColor: '#0958d9',
+        extendedProps: {
+            estimate: est,
+        }
+    }));
+};
+
 export default function Planner() {
     const isMobile = useIsMobile();
-    const { settings } = useStore((state) => state);
+    const { settings, setSearchTarget } = useStore((state) => state);
     const workshopId = settings.selectedWorkshop?.id;
     const [appointments, setAppointments] = useState<AppointmentEventData[]>([])
+    const [estimates, setEstimates] = useState<Estimate[]>([])
     const [editing, setEditing] = useState<AppointmentEventData>()
     const [selectedDate, setSelectedDate] = useState<Date>()
 
+    const showEstimates = settings.showEstimatesOnCalendar;
+
     function getData() {
-        api.getPlannerEvents(workshopId).then((res) => setAppointments(res))
+        api.getPlannerEvents(workshopId).then(setAppointments)
+        if (showEstimates) api.getEstimates(workshopId).then(setEstimates)
+        else setEstimates([])
     }
 
     function close() {
@@ -55,18 +80,22 @@ export default function Planner() {
     }
 
     const events = useMemo(() => {
-        return appointments ? mapAppointmentsToEvents(appointments) : [];
-    }, [appointments]);
+        return [
+            ...mapAppointmentsToEvents(appointments),
+            ...mapEstimatesToEvents(estimates),
+        ];
+    }, [appointments, estimates]);
 
     useEffect(() => {
         getData()
-    }, [workshopId])
+    }, [workshopId, showEstimates])
 
 
     const handleEventDrop = (info: any) => {
         const { event } = info;
         const { extendedProps } = event as EventProps;
         const { appointment } = extendedProps;
+        if (!appointment) return;
 
         const newStart = fromISOFormat(event.start.toISOString());
         const newEnd = fromISOFormat(event.end.toISOString());
@@ -79,10 +108,7 @@ export default function Planner() {
         api.updateAppointment(appointment.id, newDates).then(() => {
             setAppointments(prev =>
                 prev.map(appt =>
-                    appt.id === appointment.id ? {
-                        ...appointment,
-                        ...newDates
-                    } : appt
+                    appt.id === appointment.id ? { ...appointment, ...newDates } : appt
                 )
             );
         })
@@ -119,6 +145,7 @@ export default function Planner() {
                         startTime: '08:00',
                         endTime: '18:00',
                     }}
+                    dayMaxEvents={3}
                     eventDrop={handleEventDrop}
                     eventResize={handleEventDrop}
                     editable={true}
@@ -127,7 +154,19 @@ export default function Planner() {
                     eventContent={(eventInfo) => {
                         const { event } = eventInfo;
                         const { extendedProps } = event as EventProps;
-                        const { appointment } = extendedProps;
+                        const { appointment, estimate } = extendedProps;
+
+                        if (estimate) {
+                            return <div
+                                style={{ fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 2px', cursor: 'pointer' }}
+                                onClick={() => setSearchTarget({ table: 'estimates', id: estimate.id, action: 'detail' })}
+                            >
+                                {estimate.customer_name} · {estimate.car_number_plate}
+                            </div>;
+                        }
+
+                        if (!appointment) return null;
+
                         if (eventInfo.view.type === 'dayGridMonth') {
                             return <PlannerEvent appointment={appointment} onDelete={getData} onEdit={(appointment) => { setEditing(appointment) }}>
                                 <div style={{ fontSize: 11, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', padding: '0 2px' }}>

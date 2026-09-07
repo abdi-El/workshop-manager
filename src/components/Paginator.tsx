@@ -1,10 +1,11 @@
 import { CalendarOutlined, CarOutlined, DashboardOutlined, FileTextOutlined, LoadingOutlined, MenuOutlined, SearchOutlined, SettingOutlined, SwapOutlined, ToolOutlined, UserOutlined } from '@ant-design/icons';
-import { Button, Drawer, Dropdown, Layout, Menu, Row, Spin, theme, Typography } from "antd";
+import { Button, Drawer, Dropdown, Layout, Menu, Spin, theme, Typography } from "antd";
 import { lazy, Suspense, useEffect, useState } from 'react';
 import { api } from '../modules/api';
 import { useIsMobile, useScraper } from '../modules/hooks';
 import { useStore } from "../modules/state";
 import { Workshop } from '../types/database';
+import GlobalDetailModal from './detail/GlobalDetailModal';
 import ErrorBoundary from './ErrorBoundary';
 import GlobalSearch from './GlobalSearch';
 
@@ -155,7 +156,7 @@ export default function Paginator() {
 
         <Spin spinning={loading || !dbReady} indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} >
             <div style={{ padding: '0px 10px', marginTop: 74 }}>
-                <Title level={2}>{items[page as keyof typeof items]?.label}</Title>
+                {!isMobile && <Title level={2}>{items[page as keyof typeof items]?.label}</Title>}
                 <ErrorBoundary>
                     <Suspense fallback={<div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 200px)' }}><Spin indicator={<LoadingOutlined style={{ fontSize: 48 }} spin />} /></div>}>
                         {dbReady && items[page as keyof typeof items]?.page}
@@ -163,13 +164,15 @@ export default function Paginator() {
                 </ErrorBoundary>
             </div>
         </Spin>
-        {scraping && <div className='scraper'>
-            <Row className='scraper-spinner' >
-                <Spin percent={percentage} tip={"caricamento"} spinning={true} size="large" />
-                <div style={{ marginTop: "15px" }}>
-                    Caricamento: {percentage}%
-                </div>
-            </Row>
+        <GlobalDetailModal />
+        {scraping && <div style={{
+            position: 'fixed', bottom: 24, right: 24, zIndex: 1000,
+            background: token.colorBgElevated, borderRadius: 12,
+            padding: '12px 20px', boxShadow: token.boxShadowSecondary,
+            display: 'flex', alignItems: 'center', gap: 12,
+        }}>
+            <Spin size="small" />
+            <span>Importazione marche e modelli: {percentage}%</span>
         </div>}
 
     </Layout>

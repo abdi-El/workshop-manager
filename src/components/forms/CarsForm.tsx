@@ -1,8 +1,9 @@
-import { Button, DatePicker, Form, Input, message } from "antd";
+import { Button, DatePicker, Form, Input, message, Alert } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
 import { api } from "../../modules/api";
 import { OLDEST_CAR_YEAR, transformDate, transofrmYear } from "../../modules/dates";
+import { useScraper } from "../../modules/hooks";
 import { useStore } from "../../modules/state";
 import { parseError } from "../../modules/utils";
 import { Car } from "../../types/database";
@@ -22,6 +23,7 @@ export default function CarsForm({ car, defaultCustomerId, onSubmit }: CarFormPr
     const selectedMaker = Form.useWatch("maker_id", form)
 
     const { settings } = useStore((state) => state);
+    const scraperRunning = useScraper((s) => s.loading);
 
 
     const handleFinish = (values: Omit<Car, "id">) => {
@@ -73,7 +75,13 @@ export default function CarsForm({ car, defaultCustomerId, onSubmit }: CarFormPr
     }, [selectedMaker, car])
 
     return (
-        <Form form={form} layout="vertical" onFinish={handleFinish}>
+        <Form form={form} layout="vertical" onFinish={handleFinish} disabled={scraperRunning}>
+            {scraperRunning && <Alert
+                type="warning"
+                message="Importazione marche e modelli in corso. La creazione auto è temporaneamente disabilitata."
+                showIcon
+                style={{ marginBottom: 16 }}
+            />}
             <CustomerSelect />
             <DatabasResourceSelect resource="makers" selectLabel="name" name="maker_id" inputLabel="Marca" />
             <ModelSelect />

@@ -19,6 +19,16 @@ type SettingsPath = Arc<String>;
 type Db = Arc<Mutex<Connection>>;
 type ApiResult<T> = Result<T, (StatusCode, String)>;
 
+// --- Scraper state ---
+
+#[derive(Clone, Serialize)]
+struct ScraperStatus {
+    running: bool,
+    progress: f32,
+}
+
+type ScraperState = Arc<Mutex<ScraperStatus>>;
+
 fn db_err(e: impl std::fmt::Display) -> (StatusCode, String) {
     (StatusCode::INTERNAL_SERVER_ERROR, e.to_string())
 }
@@ -158,6 +168,23 @@ fn do_delete(conn: &Connection, table: &str, id: i64) -> ApiResult<()> {
     Ok(())
 }
 
+fn do_soft_delete(conn: &Connection, table: &str, id: i64) -> ApiResult<()> {
+    let sql = format!(
+        "UPDATE {} SET deleted_at = datetime('now') WHERE id = ?1",
+        table
+    );
+    conn.execute(&sql, [id]).map_err(db_err)?;
+    Ok(())
+}
+
+fn do_restore(conn: &Connection, table: &str, id: i64) -> ApiResult<()> {
+    let sql = format!("UPDATE {} SET deleted_at = NULL WHERE id = ?1", table);
+    conn.execute(&sql, [id]).map_err(db_err)?;
+    Ok(())
+}
+
+
+
 macro_rules! crud_handlers {
     ($module:ident, $table:literal) => {
         #[allow(dead_code)]
@@ -198,12 +225,93 @@ crud_handlers!(models, "models");
 crud_handlers!(appointments, "appointments");
 crud_handlers!(default_estimate_items, "default_estimate_items");
 
+// Soft-delete overrides for customers, cars, estimates, appointments
+async fn soft_delete_customer(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult<StatusCode> {
+    do_soft_delete(&*lock(&db)?, "customers", id)?;
+    Ok(StatusCode::OK)
+}
+async fn restore_customer(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult<StatusCode> {
+    do_restore(&*lock(&db)?, "customers", id)?;
+    Ok(StatusCode::OK)
+}
+async fn purge_customer(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult<StatusCode> {
+    do_delete(&*lock(&db)?, "customers", id)?;
+    Ok(StatusCode::OK)
+}
+async fn trash_customers(State(db): State<Db>, Query(f): Query<WorkshopFilter>) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    if let Some(wid) = f.workshop_id {
+        Ok(Json(query_rows(&conn,
+            &format!("{CUSTOMERS_BASE_QUERY} WHERE customers.deleted_at IS NOT NULL AND customers.workshop_id = ?1 ORDER BY customers.deleted_at DESC"),
+            &[SqlValue::Integer(wid)])?))
+    } else {
+        Ok(Json(query_rows(&conn,
+            &format!("{CUSTOMERS_BASE_QUERY} WHERE customers.deleted_at IS NOT NULL ORDER BY customers.deleted_at DESC"),
+            &[])?))
+    }
+}
+
+async fn soft_delete_car(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult<StatusCode> {
+    do_soft_delete(&*lock(&db)?, "cars", id)?;
+    Ok(StatusCode::OK)
+}
+async fn restore_car(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult<StatusCode> {
+    do_restore(&*lock(&db)?, "cars", id)?;
+    Ok(StatusCode::OK)
+}
+async fn purge_car(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult<StatusCode> {
+    do_delete(&*lock(&db)?, "cars", id)?;
+    Ok(StatusCode::OK)
+}
+async fn trash_cars(State(db): State<Db>, Query(f): Query<WorkshopFilter>) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    if let Some(wid) = f.workshop_id {
+        let sql = format!("{CARS_BASE_QUERY} WHERE cars.deleted_at IS NOT NULL AND cars.workshop_id = ?1 ORDER BY cars.deleted_at DESC");
+        Ok(Json(query_rows(&conn, &sql, &[SqlValue::Integer(wid)])?))
+    } else {
+        let sql = format!("{CARS_BASE_QUERY} WHERE cars.deleted_at IS NOT NULL ORDER BY cars.deleted_at DESC");
+        Ok(Json(query_rows(&conn, &sql, &[])?))
+    }
+}
+
+async fn soft_delete_estimate(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult<StatusCode> {
+    do_soft_delete(&*lock(&db)?, "estimates", id)?;
+    Ok(StatusCode::OK)
+}
+async fn restore_estimate(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult<StatusCode> {
+    do_restore(&*lock(&db)?, "estimates", id)?;
+    Ok(StatusCode::OK)
+}
+async fn purge_estimate(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult<StatusCode> {
+    do_delete(&*lock(&db)?, "estimates", id)?;
+    Ok(StatusCode::OK)
+}
+async fn trash_estimates(State(db): State<Db>, Query(f): Query<WorkshopFilter>) -> ApiResult<Json<Vec<Value>>> {
+    let conn = lock(&db)?;
+    if let Some(wid) = f.workshop_id {
+        let sql = format!("{ESTIMATES_BASE_QUERY} WHERE estimates.deleted_at IS NOT NULL AND estimates.workshop_id = ?1 ORDER BY estimates.deleted_at DESC");
+        Ok(Json(query_rows(&conn, &sql, &[SqlValue::Integer(wid)])?))
+    } else {
+        let sql = format!("{ESTIMATES_BASE_QUERY} WHERE estimates.deleted_at IS NOT NULL ORDER BY estimates.deleted_at DESC");
+        Ok(Json(query_rows(&conn, &sql, &[])?))
+    }
+}
+
+async fn soft_delete_appointment(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult<StatusCode> {
+    do_soft_delete(&*lock(&db)?, "appointments", id)?;
+    Ok(StatusCode::OK)
+}
+async fn restore_appointment(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult<StatusCode> {
+    do_restore(&*lock(&db)?, "appointments", id)?;
+    Ok(StatusCode::OK)
+}
+
 // --- Workshop-scoped list handlers ---
 
 const CUSTOMERS_BASE_QUERY: &str = "SELECT customers.*, \
     COALESCE(ec.estimate_count, 0) as estimate_count \
     FROM customers \
-    LEFT JOIN (SELECT customer_id, COUNT(*) as estimate_count FROM estimates GROUP BY customer_id) ec \
+    LEFT JOIN (SELECT customer_id, COUNT(*) as estimate_count FROM estimates WHERE deleted_at IS NULL GROUP BY customer_id) ec \
     ON customers.id = ec.customer_id";
 
 async fn list_customers(
@@ -213,11 +321,11 @@ async fn list_customers(
     let conn = lock(&db)?;
     if let Some(wid) = f.workshop_id {
         Ok(Json(query_rows(&conn,
-            &format!("{CUSTOMERS_BASE_QUERY} WHERE customers.workshop_id = ?1 ORDER BY customers.id DESC"),
+            &format!("{CUSTOMERS_BASE_QUERY} WHERE customers.deleted_at IS NULL AND customers.workshop_id = ?1 ORDER BY customers.id DESC"),
             &[SqlValue::Integer(wid)])?))
     } else {
         Ok(Json(query_rows(&conn,
-            &format!("{CUSTOMERS_BASE_QUERY} ORDER BY customers.id DESC"),
+            &format!("{CUSTOMERS_BASE_QUERY} WHERE customers.deleted_at IS NULL ORDER BY customers.id DESC"),
             &[])?))
     }
 }
@@ -226,8 +334,12 @@ async fn list_customers(
 
 async fn create_car(
     State(db): State<Db>,
+    Extension(scraper): Extension<ScraperState>,
     Json(body): Json<Map<String, Value>>,
 ) -> ApiResult<Json<ExecuteResult>> {
+    if scraper.lock().map_err(db_err)?.running {
+        return Err((StatusCode::CONFLICT, "Importazione marche e modelli in corso. Riprova tra poco.".to_string()));
+    }
     Ok(Json(do_create(&*lock(&db)?, "cars", &body)?))
 }
 
@@ -240,15 +352,7 @@ async fn update_car(
     Ok(StatusCode::OK)
 }
 
-async fn delete_car(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult<StatusCode> {
-    do_delete(&*lock(&db)?, "cars", id)?;
-    Ok(StatusCode::OK)
-}
 
-async fn delete_estimate(State(db): State<Db>, Path(id): Path<i64>) -> ApiResult<StatusCode> {
-    do_delete(&*lock(&db)?, "estimates", id)?;
-    Ok(StatusCode::OK)
-}
 
 const CARS_BASE_QUERY: &str = "SELECT cars.id as car_id,
     cars.model_id, cars.maker_id, cars.*,
@@ -265,12 +369,22 @@ async fn list_cars(
 ) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
     if let Some(wid) = f.workshop_id {
-        let sql = format!("{CARS_BASE_QUERY} WHERE cars.workshop_id = ?1 ORDER BY cars.id DESC");
+        let sql = format!("{CARS_BASE_QUERY} WHERE cars.deleted_at IS NULL AND cars.workshop_id = ?1 ORDER BY cars.id DESC");
         Ok(Json(query_rows(&conn, &sql, &[SqlValue::Integer(wid)])?))
     } else {
-        let sql = format!("{CARS_BASE_QUERY} ORDER BY cars.id DESC");
+        let sql = format!("{CARS_BASE_QUERY} WHERE cars.deleted_at IS NULL ORDER BY cars.id DESC");
         Ok(Json(query_rows(&conn, &sql, &[])?))
     }
+}
+
+async fn get_car(
+    State(db): State<Db>,
+    Path(id): Path<i64>,
+) -> ApiResult<Json<Value>> {
+    let conn = lock(&db)?;
+    let sql = format!("{CARS_BASE_QUERY} WHERE cars.id = ?1");
+    let rows = query_rows(&conn, &sql, &[SqlValue::Integer(id)])?;
+    Ok(Json(rows.into_iter().next().unwrap_or(Value::Null)))
 }
 
 async fn get_customer_cars(
@@ -282,7 +396,7 @@ async fn get_customer_cars(
         FROM cars
         LEFT JOIN models as model ON cars.model_id = model.id
         LEFT JOIN makers as maker ON cars.maker_id = maker.id
-        WHERE cars.customer_id = ?1
+        WHERE cars.deleted_at IS NULL AND cars.customer_id = ?1
         ORDER BY cars.id DESC";
     Ok(Json(query_rows(&conn, sql, &[SqlValue::Integer(customer_id)])?))
 }
@@ -307,7 +421,7 @@ async fn get_car_history(
                 GROUP_CONCAT(quantity || '× ' || description, ' · ') as items_descriptions
             FROM estimate_items GROUP BY estimate_id
         ) ei ON e.id = ei.estimate_id
-        WHERE e.car_id = ?1
+        WHERE e.deleted_at IS NULL AND e.car_id = ?1
         ORDER BY DATE(
             SUBSTR(e.date, 7, 4) || '-' ||
             SUBSTR(e.date, 4, 2) || '-' ||
@@ -348,10 +462,10 @@ async fn list_estimates(
 ) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
     if let Some(wid) = f.workshop_id {
-        let sql = format!("{ESTIMATES_BASE_QUERY} WHERE estimates.workshop_id = ?1 ORDER BY estimates.id DESC");
+        let sql = format!("{ESTIMATES_BASE_QUERY} WHERE estimates.deleted_at IS NULL AND estimates.workshop_id = ?1 ORDER BY estimates.id DESC");
         Ok(Json(query_rows(&conn, &sql, &[SqlValue::Integer(wid)])?))
     } else {
-        let sql = format!("{ESTIMATES_BASE_QUERY} ORDER BY estimates.id DESC");
+        let sql = format!("{ESTIMATES_BASE_QUERY} WHERE estimates.deleted_at IS NULL ORDER BY estimates.id DESC");
         Ok(Json(query_rows(&conn, &sql, &[])?))
     }
 }
@@ -489,9 +603,9 @@ async fn get_planner_events(
 ) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
     let (where_clause, params) = if let Some(wid) = f.workshop_id {
-        ("WHERE a.workshop_id = ?1", vec![SqlValue::Integer(wid)])
+        ("WHERE a.deleted_at IS NULL AND a.workshop_id = ?1", vec![SqlValue::Integer(wid)])
     } else {
-        ("", vec![])
+        ("WHERE a.deleted_at IS NULL", vec![])
     };
     let sql = format!("SELECT
         a.id as id, a.workshop_id, a.date, a.from_time, a.to_time,
@@ -530,7 +644,7 @@ async fn get_upcoming_inspections(
         JOIN customers cust ON c.customer_id = cust.id
         JOIN makers ma ON c.maker_id = ma.id
         JOIN models md ON c.model_id = md.id
-        WHERE c.last_inspection_date IS NOT NULL
+        WHERE c.deleted_at IS NULL AND c.last_inspection_date IS NOT NULL
         {extra_where}
         AND (
             DATE(
@@ -567,9 +681,9 @@ async fn dashboard_averages(
 ) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
     let (where_clause, params) = if let Some(wid) = f.workshop_id {
-        ("WHERE e.workshop_id = ?1", vec![SqlValue::Integer(wid)])
+        ("WHERE e.deleted_at IS NULL AND e.workshop_id = ?1", vec![SqlValue::Integer(wid)])
     } else {
-        ("", vec![])
+        ("WHERE e.deleted_at IS NULL", vec![])
     };
     let sql = format!("SELECT
         COUNT(*) as total_estimates,
@@ -597,9 +711,9 @@ async fn dashboard_brands(
 ) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
     let (where_clause, params) = if let Some(wid) = f.workshop_id {
-        ("WHERE c.workshop_id = ?1", vec![SqlValue::Integer(wid)])
+        ("WHERE c.deleted_at IS NULL AND c.workshop_id = ?1", vec![SqlValue::Integer(wid)])
     } else {
-        ("", vec![])
+        ("WHERE c.deleted_at IS NULL", vec![])
     };
     let sql = format!("SELECT m.name as brand_name, COUNT(c.id) as car_count
         FROM cars c JOIN makers m ON c.maker_id = m.id
@@ -619,7 +733,7 @@ async fn dashboard_cars_by_year(
         ("", vec![])
     };
     let sql = format!("SELECT year, COUNT(*) as car_count
-        FROM cars WHERE year IS NOT NULL {extra_where}
+        FROM cars WHERE deleted_at IS NULL AND year IS NOT NULL {extra_where}
         GROUP BY year ORDER BY year ASC");
     Ok(Json(query_rows(&conn, &sql, &params)?))
 }
@@ -630,9 +744,9 @@ async fn dashboard_revenue(
 ) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
     let (where_clause, params) = if let Some(wid) = f.workshop_id {
-        ("WHERE e.workshop_id = ?1", vec![SqlValue::Integer(wid)])
+        ("WHERE e.deleted_at IS NULL AND e.workshop_id = ?1", vec![SqlValue::Integer(wid)])
     } else {
-        ("", vec![])
+        ("WHERE e.deleted_at IS NULL", vec![])
     };
     let sql = format!("SELECT
         SUBSTR(e.date, 7, 4) || '-' || SUBSTR(e.date, 4, 2) as month,
@@ -657,9 +771,9 @@ async fn dashboard_top_customers(
 ) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
     let (where_clause, params) = if let Some(wid) = f.workshop_id {
-        ("WHERE e.workshop_id = ?1", vec![SqlValue::Integer(wid)])
+        ("WHERE e.deleted_at IS NULL AND e.workshop_id = ?1", vec![SqlValue::Integer(wid)])
     } else {
-        ("", vec![])
+        ("WHERE e.deleted_at IS NULL", vec![])
     };
     let sql = format!("SELECT
         c.name as customer_name,
@@ -686,9 +800,9 @@ async fn dashboard_estimates_per_month(
 ) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
     let (where_clause, params) = if let Some(wid) = f.workshop_id {
-        ("WHERE e.workshop_id = ?1", vec![SqlValue::Integer(wid)])
+        ("WHERE e.deleted_at IS NULL AND e.workshop_id = ?1", vec![SqlValue::Integer(wid)])
     } else {
-        ("", vec![])
+        ("WHERE e.deleted_at IS NULL", vec![])
     };
     let sql = format!("SELECT
         SUBSTR(e.date, 7, 4) || '-' || SUBSTR(e.date, 4, 2) as month,
@@ -706,9 +820,9 @@ async fn dashboard_top_items(
 ) -> ApiResult<Json<Vec<Value>>> {
     let conn = lock(&db)?;
     let (where_clause, params) = if let Some(wid) = f.workshop_id {
-        ("WHERE e.workshop_id = ?1", vec![SqlValue::Integer(wid)])
+        ("WHERE e.deleted_at IS NULL AND e.workshop_id = ?1", vec![SqlValue::Integer(wid)])
     } else {
-        ("", vec![])
+        ("WHERE e.deleted_at IS NULL", vec![])
     };
     let sql = format!("SELECT
         ei.description,
@@ -751,7 +865,7 @@ async fn global_search(
 
     let customers = query_rows(&conn,
         &format!("SELECT id, name, phone, email FROM customers
-        WHERE (LOWER(name) LIKE ?1
+        WHERE deleted_at IS NULL AND (LOWER(name) LIKE ?1
             OR LOWER(COALESCE(phone, '')) LIKE ?1
             OR LOWER(COALESCE(email, '')) LIKE ?1
             OR LOWER(COALESCE(address, '')) LIKE ?1)
@@ -765,7 +879,7 @@ async fn global_search(
         FROM cars
         LEFT JOIN makers as maker ON cars.maker_id = maker.id
         LEFT JOIN models as model ON cars.model_id = model.id
-        WHERE (LOWER(cars.number_plate) LIKE ?1
+        WHERE cars.deleted_at IS NULL AND (LOWER(cars.number_plate) LIKE ?1
             OR LOWER(COALESCE(maker.name, '')) LIKE ?1
             OR LOWER(COALESCE(model.name, '')) LIKE ?1)
         {wid_car}
@@ -777,7 +891,7 @@ async fn global_search(
         FROM estimates e
         LEFT JOIN cars as car ON e.car_id = car.id
         LEFT JOIN customers as customer ON e.customer_id = customer.id
-        WHERE (LOWER(COALESCE(customer.name, '')) LIKE ?1
+        WHERE e.deleted_at IS NULL AND (LOWER(COALESCE(customer.name, '')) LIKE ?1
             OR LOWER(COALESCE(car.number_plate, '')) LIKE ?1
             OR e.date LIKE ?1)
         {wid_est}
@@ -935,6 +1049,194 @@ async fn serve_embedded(req: axum::extract::Request) -> Response {
     }
 }
 
+// --- Scraper ---
+
+const MAKERS_URL: &str = "https://it.wikipedia.org/w/api.php?action=query&cmlimit=500&cmtitle=Categoria%3AAutomobili_per_marca&list=categorymembers&format=json";
+
+fn models_url(title: &str) -> String {
+    format!(
+        "https://it.wikipedia.org/w/api.php?action=query&list=categorymembers&cmtitle={}&cmlimit=500&format=json",
+        title.replace(' ', "_")
+    )
+}
+
+fn format_model_name(name: &str, maker_name: &str) -> String {
+    name.to_uppercase()
+        .replace(maker_name, "")
+        .replace("CATEGORIA:", "")
+        .replace('"', "")
+        .trim()
+        .to_string()
+}
+
+async fn fetch_wikipedia(client: &reqwest::Client, url: &str) -> Result<Value, String> {
+    for attempt in 0..5u32 {
+        match client.get(url).send().await {
+            Ok(resp) => match resp.json::<Value>().await {
+                Ok(val) => return Ok(val),
+                Err(e) => {
+                    if attempt == 4 { return Err(e.to_string()); }
+                    tokio::time::sleep(std::time::Duration::from_millis(2000 * 2u64.pow(attempt))).await;
+                }
+            },
+            Err(e) => {
+                if attempt == 4 { return Err(e.to_string()); }
+                tokio::time::sleep(std::time::Duration::from_millis(2000 * 2u64.pow(attempt))).await;
+            }
+        }
+    }
+    Err("max retries".to_string())
+}
+
+fn upsert_maker(conn: &Connection, name: &str) -> i64 {
+    let existing: Option<i64> = conn
+        .query_row("SELECT id FROM makers WHERE name = ?1", [name], |r| r.get(0))
+        .ok();
+    if let Some(id) = existing {
+        id
+    } else {
+        conn.execute("INSERT INTO makers (name) VALUES (?1)", [name]).ok();
+        conn.last_insert_rowid()
+    }
+}
+
+fn upsert_model(conn: &Connection, name: &str, maker_id: i64) {
+    let exists: bool = conn
+        .query_row(
+            "SELECT 1 FROM models WHERE name = ?1 AND maker_id = ?2",
+            rusqlite::params![name, maker_id],
+            |_| Ok(true),
+        )
+        .unwrap_or(false);
+    if !exists {
+        conn.execute(
+            "INSERT INTO models (name, maker_id) VALUES (?1, ?2)",
+            rusqlite::params![name, maker_id],
+        ).ok();
+    }
+}
+
+async fn run_scraper(db: Db, scraper: ScraperState) {
+    let client = reqwest::Client::builder()
+        .user_agent("WorkshopManager/3.5 (gestionale officina; ab@alfred.xyz)")
+        .build()
+        .unwrap();
+
+    let makers_json = match fetch_wikipedia(&client, MAKERS_URL).await {
+        Ok(v) => v,
+        Err(e) => {
+            eprintln!("Scraper: failed to fetch makers: {}", e);
+            let mut s = scraper.lock().unwrap();
+            s.running = false;
+            return;
+        }
+    };
+
+    let members = makers_json["query"]["categorymembers"]
+        .as_array()
+        .cloned()
+        .unwrap_or_default();
+
+    let total = members.len() as f32;
+
+    for (i, maker) in members.iter().enumerate() {
+        let title = maker["title"].as_str().unwrap_or("");
+        let maker_name = title
+            .replace("Categoria:Automobili ", "")
+            .to_uppercase();
+
+        let maker_id = {
+            let conn = db.lock().unwrap();
+            upsert_maker(&conn, &maker_name)
+        };
+
+        tokio::time::sleep(std::time::Duration::from_millis(500)).await;
+
+        match fetch_wikipedia(&client, &models_url(title)).await {
+            Err(e) => eprintln!("Scraper: skip {} — {}", maker_name, e),
+            Ok(models_json) => {
+                if let Some(model_members) = models_json["query"]["categorymembers"].as_array() {
+                    let conn = db.lock().unwrap();
+                    for model in model_members {
+                        let model_name = format_model_name(
+                            model["title"].as_str().unwrap_or(""),
+                            &maker_name,
+                        );
+                        let invalid = model_name.contains(" DA COMPETIZIONE")
+                            || model_name.contains("CONCEPT CAR")
+                            || model_name.contains("MODELLI");
+                        if !invalid && !model_name.is_empty() {
+                            upsert_model(&conn, &model_name, maker_id);
+                        }
+                    }
+                }
+            }
+        }
+
+        {
+            let mut s = scraper.lock().unwrap();
+            s.progress = ((i + 1) as f32 / total * 100.0).round();
+        }
+    }
+
+    {
+        let conn = db.lock().unwrap();
+        let other_id = upsert_maker(&conn, "ALTRA MARCA");
+        upsert_model(&conn, "ALTRO MODELLO", other_id);
+    }
+
+    {
+        let mut s = scraper.lock().unwrap();
+        s.running = false;
+        s.progress = 100.0;
+    }
+    println!("Scraper: completato");
+}
+
+fn start_scraper_if_needed(db: &Db, scraper: &ScraperState) {
+    let count: i64 = {
+        let conn = db.lock().unwrap();
+        conn.query_row("SELECT COUNT(*) FROM makers", [], |r| r.get(0))
+            .unwrap_or(0)
+    };
+    if count == 0 {
+        let mut s = scraper.lock().unwrap();
+        if s.running { return; }
+        s.running = true;
+        s.progress = 0.0;
+        drop(s);
+        let db = db.clone();
+        let scraper = scraper.clone();
+        tokio::spawn(run_scraper(db, scraper));
+        println!("Scraper: avviato automaticamente (tabella makers vuota)");
+    }
+}
+
+async fn get_scraper_status(
+    Extension(scraper): Extension<ScraperState>,
+) -> Json<ScraperStatus> {
+    let s = scraper.lock().unwrap();
+    Json(s.clone())
+}
+
+async fn trigger_scraper(
+    State(db): State<Db>,
+    Extension(scraper): Extension<ScraperState>,
+) -> ApiResult<StatusCode> {
+    {
+        let mut s = scraper.lock().map_err(db_err)?;
+        if s.running {
+            return Err((StatusCode::CONFLICT, "Scraper già in corso".to_string()));
+        }
+        s.running = true;
+        s.progress = 0.0;
+    }
+    let db = db.clone();
+    let scraper = scraper.clone();
+    tokio::spawn(run_scraper(db, scraper));
+    Ok(StatusCode::OK)
+}
+
 // --- Router ---
 
 pub async fn start(db_path: String) {
@@ -942,6 +1244,13 @@ pub async fn start(db_path: String) {
     conn.execute_batch("PRAGMA journal_mode=WAL;").expect("Failed to set WAL mode");
     conn.busy_timeout(std::time::Duration::from_secs(5)).expect("Failed to set busy timeout");
     let db: Db = Arc::new(Mutex::new(conn));
+
+    let scraper_status: ScraperState = Arc::new(Mutex::new(ScraperStatus {
+        running: false,
+        progress: 0.0,
+    }));
+
+    start_scraper_if_needed(&db, &scraper_status);
 
     let settings_path: SettingsPath = Arc::new(
         std::path::Path::new(&db_path)
@@ -961,32 +1270,44 @@ pub async fn start(db_path: String) {
                 .unwrap_or_else(|_| "http://localhost:3333".to_string());
             Json(json!({ "url": ip }))
         }))
-        // Customers (scoped list, generic CRUD)
+        // Customers (scoped list, generic CRUD, soft-delete)
         .route("/api/customers", get(list_customers).post(customers::create))
-        .route("/api/customers/{id}", get(customers::get).put(customers::update).delete(customers::delete))
+        .route("/api/customers/trash", get(trash_customers))
+        .route("/api/customers/{id}", get(customers::get).put(customers::update).delete(soft_delete_customer))
+        .route("/api/customers/{id}/restore", post(restore_customer))
+        .route("/api/customers/{id}/purge", post(purge_customer))
         .route("/api/customers/{id}/cars", get(get_customer_cars))
         // Workshops
         .route("/api/workshops", get(workshops::list).post(workshops::create))
         .route("/api/workshops/{id}", get(workshops::get).put(workshops::update).delete(workshops::delete))
-        // Makers
+        // Makers + scraper
         .route("/api/makers", get(makers::list).post(makers::create))
         .route("/api/makers/count", get(makers_count))
         .route("/api/makers/{id}", get(makers::get).put(makers::update).delete(makers::delete))
+        .route("/api/makers/scraper/status", get(get_scraper_status))
+        .route("/api/makers/scraper/trigger", post(trigger_scraper))
         // Models
         .route("/api/models", get(models::list).post(models::create))
         .route("/api/models/{id}", get(models::get).put(models::update).delete(models::delete))
-        // Cars (scoped list with JOINs, dedicated write handlers)
+        // Cars (scoped list with JOINs, soft-delete)
         .route("/api/cars", get(list_cars).post(create_car))
-        .route("/api/cars/{id}", put(update_car).delete(delete_car))
+        .route("/api/cars/trash", get(trash_cars))
+        .route("/api/cars/{id}", get(get_car).put(update_car).delete(soft_delete_car))
+        .route("/api/cars/{id}/restore", post(restore_car))
+        .route("/api/cars/{id}/purge", post(purge_car))
         .route("/api/cars/{id}/history", get(get_car_history))
-        // Estimates (scoped list with JOINs; create/update are transactional)
+        // Estimates (scoped list with JOINs; create/update transactional, soft-delete)
         .route("/api/estimates", get(list_estimates).post(create_estimate))
-        .route("/api/estimates/{id}", get(get_estimate).put(update_estimate).delete(delete_estimate))
+        .route("/api/estimates/trash", get(trash_estimates))
+        .route("/api/estimates/{id}", get(get_estimate).put(update_estimate).delete(soft_delete_estimate))
+        .route("/api/estimates/{id}/restore", post(restore_estimate))
+        .route("/api/estimates/{id}/purge", post(purge_estimate))
         .route("/api/estimates/{id}/items", get(get_estimate_items))
         .route("/api/estimates/{id}/pdf-data", get(get_estimate_pdf_data))
-        // Appointments
+        // Appointments (soft-delete)
         .route("/api/appointments", post(appointments::create))
-        .route("/api/appointments/{id}", get(appointments::get).put(appointments::update).delete(appointments::delete))
+        .route("/api/appointments/{id}", get(appointments::get).put(appointments::update).delete(soft_delete_appointment))
+        .route("/api/appointments/{id}/restore", post(restore_appointment))
         // Default estimate items
         .route("/api/default-estimate-items/search", get(search_default_estimate_items))
         .route("/api/default_estimate_items", get(default_estimate_items::list).post(default_estimate_items::create))
@@ -1007,6 +1328,7 @@ pub async fn start(db_path: String) {
         .route("/api/settings/{key}", get(get_setting).put(put_setting).delete(delete_setting))
         .with_state(db)
         .layer(Extension(settings_path))
+        .layer(Extension(scraper_status))
         .layer(CorsLayer::permissive())
         .fallback(get(serve_embedded));
 

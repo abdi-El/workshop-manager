@@ -11,6 +11,7 @@ import EstimatesForm from "../components/forms/EstimatesForm";
 import { lazy } from "react";
 const SaveEstimatePdf = lazy(() => import("../components/pdf/SavePdfButton"));
 import { getColumnSearchProps } from "../components/TableSearchProps";
+import TrashToggle from "../components/TrashToggle";
 import { api } from "../modules/api";
 import { sortBytDate } from "../modules/dates";
 import { useDrawerWidth, useIsMobile, useQuery } from "../modules/hooks";
@@ -52,16 +53,12 @@ export default function Estimates() {
     }, [estimates, mobileSearch]);
 
     useEffect(() => {
-        if (searchTarget?.table !== "estimates" || !estimates.length) return;
+        if (searchTarget?.table !== "estimates" || searchTarget.action !== "edit" || !estimates.length) return;
         const target = estimates.find((e) => e.id === searchTarget.id);
         setSearchTarget(undefined);
         if (target) {
-            if (searchTarget.action === "edit") {
-                setSelectedEstimate(target);
-                setOpen(true);
-            } else {
-                setDetailEstimate(target);
-            }
+            setSelectedEstimate(target);
+            setOpen(true);
         }
     }, [searchTarget, estimates]);
 
@@ -194,9 +191,19 @@ export default function Estimates() {
 
     return <>
         <Row justify="end" align="middle" style={{ marginBottom: 16 }}>
-            <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />}>
-                Crea Lavoro
-            </Button>
+            <Space>
+                <TrashToggle<Estimate>
+                    workshopId={workshopId}
+                    getTrash={api.getTrashEstimates}
+                    restore={api.restoreEstimate}
+                    purge={api.purgeEstimate}
+                    renderLabel={(e) => `${e.date} — ${e.customer_name ?? ""} ${e.car_number_plate ?? ""}`}
+                    onRestore={reload}
+                />
+                <Button type="primary" onClick={showDrawer} icon={<PlusOutlined />}>
+                    Crea Lavoro
+                </Button>
+            </Space>
         </Row>
         <Drawer
             title={`${duplicateItems ? "Duplica" : selectedEstimate ? "Aggiorna" : "Crea Nuovo"} Lavoro`}
@@ -243,7 +250,7 @@ export default function Estimates() {
         {isMobile ? (
             loading ? <Spin style={{ display: 'block', margin: '40px auto' }} /> :
             <>
-            <Input.Search
+            <Input
                 placeholder="Cerca lavoro..."
                 allowClear
                 onChange={(e) => setMobileSearch(e.target.value)}

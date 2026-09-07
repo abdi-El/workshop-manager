@@ -32,6 +32,18 @@ No test suite exists. Type-check with `yarn build` (tsc + vite).
 
 A desktop app ("Gestionale Officina") for Italian automotive workshops. Manages customers, vehicles, repair estimates, appointments, and workshop profiles. Fully offline — all data in a local SQLite database. UI labels are in Italian.
 
+### Key Features
+- **Multi-workshop** — switch between workshops, data isolated per workshop
+- **Global search** — search across customers, cars, and estimates
+- **Car history** — timeline of all interventions per car with km tracking and chart
+- **Detail modals** — unified detail/edit/delete views for all entities
+- **Duplicate estimate** — clone an existing estimate with all its items
+- **PDF export** — generate/save/preview estimate PDFs with multiple themes
+- **Auto-update** — in-app update checker via `tauri-plugin-updater`
+- **Mobile access** — responsive layout + LAN access via QR code from Settings
+- **WhatsApp quick link** — direct link to customer's WhatsApp from contact info
+- **Notes** — free text notes on customers and cars
+
 ---
 
 ## Project Structure
@@ -43,17 +55,22 @@ src/
     buttons/        # Delete, Edit button components
     pdf/            # PDF layout components for estimate export
     dashboard/      # Charts and statistics widgets
-    dropdowns/      # Dropdown/select wrappers
+    detail/         # Detail modal views for each entity
     inputs/         # Input field wrappers
     selects/        # Select field wrappers
-    tours/          # Onboarding tour components
+    CarHistory.tsx  # Timeline + km chart for car interventions
+    CustomerCars.tsx # Cars list within customer detail
+    GlobalSearch.tsx # Cross-entity search overlay
+    UpdateChecker.tsx # In-app auto-update component
+    Paginator.tsx   # Main layout with navigation menu
   pages/            # Top-level page components (Dashboard, Estimates, Customers, …)
   modules/          # All business logic and side effects
+    api.ts          # HTTP client — all CRUD calls to backend server
     state.ts        # Zustand store definitions
-    database.ts     # Generic CRUD helpers (create/update/delete/select)
-    queries.ts      # Complex SQL queries with joins
-    hooks.ts        # Custom hooks (useScraper, useTour)
+    hooks.ts        # Custom hooks (useScraper, useQuery, useIsMobile, useDrawerWidth)
     scraper.ts      # Wikipedia car makes/models scraper
+    search.ts       # Search helpers
+    store.ts        # Persistent key-value store helpers
     dates.ts        # Date formatting utilities
     pricing.ts      # Pricing calculations
     utils.ts        # Miscellaneous helpers
@@ -66,10 +83,10 @@ src/
 
 src-tauri/
   src/
-    lib.rs          # Tauri setup + SQLite migration runner
+    lib.rs          # Tauri setup + SQLite migration runner + HTTP server
     main.rs         # Entry point
     commands.rs     # IPC commands (fetch proxy for Wikipedia scraper)
-  migrations/       # 8 ordered SQL migration files (001–008)
+  migrations/       # 9 ordered SQL migration files (001–009)
   tauri.conf.json   # App config: identifier, window size, plugins
   Cargo.toml        # Rust dependencies
 ```
@@ -86,13 +103,13 @@ src-tauri/
 
 ### State
 - Access stores with destructuring: `const { property } = useStore((state) => state)`
-- DB mutations go through `modules/database.ts` helpers, then update Zustand state
-- Async DB calls use `.then()/.catch()` — no `async/await` in components
+- DB mutations go through `modules/api.ts` HTTP calls
+- Async calls use `.then()/.catch()` — no `async/await` in components
 
 ### Database
-- All raw SQL lives in `modules/database.ts` (generic CRUD) or `modules/queries.ts` (complex joins)
-- Always use parameterized queries — never string-interpolate user values into SQL
-- Ant Design `message.success/error()` for user feedback after DB operations
+- All DB access is through the Rust backend REST API — frontend uses `modules/api.ts`
+- Raw SQL lives in the Rust backend, not in the frontend
+- Ant Design `message.success/error()` for user feedback after API operations
 
 ### Naming
 - Components and types: `PascalCase`
@@ -124,15 +141,19 @@ src-tauri/
 | `appointments` | customer_id, car_id, estimate_id, date, start_time, end_time |
 | `default_estimate_items` | reusable line item templates |
 
+Notes: `customers.notes`, `cars.notes` added in migration 009.
+
 New schema changes → add a numbered migration file in `src-tauri/migrations/`. Never edit existing migrations.
 
 ---
 
-## Tauri IPC
+## Architecture
 
-- Frontend calls Rust via `invoke("command_name", { args })` from `@tauri-apps/api/core`
-- The only custom command is a fetch proxy (`commands.rs`) used by the Wikipedia scraper to bypass CORS
-- Plugins in use: `sql`, `store`, `fs`, `dialog`, `http`, `opener`
+- **Backend:** Rust HTTP server (localhost:3333) exposes REST API for all CRUD operations
+- **Frontend:** React SPA calls backend via `modules/api.ts` (fetch-based HTTP client)
+- Frontend does NOT call SQLite directly — all DB access goes through the Rust backend API
+- The only Tauri IPC command is a fetch proxy (`commands.rs`) for the Wikipedia scraper (CORS bypass)
+- Plugins in use: `sql`, `store`, `fs`, `dialog`, `http`, `opener`, `updater`, `process`
 
 ---
 

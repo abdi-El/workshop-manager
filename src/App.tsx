@@ -15,12 +15,12 @@ dayjs.extend(updateLocale);
 
 export default function Page() {
   const { settings, updateSettings, setIsDebug, setDbReady } = useStore((state) => state)
-  const { setPercentage } = useScraper()
+  const { poll } = useScraper()
   async function initApp() {
     setIsDebug(await fetchIsDebug());
     setDbReady(true);
     updateSettings();
-    setPercentage(100);
+    poll();
   }
 
   useEffect(() => {

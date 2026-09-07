@@ -23,13 +23,20 @@ export default function AppointmentForm({ estimateId, appointmentId, initialData
     const [form] = Form.useForm()
     const { settings } = useStore(state => state)
     const selectedEstimate = Form.useWatch("estimate_id", form)
+    const fromTime: dayjs.Dayjs | undefined = Form.useWatch("from_time", form)
+    const duration = settings.defaultAppointmentDuration || 60
 
     useEffect(() => {
         if (!appointmentId) {
             form.resetFields()
-        }
-        if (initialData && !appointmentId) {
-            form.setFieldsValue(initialData)
+            const start = initialData?.from_time
+                ? dayjs(initialData.from_time)
+                : dayjs().minute(Math.ceil(dayjs().minute() / 15) * 15).second(0)
+            form.setFieldsValue({
+                ...initialData,
+                from_time: start,
+                to_time: start.add(duration, 'minute'),
+            })
         }
         if (appointmentId) {
             api.getAppointment(appointmentId).then((data) => {
@@ -104,14 +111,32 @@ export default function AppointmentForm({ estimateId, appointmentId, initialData
             name="from_time"
             rules={[{ required: true, message: "Inserire Inizio" }]}
         >
-            <TimePicker needConfirm={false} format={TIME_FORMAT} />
+            <TimePicker needConfirm={false} format={TIME_FORMAT} onChange={(time) => {
+                if (time && !appointmentId) form.setFieldValue("to_time", time.add(duration, 'minute'));
+            }} />
         </Form.Item>
         <Form.Item
             label="Fine"
             name="to_time"
             rules={[{ required: true, message: "Inserire Fine" }]}
         >
-            <TimePicker needConfirm={false} format={TIME_FORMAT} />
+            <TimePicker
+                needConfirm={false}
+                format={TIME_FORMAT}
+                disabled={!fromTime}
+                disabledTime={() => {
+                    if (!fromTime) return {};
+                    const startHour = fromTime.hour();
+                    const startMinute = fromTime.minute();
+                    return {
+                        disabledHours: () => Array.from({ length: startHour }, (_, i) => i),
+                        disabledMinutes: (hour: number) =>
+                            hour === startHour
+                                ? Array.from({ length: startMinute + 1 }, (_, i) => i)
+                                : [],
+                    };
+                }}
+            />
         </Form.Item>
 
         <Form.Item>

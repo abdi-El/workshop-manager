@@ -1,34 +1,42 @@
-import { DeleteOutlined, EditOutlined, LeftOutlined, PhoneOutlined, PlusOutlined, RightOutlined, WhatsAppOutlined } from "@ant-design/icons";
+import { DeleteOutlined, EditOutlined, FileTextOutlined, LeftOutlined, PhoneOutlined, PlusOutlined, RightOutlined, WhatsAppOutlined } from "@ant-design/icons";
 import { Badge, Button, Calendar, Card, Dropdown, Empty, message, Modal, Row, Space, Tag, Typography } from "antd";
 import dayjs, { Dayjs } from "dayjs";
 import { useEffect, useMemo, useState } from "react";
 import { api } from "../modules/api";
 import { DATE_FORMAT } from "../modules/dates";
 import { useStore } from "../modules/state";
-import { AppointmentEventData } from "../types/database";
+import { AppointmentEventData, Estimate } from "../types/database";
 import AppointmentForm from "./forms/AppointmentForm";
 
 export default function MobilePlanner() {
-    const { settings } = useStore((state) => state);
+    const { settings, setSearchTarget } = useStore((state) => state);
     const workshopId = settings.selectedWorkshop?.id;
     const [appointments, setAppointments] = useState<AppointmentEventData[]>([]);
+    const [estimates, setEstimates] = useState<Estimate[]>([]);
     const [currentDate, setCurrentDate] = useState(dayjs());
     const [editing, setEditing] = useState<AppointmentEventData>();
     const [creating, setCreating] = useState(false);
 
+    const showEstimates = settings.showEstimatesOnCalendar;
+
     function load() {
         api.getPlannerEvents(workshopId).then(setAppointments);
+        if (showEstimates) api.getEstimates(workshopId).then(setEstimates);
+        else setEstimates([]);
     }
 
-    useEffect(load, [workshopId]);
+    useEffect(load, [workshopId, showEstimates]);
 
-    const appointmentsByDate = useMemo(() => {
+    const countsByDate = useMemo(() => {
         const map = new Map<string, number>();
         for (const a of appointments) {
             map.set(a.date, (map.get(a.date) ?? 0) + 1);
         }
+        for (const e of estimates) {
+            map.set(e.date, (map.get(e.date) ?? 0) + 1);
+        }
         return map;
-    }, [appointments]);
+    }, [appointments, estimates]);
 
     const dayAppointments = useMemo(() => {
         const dateStr = currentDate.format(DATE_FORMAT);
@@ -37,13 +45,18 @@ export default function MobilePlanner() {
             .sort((a, b) => a.from_time.localeCompare(b.from_time));
     }, [appointments, currentDate]);
 
+    const dayEstimates = useMemo(() => {
+        const dateStr = currentDate.format(DATE_FORMAT);
+        return estimates.filter(e => e.date === dateStr);
+    }, [estimates, currentDate]);
+
     function closeModal() {
         setEditing(undefined);
         setCreating(false);
     }
 
     function cellRender(date: Dayjs) {
-        const count = appointmentsByDate.get(date.format(DATE_FORMAT)) ?? 0;
+        const count = countsByDate.get(date.format(DATE_FORMAT)) ?? 0;
         return count > 0 ? <Badge count={count} size="small" style={{ position: "absolute", top: -2, right: -2 }} /> : null;
     }
 
@@ -93,8 +106,8 @@ export default function MobilePlanner() {
             style={{ marginBottom: 12 }}
         />
 
-        {dayAppointments.length === 0 ? (
-            <Empty description="Nessun appuntamento" style={{ marginTop: 40 }}>
+        {dayAppointments.length === 0 && dayEstimates.length === 0 ? (
+            <Empty description="Nessun evento" style={{ marginTop: 40 }}>
                 <Button type="primary" icon={<PlusOutlined />} onClick={() => setCreating(true)}>
                     Crea appuntamento
                 </Button>
@@ -102,7 +115,7 @@ export default function MobilePlanner() {
         ) : (
             <>
                 {dayAppointments.map(a => (
-                    <Card key={a.id} size="small" style={{ marginBottom: 8 }}>
+                    <Card key={`appt-${a.id}`} size="small" style={{ marginBottom: 8 }}>
                         <Row justify="space-between" align="top">
                             <Space direction="vertical" size={2} style={{ flex: 1 }}>
                                 <Space>
@@ -128,7 +141,9 @@ export default function MobilePlanner() {
                                     else if (key === "call") window.open(`tel:${a.customer_phone}`);
                                     else if (key === "whatsapp") {
                                         const d = a.customer_phone.replace(/\D/g, "");
-                                        window.open(`https://wa.me/${d.startsWith("39") ? d : `39${d}`}`);
+                                        const num = d.startsWith("39") ? d : `39${d}`;
+                                        const msg = settings.defaultWhatsappMessage ? `?text=${encodeURIComponent(settings.defaultWhatsappMessage)}` : '';
+                                        window.open(`https://wa.me/${num}${msg}`);
                                     } else if (key === "delete") Modal.confirm({
                                         title: "Conferma eliminazione",
                                         content: "Sei sicuro di voler eliminare questo appuntamento?",
@@ -145,6 +160,20 @@ export default function MobilePlanner() {
                                 <Button type="text" icon={<EditOutlined />} />
                             </Dropdown>
                         </Row>
+                    </Card>
+                ))}
+                {dayEstimates.map(e => (
+                    <Card key={`est-${e.id}`} size="small" hoverable style={{ marginBottom: 8, borderLeft: '3px solid #1677ff' }}
+                        onClick={() => setSearchTarget({ table: 'estimates', id: e.id, action: 'detail' })}
+                    >
+                        <Space direction="vertical" size={2}>
+                            <Space>
+                                <FileTextOutlined style={{ color: '#1677ff' }} />
+                                <Typography.Text strong>{e.customer_name}</Typography.Text>
+                            </Space>
+                            <Typography.Text type="secondary">{e.car_number_plate} {e.maker_name && `· ${e.maker_name}`}</Typography.Text>
+                            {e.total != null && <Tag color="blue">{Number(e.total).toFixed(2)} €</Tag>}
+                        </Space>
                     </Card>
                 ))}
                 <Row justify="center" style={{ marginTop: 16 }}>
