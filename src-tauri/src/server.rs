@@ -595,6 +595,49 @@ async fn update_estimate(
     Ok(StatusCode::OK)
 }
 
+async fn toggle_estimate_paid(
+    State(db): State<Db>,
+    Path(id): Path<i64>,
+    body: Option<Json<Map<String, Value>>>,
+) -> ApiResult<StatusCode> {
+    let conn = lock(&db)?;
+    let rows = query_rows(&conn, "SELECT is_paid FROM estimates WHERE id = ?1", &[SqlValue::Integer(id)])?;
+    let current = rows.first()
+        .and_then(|r| r.get("is_paid"))
+        .map(|v| v.as_str() == Some("true") || v.as_i64() == Some(1) || v.as_bool() == Some(true))
+        .unwrap_or(false);
+
+    if !current {
+        let paid_at = body.as_ref()
+            .and_then(|b| b.get("paid_at"))
+            .and_then(|v| v.as_str())
+            .map(|s| s.to_string());
+        if let Some(date) = paid_at {
+            conn.execute("UPDATE estimates SET is_paid = 1, paid_at = ?1 WHERE id = ?2", rusqlite::params![date, id]).map_err(db_err)?;
+        } else {
+            conn.execute("UPDATE estimates SET is_paid = 1 WHERE id = ?1", [id]).map_err(db_err)?;
+        }
+    } else {
+        conn.execute("UPDATE estimates SET is_paid = 0, paid_at = NULL WHERE id = ?1", [id]).map_err(db_err)?;
+    }
+    Ok(StatusCode::OK)
+}
+
+async fn set_estimate_paid_at(
+    State(db): State<Db>,
+    Path(id): Path<i64>,
+    Json(body): Json<Map<String, Value>>,
+) -> ApiResult<StatusCode> {
+    let conn = lock(&db)?;
+    let paid_at = body.get("paid_at").and_then(|v| v.as_str()).map(|s| s.to_string());
+    if let Some(date) = paid_at {
+        conn.execute("UPDATE estimates SET paid_at = ?1 WHERE id = ?2 AND is_paid = 1", rusqlite::params![date, id]).map_err(db_err)?;
+    } else {
+        conn.execute("UPDATE estimates SET paid_at = NULL WHERE id = ?1", [id]).map_err(db_err)?;
+    }
+    Ok(StatusCode::OK)
+}
+
 // --- Planner ---
 
 async fn get_planner_events(
@@ -1304,6 +1347,8 @@ pub async fn start(db_path: String) {
         .route("/api/estimates/{id}/purge", post(purge_estimate))
         .route("/api/estimates/{id}/items", get(get_estimate_items))
         .route("/api/estimates/{id}/pdf-data", get(get_estimate_pdf_data))
+        .route("/api/estimates/{id}/toggle-paid", post(toggle_estimate_paid))
+        .route("/api/estimates/{id}/paid-at", put(set_estimate_paid_at))
         // Appointments (soft-delete)
         .route("/api/appointments", post(appointments::create))
         .route("/api/appointments/{id}", get(appointments::get).put(appointments::update).delete(soft_delete_appointment))

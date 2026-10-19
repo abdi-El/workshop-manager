@@ -33,9 +33,15 @@ export default function EstimatesForm({ estimate, initialItems, onSubmit }: Esti
     const customer_id = Form.useWatch("customer_id", form)
     const [total, setTotal] = useState(0);
     const has_iva = Form.useWatch("has_iva", form)
+    const is_paid = Form.useWatch("is_paid", form)
 
     const handleFinish = (values: Omit<Estimate, "id">) => {
         values.date = dayjs(values.date).format(DATE_FORMAT);
+        if (values.paid_at) {
+            values.paid_at = dayjs(values.paid_at).format(DATE_FORMAT);
+        } else {
+            values.paid_at = null;
+        }
         values.workshop_id = settings?.selectedWorkshop?.id as number;
         const { items, ...rest } = values as any;
         api.saveEstimate(rest as any, items, estimate?.id).then(() => {
@@ -55,6 +61,8 @@ export default function EstimatesForm({ estimate, initialItems, onSubmit }: Esti
         form.setFieldsValue({
             ...estimate,
             date: dayjs(estimate.date, DATE_FORMAT),
+            is_paid: (estimate as any).is_paid == "true" || (estimate as any).is_paid === 1 || (estimate as any).is_paid === true,
+            paid_at: estimate.paid_at ? dayjs(estimate.paid_at, DATE_FORMAT) : undefined,
         });
         if (initialItems) {
             form.setFieldValue("items", initialItems);
@@ -67,12 +75,13 @@ export default function EstimatesForm({ estimate, initialItems, onSubmit }: Esti
     useEffect(() => {
         if (!estimate) {
             form.resetFields()
-            form.setFieldsValue({ date: dayjs(), labor_hourly_cost: settings.selectedWorkshop?.base_labor_cost, has_iva: true, notes: settings.defaultEstimateNotes || undefined, items: initialItems ?? [{}] })
+            form.setFieldsValue({ date: dayjs(), labor_hourly_cost: settings.selectedWorkshop?.base_labor_cost, has_iva: true, is_paid: false, notes: settings.defaultEstimateNotes || undefined, items: initialItems ?? [{}] })
             if (initialItems) setTotal(calculateTotal(form.getFieldsValue()))
         } else {
             populateForm(estimate)
         }
     }, [estimate, initialItems])
+
 
 
     useEffect(() => {
@@ -144,6 +153,26 @@ export default function EstimatesForm({ estimate, initialItems, onSubmit }: Esti
                     style={{ display: "flex", justifyContent: "space-evenly" }}
                 >
                     <Checkbox />
+                </Form.Item>
+            </Row>
+
+            <Row>
+                <Form.Item
+                    label="Pagato"
+                    name="is_paid"
+                    valuePropName="checked"
+                    className="w-50"
+                    style={{ display: "flex", justifyContent: "space-evenly" }}
+                >
+                    <Checkbox />
+                </Form.Item>
+                <Form.Item
+                    label="Data Pagamento"
+                    name="paid_at"
+                    className="w-50"
+                    style={is_paid ? undefined : { display: "none" }}
+                >
+                    <DatePicker format={DATE_FORMAT} className="w-100" />
                 </Form.Item>
             </Row>
 

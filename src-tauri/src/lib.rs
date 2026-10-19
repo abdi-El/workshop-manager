@@ -74,6 +74,12 @@ pub fn run() {
             sql: include_str!("../migrations/010_add_soft_delete.sql"),
             kind: MigrationKind::Up,
         },
+        Migration {
+            version: 11,
+            description: "add_payment_status",
+            sql: include_str!("../migrations/011_add_payment_status.sql"),
+            kind: MigrationKind::Up,
+        },
     ];
 
     tauri::Builder::default()

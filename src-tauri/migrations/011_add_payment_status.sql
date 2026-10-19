@@ -1,0 +1,2 @@
+ALTER TABLE estimates ADD COLUMN is_paid INTEGER DEFAULT 0;
+ALTER TABLE estimates ADD COLUMN paid_at TEXT;

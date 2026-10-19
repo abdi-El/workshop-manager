@@ -55,6 +55,8 @@ export type Estimate = {
     discount?: number | null;
     car_kms: number;
     has_iva: boolean;
+    is_paid?: boolean;
+    paid_at?: string | null;
     appointment_id?: Appointment["id"];
     total?: number;
     notes?: string | null;
