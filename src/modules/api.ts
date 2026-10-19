@@ -104,6 +104,9 @@ export const api = {
             ? put(`/estimates/${estimateId}`, { estimate, items })
             : post<QueryResult>("/estimates", { estimate, items }),
 
+    toggleEstimatePaid: (id: number, paid_at?: string) => post<void>(`/estimates/${id}/toggle-paid`, paid_at ? { paid_at } : undefined),
+    setEstimatePaidAt: (id: number, paid_at: string | null) => put(`/estimates/${id}/paid-at`, { paid_at }),
+
     // Appointments
     getAppointment: (id: number) => get<Appointment>(`/appointments/${id}`),
     createAppointment: (data: Record<string, unknown>) => post<QueryResult>("/appointments", data),

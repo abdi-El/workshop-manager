@@ -1,5 +1,5 @@
 import { CalendarOutlined, CopyOutlined, DeleteOutlined, EditOutlined, EyeOutlined, FilePdfOutlined, MoreOutlined, PlusOutlined, SaveOutlined } from "@ant-design/icons";
-import { Button, Card, Drawer, Dropdown, Input, InputRef, List, message, Modal, Row, Space, Spin, Table, Typography } from "antd";
+import { Button, Card, Drawer, Dropdown, Input, InputRef, List, message, Modal, Row, Space, Spin, Table, Tag, Tooltip, Typography } from "antd";
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 
 import DeleteButton from "../components/buttons/DeleteButton";
@@ -32,7 +32,7 @@ export default function Estimates() {
     const workshopId = settings.selectedWorkshop?.id;
     const { data: estimateRows, loading, reload } = useQuery<Estimate>(() => api.getEstimates(workshopId), [workshopId])
     const estimates = useMemo(() => {
-        return estimateRows.map((r) => ({ ...r, has_iva: (r.has_iva as any) == "true" }))
+        return estimateRows.map((r) => ({ ...r, has_iva: (r.has_iva as any) == "true", is_paid: (r.is_paid as any) == "true" || (r.is_paid as any) === 1 || (r.is_paid as any) === true }))
     }, [estimateRows])
     const [selectedEstimate, setSelectedEstimate] = useState<Estimate>();
     const [detailEstimate, setDetailEstimate] = useState<Estimate>();
@@ -40,6 +40,15 @@ export default function Estimates() {
     const [duplicateItems, setDuplicateItems] = useState<import("../types/database").EstimateItem[]>();
     const [mobileSearch, setMobileSearch] = useState("");
     const searchInput = useRef<InputRef>(null);
+
+    const togglePaid = (es: Estimate) => {
+        api.toggleEstimatePaid(es.id)
+            .then(() => {
+                message.success(es.is_paid ? "Segnato come non pagato" : "Segnato come pagato");
+                reload();
+            })
+            .catch((e) => message.error("Errore: " + e));
+    };
 
     const filteredEstimates = useMemo(() => {
         if (!mobileSearch) return estimates;
@@ -113,6 +122,31 @@ export default function Estimates() {
             render: (cost: number) => `€ ${cost}`,
         },
         {
+            title: "Stato",
+            dataIndex: "is_paid",
+            key: "is_paid",
+            width: 110,
+            render: (_: unknown, es: Estimate) => {
+                const tag = (
+                    <Tag
+                        color={es.is_paid ? "green" : "red"}
+                        style={{ cursor: "pointer" }}
+                        onClick={() => togglePaid(es)}
+                    >
+                        {es.is_paid ? "Pagato" : "Non pagato"}
+                    </Tag>
+                );
+                return es.is_paid
+                    ? <Tooltip title={es.paid_at || "Data non settata"}>{tag}</Tooltip>
+                    : tag;
+            },
+            filters: [
+                { text: "Pagato", value: true },
+                { text: "Non pagato", value: false },
+            ],
+            onFilter: (value: boolean, record: Estimate) => record.is_paid === value,
+        },
+        {
             title: "Totale",
             dataIndex: "total",
             key: "total",
@@ -182,7 +216,7 @@ export default function Estimates() {
 
     const duplicateEstimate = (es: Estimate) => {
         api.getEstimateItems(es.id).then((items) => {
-            const { id, total, customer_name, car_number_plate, maker_name, workshop_name, appointment_id, ...rest } = es as any;
+            const { id, total, customer_name, car_number_plate, maker_name, workshop_name, appointment_id, is_paid, paid_at, ...rest } = es as any;
             setSelectedEstimate(rest);
             setDuplicateItems(items);
             setOpen(true);
@@ -285,6 +319,14 @@ export default function Estimates() {
                                 <Typography.Text type="secondary">{es.date}</Typography.Text>
                                 <span>{es.car_number_plate}</span>
                             </Space>
+                            <Space>
+                                <Tag
+                                    color={es.is_paid ? "green" : "red"}
+                                    style={{ cursor: "pointer" }}
+                                    onClick={() => togglePaid(es)}
+                                >
+                                    {es.is_paid ? "Pagato" : "Non pagato"}
+                                </Tag>
                             <Suspense fallback={<Button icon={<MoreOutlined />} />}>
                                 <SaveEstimatePdf estimateId={es.id}>
                                     {({ save, preview }) => (
@@ -326,6 +368,7 @@ export default function Estimates() {
                                     )}
                                 </SaveEstimatePdf>
                             </Suspense>
+                            </Space>
                         </Row>
                     </Card>
                 )}

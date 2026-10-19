@@ -1,4 +1,4 @@
-import { Descriptions, Space } from "antd";
+import { Descriptions, Space, Tag } from "antd";
 import { getLogoUrl } from "../../modules/utils";
 import { Estimate } from "../../types/database";
 
@@ -26,6 +26,12 @@ export default function EstimateDetail({ estimate }: { estimate: Estimate }) {
             <Descriptions.Item label="IVA">{estimate.has_iva ? "Inclusa" : "Esclusa"}</Descriptions.Item>
             <Descriptions.Item label="Totale">
                 € {(estimate.total ?? 0).toFixed(2)}{!estimate.has_iva ? " + IVA" : ""}
+            </Descriptions.Item>
+            <Descriptions.Item label="Pagamento">
+                <Tag color={estimate.is_paid ? "green" : "red"}>
+                    {estimate.is_paid ? "Pagato" : "Non pagato"}
+                </Tag>
+                {estimate.paid_at && ` il ${estimate.paid_at}`}
             </Descriptions.Item>
             <Descriptions.Item label="Note">{estimate.notes || "—"}</Descriptions.Item>
         </Descriptions>
