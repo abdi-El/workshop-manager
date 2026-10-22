@@ -6,6 +6,7 @@ import updateLocale from 'dayjs/plugin/updateLocale';
 import { useEffect } from "react";
 import Paginator from "./components/Paginator";
 import UpdateChecker from "./components/UpdateChecker";
+import { initAnalytics } from './modules/analytics';
 import { useScraper } from './modules/hooks';
 import { useStore } from './modules/state';
 import { fetchIsDebug } from './modules/utils';
@@ -21,6 +22,7 @@ export default function Page() {
     setDbReady(true);
     updateSettings();
     poll();
+    initAnalytics();
   }
 
   useEffect(() => {

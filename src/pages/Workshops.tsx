@@ -4,6 +4,7 @@ import { useState } from "react";
 import DeleteButton from "../components/buttons/DeleteButton";
 import EditButton from "../components/buttons/EditButton";
 import WorkshopForm from "../components/forms/WorkshopForm";
+import { track } from "../modules/analytics";
 import { api } from "../modules/api";
 import { useDrawerWidth, useIsMobile, useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
@@ -54,12 +55,13 @@ export default function Workshops() {
                 <Space>
                     {settings.selectedWorkshop?.id === ws.id
                         ? <Button size="small" disabled>Attiva</Button>
-                        : <Button size="small" type="primary" onClick={() => updateSettings({ selectedWorkshop: ws })}>Seleziona</Button>
+                        : <Button size="small" type="primary" onClick={() => { track('workshop_switched', { workshop_id: ws.id }); updateSettings({ selectedWorkshop: ws }); }}>Seleziona</Button>
                     }
                     <EditButton onClick={() => { showDrawer(); setSelectedWorkshop(ws) }} />
                     {settings.selectedWorkshop?.id !== ws.id && (
                         <DeleteButton onConfirm={() => {
                             api.deleteWorkshop(ws.id).then(() => {
+                                track('workshop_deleted');
                                 message.success("Eliminato con successo!");
                                 reload();
                             }).catch((e) => message.error("Errore: " + e))
@@ -103,7 +105,7 @@ export default function Workshops() {
                         extra={
                             settings.selectedWorkshop?.id === ws.id
                                 ? <Typography.Text type="success">Attiva</Typography.Text>
-                                : <Button size="small" onClick={() => updateSettings({ selectedWorkshop: ws })}>Seleziona</Button>
+                                : <Button size="small" onClick={() => { track('workshop_switched', { workshop_id: ws.id }); updateSettings({ selectedWorkshop: ws }); }}>Seleziona</Button>
                         }
                     >
                         <Space direction="vertical" size={2} style={{ width: '100%' }}>
@@ -117,6 +119,7 @@ export default function Workshops() {
                                     {settings.selectedWorkshop?.id !== ws.id && (
                                         <DeleteButton onConfirm={() => {
                                             api.deleteWorkshop(ws.id).then(() => {
+                                                track('workshop_deleted');
                                                 message.success("Eliminato con successo!");
                                                 reload();
                                             }).catch((e) => message.error("Errore: " + e))

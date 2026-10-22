@@ -1,6 +1,7 @@
 import { CarOutlined, FileTextOutlined, PhoneOutlined, SearchOutlined, UserOutlined } from '@ant-design/icons';
 import { AutoComplete, Button, Input, InputRef, Typography } from 'antd';
 import { ReactNode, useEffect, useRef, useState } from 'react';
+import { track } from '../modules/analytics';
 import { useDebounce, useIsMobile } from '../modules/hooks';
 import { globalSearch, SearchResult, SearchResultType } from '../modules/search';
 import { useStore } from '../modules/state';
@@ -44,7 +45,10 @@ export default function GlobalSearch({ autoFocus, onSelect: onSelectCallback }: 
         }
         let cancelled = false;
         globalSearch(debouncedValue, workshopId).then((found) => {
-            if (!cancelled) setResults(found);
+            if (!cancelled) {
+                setResults(found);
+                track('search_performed', { query_length: debouncedValue.length, results_count: found.length });
+            }
         }).catch(() => {
             if (!cancelled) setResults([]);
         });

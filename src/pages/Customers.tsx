@@ -10,6 +10,7 @@ import DetailModal from "../components/detail/DetailModal";
 import CustomerForm from "../components/forms/CustomerForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import TrashToggle from "../components/TrashToggle";
+import { track } from "../modules/analytics";
 import { api } from "../modules/api";
 import { useDrawerWidth, useIsMobile, useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
@@ -119,6 +120,7 @@ export default function Customers() {
                             okType: 'danger',
                             cancelText: 'Annulla',
                             onOk: () => api.deleteCustomer(cs.id).then(() => {
+                                track('customer_deleted');
                                 message.success("Eliminato con successo!");
                                 reload();
                             }).catch((e) => message.error("Errore nell'eliminazione: " + e))
@@ -184,6 +186,7 @@ export default function Customers() {
                 </Tooltip>
                 <DeleteButton onConfirm={() => {
                     api.deleteCustomer(detailCustomer.id).then(() => {
+                        track('customer_deleted');
                         message.success("Eliminato con successo!");
                         setDetailCustomer(undefined);
                         reload();
@@ -242,7 +245,7 @@ export default function Customers() {
                                         else if (key === 'edit') { showDrawer(); setSelectedCustomer(cs); }
                                         else if (key === 'cars') setCarsCustomer(cs);
                                         else if (key === 'call') window.open(`tel:${cs.phone}`);
-                                        else if (key === 'whatsapp') { const d = cs.phone.replace(/\D/g, ""); window.open(`https://wa.me/${d.startsWith("39") ? d : `39${d}`}`); }
+                                        else if (key === 'whatsapp') { track('whatsapp_opened'); const d = cs.phone.replace(/\D/g, ""); window.open(`https://wa.me/${d.startsWith("39") ? d : `39${d}`}`); }
                                         else if (key === 'delete') Modal.confirm({
                                             title: 'Conferma eliminazione',
                                             content: 'Sei sicuro di voler eliminare questo cliente?',
@@ -250,6 +253,7 @@ export default function Customers() {
                                             okType: 'danger',
                                             cancelText: 'Annulla',
                                             onOk: () => api.deleteCustomer(cs.id).then(() => {
+                                                track('customer_deleted');
                                                 message.success("Eliminato con successo!");
                                                 reload();
                                             }).catch((e) => message.error("Errore nell'eliminazione: " + e))

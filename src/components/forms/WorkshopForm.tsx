@@ -1,5 +1,6 @@
 import { Button, Form, Input, InputNumber, message } from "antd";
 import React, { useEffect } from "react";
+import { track } from "../../modules/analytics";
 import { api } from "../../modules/api";
 import { Workshop } from "../../types/database";
 
@@ -16,6 +17,7 @@ const WorkshopForm: React.FC<WorkshopFormProps> = ({ workshop = {}, onSubmit }) 
     const handleFinish = (values: Workshop) => {
         if (!workshop.id) {
             api.createWorkshop(values).then(() => {
+                track('workshop_created');
                 message.success("Creato con successo!");
                 form.resetFields();
                 onSubmit(values);

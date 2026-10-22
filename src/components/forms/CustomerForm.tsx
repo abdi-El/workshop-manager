@@ -1,5 +1,6 @@
 import { Button, Form, Input, message } from "antd";
 import React, { useEffect } from "react";
+import { track } from "../../modules/analytics";
 import { api } from "../../modules/api";
 import { useStore } from "../../modules/state";
 import { parseError } from "../../modules/utils";
@@ -19,12 +20,14 @@ const CustomerForm: React.FC<CustomerFormProps> = ({ customer = {}, onSubmit }) 
         }
         if (!customer.id) {
             api.createCustomer({ ...values, "workshop_id": settings.selectedWorkshop?.id }).then((result) => {
+                track('customer_created');
                 message.success("Creato con successo!");
                 form.resetFields();
                 onSubmit(values, result.lastInsertId);
             }).catch(onError);
         } else {
             api.updateCustomer(customer.id, values).then(() => {
+                track('customer_updated');
                 message.success("Aggiornato con successo!");
                 form.resetFields();
                 onSubmit(values);

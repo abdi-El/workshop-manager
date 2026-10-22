@@ -1,5 +1,6 @@
 import { WhatsAppOutlined } from "@ant-design/icons";
 import { Button, Descriptions, Space, Tooltip } from "antd";
+import { track } from "../../modules/analytics";
 import { useIsMobile } from "../../modules/hooks";
 import { useStore } from "../../modules/state";
 import { Customer } from "../../types/database";
@@ -31,6 +32,7 @@ export default function CustomerDetail({ customer }: { customer: Customer }) {
                                 icon={<WhatsAppOutlined style={{ color: "#25D366" }} />}
                                 href={whatsappUrl(customer.phone, settings.defaultWhatsappMessage)}
                                 target="_blank"
+                                onClick={() => track('whatsapp_opened')}
                             />
                         </Tooltip>
                     </Space>

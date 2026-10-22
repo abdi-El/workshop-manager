@@ -1,5 +1,6 @@
 import { Modal, Progress, Typography } from "antd";
 import { useEffect, useState } from "react";
+import { track } from "../modules/analytics";
 import { isTauri } from "../modules/utils";
 
 export default function UpdateChecker() {
@@ -14,6 +15,7 @@ export default function UpdateChecker() {
         const { check } = await import("@tauri-apps/plugin-updater");
         const update = await check().catch(() => null);
         if (!update) return;
+        track('update_checked', { update_available: true, version: update.version });
 
         Modal.confirm({
             title: "Aggiornamento disponibile",
@@ -21,6 +23,7 @@ export default function UpdateChecker() {
             okText: "Aggiorna",
             cancelText: "Più tardi",
             onOk: async () => {
+                track('update_installed', { version: update.version });
                 setProgress(0);
                 let total = 0;
                 let downloaded = 0;

@@ -10,6 +10,7 @@ import DetailModal from "../components/detail/DetailModal";
 import CarsForm from "../components/forms/CarsForm";
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import TrashToggle from "../components/TrashToggle";
+import { track } from "../modules/analytics";
 import { api } from "../modules/api";
 import { useDrawerWidth, useIsMobile, useQuery } from "../modules/hooks";
 import { useStore } from "../modules/state";
@@ -121,6 +122,7 @@ export default function Cars() {
                             okType: 'danger',
                             cancelText: 'Annulla',
                             onOk: () => api.deleteCar(cr.id).then(() => {
+                                track('car_deleted');
                                 message.success("Eliminato con successo!");
                                 reload();
                             }).catch((e) => message.error("Errore nell'eliminazione: " + e))
@@ -186,6 +188,7 @@ export default function Cars() {
                 </Tooltip>
                 <DeleteButton onConfirm={() => {
                     api.deleteCar(detailCar.id).then(() => {
+                        track('car_deleted');
                         message.success("Eliminato con successo!");
                         setDetailCar(undefined);
                         reload();
@@ -250,6 +253,7 @@ export default function Cars() {
                                         okType: 'danger',
                                         cancelText: 'Annulla',
                                         onOk: () => api.deleteCar(cr.id).then(() => {
+                                            track('car_deleted');
                                             message.success("Eliminato con successo!");
                                             reload();
                                         }).catch((e) => message.error("Errore nell'eliminazione: " + e))

@@ -1,6 +1,7 @@
 import { Button, DatePicker, Form, FormProps, message, TimePicker } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
+import { track } from "../../modules/analytics";
 import { api } from "../../modules/api";
 import { DATE_FORMAT, TIME_FORMAT } from "../../modules/dates";
 import { useStore } from "../../modules/state";
@@ -75,11 +76,13 @@ export default function AppointmentForm({ estimateId, appointmentId, initialData
         }
         if (appointmentId) {
             api.updateAppointment(appointmentId, formattedData).then(() => {
+                track('appointment_updated');
                 message.success("Aggiornato con successo!");
                 onExecute();
             })
         } else {
             api.createAppointment(formattedData).then(() => {
+                track('appointment_created');
                 message.success("Creato con successo!");
                 onExecute();
             })

@@ -8,6 +8,7 @@ import DefaultEstimateItems from '../components/DefaultEstimateItems';
 import MakersModelsImporter, { MakersCollapseLabel } from '../components/MakersModelsImporter';
 import themes from "../components/pdf/themes.json";
 import ThemeSelector from '../components/pdf/ThemeSelector';
+import { track } from '../modules/analytics';
 import { api } from '../modules/api';
 import { useIsMobile } from '../modules/hooks';
 import { useStore } from '../modules/state';
@@ -90,6 +91,7 @@ export default function Settings() {
                     ? (data.url as string).replace(":3333", ":1420")
                     : data.url;
                 setLanUrl(url);
+                track('qr_code_viewed');
             })
             .catch(() => { });
     }, []);
@@ -104,7 +106,7 @@ export default function Settings() {
                         control={
                             <Segmented
                                 value={settings.theme}
-                                onChange={(value) => updateSettings({ theme: value as string })}
+                                onChange={(value) => { track('theme_changed', { theme: value }); updateSettings({ theme: value as string }); }}
                                 options={[
                                     { label: 'Chiaro', value: 'light' },
                                     { label: 'Scuro', value: 'dark' },

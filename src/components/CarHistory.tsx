@@ -2,6 +2,7 @@ import { EyeOutlined, FilePdfOutlined, SaveOutlined } from '@ant-design/icons';
 import { Button, Card, Empty, message, Space, Spin, Tag, Timeline, Tooltip, Typography } from 'antd';
 import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip as RTooltip, XAxis, YAxis } from 'recharts';
+import { track } from '../modules/analytics';
 import { api } from '../modules/api';
 import { Car, CarHistoryEntry, Estimate } from '../types/database';
 import DetailModal from './detail/DetailModal';
@@ -20,6 +21,7 @@ export default function CarHistory({ car }: CarHistoryProps) {
         setEntries(undefined);
         api.getCarHistory(car.id).then((rows) => {
             setEntries(rows);
+            track('car_history_viewed', { entries_count: rows.length });
         }).catch((error) => {
             message.error("Errore nel recupero dello storico: " + error);
             setEntries([]);

@@ -4,6 +4,7 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { writeFile } from "@tauri-apps/plugin-fs";
 import { Button, message, Modal } from "antd";
 import { ReactNode, useState } from "react";
+import { track } from "../../modules/analytics";
 import { api } from "../../modules/api";
 import { useStore } from "../../modules/state";
 import { isTauri } from "../../modules/utils";
@@ -50,6 +51,7 @@ export default function SaveEstimatePdf({ estimateId, children }: Props) {
         const blob = await pdf(
             <EstimatePdf {...pdfData as any} items={items as EstimateItem[]} pdfTheme={settings.pdfTheme} showPdfNumber={settings.showPdfNumber} />
         ).toBlob();
+        track('pdf_saved', { estimate_id: estimateId, theme: settings.pdfTheme });
 
         if (isTauri()) {
             const arrayBuffer = await blob.arrayBuffer();
@@ -62,7 +64,10 @@ export default function SaveEstimatePdf({ estimateId, children }: Props) {
     }
 
     function openPreview() {
-        loadData().then(() => setRendered(true));
+        loadData().then(() => {
+            track('pdf_previewed', { estimate_id: estimateId });
+            setRendered(true);
+        });
     }
 
     return <>

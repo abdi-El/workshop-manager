@@ -12,6 +12,7 @@ import { lazy } from "react";
 const SaveEstimatePdf = lazy(() => import("../components/pdf/SavePdfButton"));
 import { getColumnSearchProps } from "../components/TableSearchProps";
 import TrashToggle from "../components/TrashToggle";
+import { track } from "../modules/analytics";
 import { api } from "../modules/api";
 import { sortBytDate } from "../modules/dates";
 import { useDrawerWidth, useIsMobile, useQuery } from "../modules/hooks";
@@ -44,6 +45,7 @@ export default function Estimates() {
     const togglePaid = (es: Estimate) => {
         api.toggleEstimatePaid(es.id)
             .then(() => {
+                track('payment_toggled', { paid: !es.is_paid });
                 message.success(es.is_paid ? "Segnato come non pagato" : "Segnato come pagato");
                 reload();
             })
@@ -191,6 +193,7 @@ export default function Estimates() {
                                         okType: 'danger',
                                         cancelText: 'Annulla',
                                         onOk: () => api.deleteEstimate(es.id).then(() => {
+                                            track('estimate_deleted');
                                             message.success("Eliminato con successo!");
                                             reload();
                                         }).catch((e) => message.error("Errore nell'eliminazione: " + e))
@@ -216,6 +219,7 @@ export default function Estimates() {
 
     const duplicateEstimate = (es: Estimate) => {
         api.getEstimateItems(es.id).then((items) => {
+            track('estimate_duplicated');
             const { id, total, customer_name, car_number_plate, maker_name, workshop_name, appointment_id, is_paid, paid_at, ...rest } = es as any;
             setSelectedEstimate(rest);
             setDuplicateItems(items);
@@ -264,6 +268,7 @@ export default function Estimates() {
                 />
                 <DeleteButton onConfirm={() => {
                     api.deleteEstimate(detailEstimate.id).then(() => {
+                        track('estimate_deleted');
                         message.success("Eliminato con successo!");
                         setDetailEstimate(undefined);
                         reload();
@@ -357,6 +362,7 @@ export default function Estimates() {
                                                     okType: 'danger',
                                                     cancelText: 'Annulla',
                                                     onOk: () => api.deleteEstimate(es.id).then(() => {
+                                                        track('estimate_deleted');
                                                         message.success("Eliminato con successo!");
                                                         reload();
                                                     }).catch((e) => message.error("Errore nell'eliminazione: " + e))

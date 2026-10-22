@@ -1,6 +1,7 @@
 import { Grid, message } from "antd";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { create } from "zustand";
+import { track } from "./analytics";
 import { api } from "./api";
 
 export function useIsMobile() {
@@ -60,6 +61,7 @@ export const useScraper = create<ScraperState>()((set, get) => {
                 set({ percentage: Math.round(status.progress), loading: status.running });
                 if (!status.running && status.progress >= 100) {
                     stopPolling();
+                    track('scraper_completed');
                     message.success("Marche e Modelli importati con successo");
                 }
             }).catch(() => {});
@@ -80,6 +82,7 @@ export const useScraper = create<ScraperState>()((set, get) => {
         trigger: () => {
             if (get().loading) return;
             set({ percentage: 0, loading: true });
+            track('scraper_triggered');
             api.triggerScraper()
                 .then(() => startPolling())
                 .catch((e) => {

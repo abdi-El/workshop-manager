@@ -1,6 +1,7 @@
 import { Button, Checkbox, DatePicker, Form, Input, InputNumber, message, Row, Statistic } from "antd";
 import dayjs from "dayjs";
 import { useEffect, useState } from "react";
+import { endTimer, startTimer, track } from "../../modules/analytics";
 import { api } from "../../modules/api";
 import { DATE_FORMAT } from "../../modules/dates";
 import { useStore } from "../../modules/state";
@@ -45,6 +46,10 @@ export default function EstimatesForm({ estimate, initialItems, onSubmit }: Esti
         values.workshop_id = settings?.selectedWorkshop?.id as number;
         const { items, ...rest } = values as any;
         api.saveEstimate(rest as any, items, estimate?.id).then(() => {
+            const duration = endTimer('estimate_form');
+            const isEdit = !!estimate?.id;
+            track(isEdit ? 'estimate_updated' : 'estimate_created', { items_count: items.length, total, is_edit: isEdit });
+            if (duration !== undefined) track('estimate_form_duration', { duration_seconds: duration, items_count: items.length, is_edit: isEdit });
             message.success("Operazione completata con successo!");
             form.resetFields();
             onSubmit(values);
@@ -73,6 +78,8 @@ export default function EstimatesForm({ estimate, initialItems, onSubmit }: Esti
     }
 
     useEffect(() => {
+        startTimer('estimate_form');
+        track('estimate_form_opened', { is_edit: !!estimate?.id });
         if (!estimate) {
             form.resetFields()
             form.setFieldsValue({ date: dayjs(), labor_hourly_cost: settings.selectedWorkshop?.base_labor_cost, has_iva: true, is_paid: false, notes: settings.defaultEstimateNotes || undefined, items: initialItems ?? [{}] })

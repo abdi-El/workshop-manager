@@ -1,6 +1,7 @@
 import { Button, DatePicker, Form, Input, message, Alert } from "antd";
 import dayjs from "dayjs";
 import { useEffect } from "react";
+import { track } from "../../modules/analytics";
 import { api } from "../../modules/api";
 import { OLDEST_CAR_YEAR, transformDate, transofrmYear } from "../../modules/dates";
 import { useScraper } from "../../modules/hooks";
@@ -39,12 +40,14 @@ export default function CarsForm({ car, defaultCustomerId, onSubmit }: CarFormPr
         }
         if (!car?.id) {
             api.createCar(data).then((result) => {
+                track('car_created', { maker_id: data.maker_id, model_id: data.model_id });
                 message.success("Creato con successo!");
                 form.resetFields();
                 onSubmit(values, result.lastInsertId);
             }).catch(onError);
         } else {
             api.updateCar(car.id, data).then(() => {
+                track('car_updated');
                 message.success("Aggiornato con successo!");
                 form.resetFields();
                 onSubmit(values);
